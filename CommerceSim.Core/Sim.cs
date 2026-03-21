@@ -10,6 +10,11 @@ public class AgentState(int moneyBalance = 0, int resourceBalance = 0)
     public int ResourceBalance { get; set; } = resourceBalance;
 }
 
+public record AgentStateSnapshot(int MoneyBalance, int ResourceBalance)
+{
+    public AgentStateSnapshot(AgentState state) : this(state.MoneyBalance, state.ResourceBalance) { }
+}
+
 public abstract class Decision
 {
 }
@@ -40,7 +45,7 @@ public class Sim
     private readonly Dictionary<Agent, AgentState> _agentStates = [];
     private readonly List<Offer> _availableOffers = [];
 
-    public AgentState GetState(Agent agent) => _agentStates[agent];
+    public AgentStateSnapshot GetState(Agent agent) => new(_agentStates[agent]);
 
     public void InitAgents(params (Agent, AgentState?)[] initialAgents)
     {
@@ -77,8 +82,6 @@ public class Sim
         {
             switch (decision)
             {
-                case DoNothingDecision:
-                    break;
                 case TakeOfferDecision takeOfferDecision:
                     var offer = takeOfferDecision.Offer;
                     _availableOffers.Remove(offer);
