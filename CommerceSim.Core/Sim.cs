@@ -85,21 +85,21 @@ public class Sim
         switch (offer)
         {
             case BuyOffer buyOffer:
-                // transfer resources from seller to buyer, money from buyer to seller
                 buyer = authorState;
                 seller = counterpartyState;
                 break;
             case SellOffer sellOffer:
-                // transfer resources from seller to buyer, money from buyer to seller
                 buyer = counterpartyState;
                 seller = authorState;
                 break;
             default:
                 throw new InvalidOperationException("Unknown offer type");
         }
+        // transfer money from buyer to seller
         buyer.MoneyBalance -= offer.Price;
-        buyer.ResourceBalance += offer.Resources;
         seller.MoneyBalance += offer.Price;
+        // transfer resources from seller to buyer
+        buyer.ResourceBalance += offer.Resources;
         seller.ResourceBalance -= offer.Resources;
     }
 }
