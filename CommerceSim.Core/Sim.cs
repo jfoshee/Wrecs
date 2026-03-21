@@ -4,15 +4,6 @@ public record class Offer(Agent Author, int Price, int Resources);
 public record class BuyOffer(Agent Buyer, int Price, int Resources) : Offer(Buyer, Price, Resources);
 public record class SellOffer(Agent Seller, int Price, int Resources) : Offer(Seller, Price, Resources);
 
-public class AgentState(int moneyBalance = 0, int resourceBalance = 0)
-{
-    public int MoneyBalance { get; set; } = moneyBalance;
-    public int ResourceBalance { get; set; } = resourceBalance;
-
-    public AgentState(AgentStateSnapshot snapshot)
-    : this(snapshot.MoneyBalance, snapshot.ResourceBalance) { }
-}
-
 public record struct AgentStateSnapshot(int MoneyBalance, int ResourceBalance)
 {
     internal AgentStateSnapshot(AgentState state) : this(state.MoneyBalance, state.ResourceBalance) { }
@@ -38,8 +29,18 @@ public class MakeOfferDecision(Offer offer) : Decision
 
 public abstract class Agent
 {
-    // Decide what to do with this tick, given the current state and opportunities
-    public abstract Decision Decide(AgentStateSnapshot state, List<Offer> opportunities);
+    // Decide what to do with this tick, given the current state and available offers
+    public abstract Decision Decide(AgentStateSnapshot state, List<Offer> offers);
+}
+
+// Would prefer this to be internal, but have some unit tests on it...
+public class AgentState(int moneyBalance = 0, int resourceBalance = 0)
+{
+    public int MoneyBalance { get; set; } = moneyBalance;
+    public int ResourceBalance { get; set; } = resourceBalance;
+
+    public AgentState(AgentStateSnapshot snapshot)
+    : this(snapshot.MoneyBalance, snapshot.ResourceBalance) { }
 }
 
 public class Sim
