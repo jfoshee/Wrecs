@@ -54,7 +54,7 @@ public class AgentState(int moneyBalance = 0, int resourceBalance = 0)
     : this(snapshot.MoneyBalance, snapshot.ResourceBalance) { }
 }
 
-public class Sim
+public class Sim : ISimulator
 {
     private readonly List<IAgent> _agents = [];
     private readonly Dictionary<IAgent, AgentState> _agentStates = [];
