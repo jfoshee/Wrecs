@@ -30,8 +30,8 @@ public class BasicScenarios
         var sim = new Sim();
         var agent1 = Mock.Of<Agent>();
         var agent2 = Mock.Of<Agent>();
-        sim.InitAgents((agent1, new(moneyBalance: 4, resourceBalance: 8)),
-                       (agent2, new(moneyBalance: 3, resourceBalance: 7)));
+        sim.InitAgents((agent1, new(MoneyBalance: 4, ResourceBalance: 8)),
+                       (agent2, new(MoneyBalance: 3, ResourceBalance: 7)));
         sim.InitOffers();
 
         sim.Tick();
@@ -46,7 +46,7 @@ public class BasicScenarios
 
     class AlwaysBuyingAgent : Agent
     {
-        public override Decision Decide(AgentState state, List<Offer> opportunities)
+        public override Decision Decide(AgentStateSnapshot _, List<Offer> opportunities)
         {
             // Take first sell offer
             var sellOffer = opportunities.OfType<SellOffer>().First();
@@ -60,8 +60,8 @@ public class BasicScenarios
         var sim = new Sim();
         var buyer = new AlwaysBuyingAgent();
         var seller = Mock.Of<Agent>();
-        sim.InitAgents((buyer, new(moneyBalance: 32, resourceBalance: 9)),
-                       (seller, new(moneyBalance: 64, resourceBalance: 27)));
+        sim.InitAgents((buyer, new(MoneyBalance: 32, ResourceBalance: 9)),
+                       (seller, new(MoneyBalance: 64, ResourceBalance: 27)));
         sim.InitOffers(new SellOffer(Seller: seller, Price: 7, Resources: 5));
 
         sim.Tick();
@@ -76,7 +76,7 @@ public class BasicScenarios
 
     class AlwaysSellingAgent : Agent
     {
-        public override Decision Decide(AgentState state, List<Offer> opportunities)
+        public override Decision Decide(AgentStateSnapshot _, List<Offer> opportunities)
         {
             // Take first buy offer
             var buyOffer = opportunities.OfType<BuyOffer>().First();
@@ -90,8 +90,8 @@ public class BasicScenarios
         var sim = new Sim();
         var seller = new AlwaysSellingAgent();
         var buyer = Mock.Of<Agent>();
-        sim.InitAgents((seller, new(moneyBalance: 32, resourceBalance: 9)),
-                       (buyer, new(moneyBalance: 64, resourceBalance: 27)));
+        sim.InitAgents((seller, new(MoneyBalance: 32, ResourceBalance: 9)),
+                       (buyer, new(MoneyBalance: 64, ResourceBalance: 27)));
         sim.InitOffers(new BuyOffer(Buyer: buyer, Price: 7, Resources: 5));
 
         sim.Tick();
@@ -110,8 +110,8 @@ public class BasicScenarios
         var sim = new Sim();
         var buyer = Mock.Of<Agent>();
         var seller = Mock.Of<Agent>();
-        sim.InitAgents((buyer, new(moneyBalance: 32, resourceBalance: 9)),
-                       (seller, new(moneyBalance: 64, resourceBalance: 27)));
+        sim.InitAgents((buyer, new(MoneyBalance: 32, ResourceBalance: 9)),
+                       (seller, new(MoneyBalance: 64, ResourceBalance: 27)));
         sim.InitOffers(new SellOffer(Seller: seller, Price: 7, Resources: 5),
                        new BuyOffer(Buyer: buyer, Price: 7, Resources: 5));
 

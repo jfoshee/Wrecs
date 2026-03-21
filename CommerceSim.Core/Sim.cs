@@ -8,11 +8,14 @@ public class AgentState(int moneyBalance = 0, int resourceBalance = 0)
 {
     public int MoneyBalance { get; set; } = moneyBalance;
     public int ResourceBalance { get; set; } = resourceBalance;
+
+    public AgentState(AgentStateSnapshot snapshot)
+    : this(snapshot.MoneyBalance, snapshot.ResourceBalance) { }
 }
 
-public record AgentStateSnapshot(int MoneyBalance, int ResourceBalance)
+public record struct AgentStateSnapshot(int MoneyBalance, int ResourceBalance)
 {
-    public AgentStateSnapshot(AgentState state) : this(state.MoneyBalance, state.ResourceBalance) { }
+    internal AgentStateSnapshot(AgentState state) : this(state.MoneyBalance, state.ResourceBalance) { }
 }
 
 public abstract class Decision
@@ -36,7 +39,7 @@ public class MakeOfferDecision(Offer offer) : Decision
 public abstract class Agent
 {
     // Decide what to do with this tick, given the current state and opportunities
-    public abstract Decision Decide(AgentState state, List<Offer> opportunities);
+    public abstract Decision Decide(AgentStateSnapshot state, List<Offer> opportunities);
 }
 
 public class Sim
@@ -47,14 +50,14 @@ public class Sim
 
     public AgentStateSnapshot GetState(Agent agent) => new(_agentStates[agent]);
 
-    public void InitAgents(params (Agent, AgentState?)[] initialAgents)
+    public void InitAgents(params (Agent, AgentStateSnapshot)[] initialAgents)
     {
         _agents.Clear();
         _agentStates.Clear();
         foreach (var (agent, state) in initialAgents)
         {
             _agents.Add(agent);
-            _agentStates[agent] = state ?? new AgentState();
+            _agentStates[agent] = new(state);
         }
     }
 
@@ -73,7 +76,7 @@ public class Sim
         foreach (var agent in _agents)
         {
             var state = _agentStates[agent];
-            var decision = agent.Decide(state, _availableOffers);
+            var decision = agent.Decide(new(state), _availableOffers);
             decisions[agent] = decision;
         }
 
@@ -95,7 +98,9 @@ public class Sim
         }
     }
 
-    public static void ProcessOffer(TakeOfferDecision decision, AgentState authorState, AgentState counterpartyState)
+    public static void ProcessOffer(TakeOfferDecision decision,
+                                    AgentState authorState,
+                                    AgentState counterpartyState)
     {
         var offer = decision.Offer;
         AgentState buyer, seller;
