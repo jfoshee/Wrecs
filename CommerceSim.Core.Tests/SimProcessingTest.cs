@@ -5,7 +5,7 @@ public class SimProcessingTest
     [Fact(DisplayName = "Process Zero Buy Offer")]
     public void ProcessZeroBuyOffer()
     {
-        var buyer = Mock.Of<Agent>();
+        var buyer = Mock.Of<IAgent>();
         var buyerState = new AgentState(moneyBalance: 2, resourceBalance: 3);
         var sellerState = new AgentState(moneyBalance: 4, resourceBalance: 9);
         var offer = new BuyOffer(Buyer: buyer, Price: 0, Resources: 0);
@@ -22,7 +22,7 @@ public class SimProcessingTest
     [Fact(DisplayName = "Process Non-Zero Buy Offer")]
     public void ProcessNonZeroBuyOffer()
     {
-        var buyer = Mock.Of<Agent>();
+        var buyer = Mock.Of<IAgent>();
         var buyerState = new AgentState(moneyBalance: 32, resourceBalance: 9);
         var sellerState = new AgentState(moneyBalance: 64, resourceBalance: 27);
         var offer = new BuyOffer(Buyer: buyer, Price: 7, Resources: 5);
@@ -39,7 +39,7 @@ public class SimProcessingTest
     [Fact(DisplayName = "Process Non-Zero Sell Offer")]
     public void ProcessNonZeroSellOffer()
     {
-        var seller = Mock.Of<Agent>();
+        var seller = Mock.Of<IAgent>();
         var sellerState = new AgentState(moneyBalance: 32, resourceBalance: 9);
         var buyerState = new AgentState(moneyBalance: 64, resourceBalance: 27);
         var offer = new SellOffer(Seller: seller, Price: 7, Resources: 5);

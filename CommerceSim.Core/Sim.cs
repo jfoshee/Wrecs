@@ -1,8 +1,8 @@
 namespace CommerceSim.Core;
 
-public record class Offer(Agent Author, int Price, int Resources);
-public record class BuyOffer(Agent Buyer, int Price, int Resources) : Offer(Buyer, Price, Resources);
-public record class SellOffer(Agent Seller, int Price, int Resources) : Offer(Seller, Price, Resources);
+public record class Offer(IAgent Author, int Price, int Resources);
+public record class BuyOffer(IAgent Buyer, int Price, int Resources) : Offer(Buyer, Price, Resources);
+public record class SellOffer(IAgent Seller, int Price, int Resources) : Offer(Seller, Price, Resources);
 
 public record struct AgentStateSnapshot(int MoneyBalance, int ResourceBalance)
 {
@@ -27,10 +27,21 @@ public class MakeOfferDecision(Offer offer) : Decision
     public Offer Offer { get; } = offer;
 }
 
-public abstract class Agent
+public interface IAgent
 {
-    // Decide what to do with this tick, given the current state and available offers
-    public abstract Decision Decide(AgentStateSnapshot state, List<Offer> offers);
+    /// <summary>
+    /// Returns a unique name for this agent.
+    /// </summary>
+    public string Name { get; }
+
+
+    /// <summary>
+    /// Decide what to do with this tick, given the current state and available offers.
+    /// </summary>
+    /// <param name="state">The current state of the agent.</param>
+    /// <param name="offers">The list of available offers.</param>
+    /// <returns>The decision made by the agent.</returns>
+    public Decision Decide(AgentStateSnapshot state, List<Offer> offers);
 }
 
 // Would prefer this to be internal, but have some unit tests on it...
@@ -45,13 +56,13 @@ public class AgentState(int moneyBalance = 0, int resourceBalance = 0)
 
 public class Sim
 {
-    private readonly List<Agent> _agents = [];
-    private readonly Dictionary<Agent, AgentState> _agentStates = [];
+    private readonly List<IAgent> _agents = [];
+    private readonly Dictionary<IAgent, AgentState> _agentStates = [];
     private readonly List<Offer> _availableOffers = [];
 
-    public AgentStateSnapshot GetState(Agent agent) => new(_agentStates[agent]);
+    public AgentStateSnapshot GetState(IAgent agent) => new(_agentStates[agent]);
 
-    public void InitAgents(params (Agent, AgentStateSnapshot)[] initialAgents)
+    public void InitAgents(params (IAgent, AgentStateSnapshot)[] initialAgents)
     {
         _agents.Clear();
         _agentStates.Clear();
@@ -73,7 +84,7 @@ public class Sim
     {
         // ? should we randomize order of agents?
         // Decision making phase
-        var decisions = new Dictionary<Agent, Decision>();
+        var decisions = new Dictionary<IAgent, Decision>();
         foreach (var agent in _agents)
         {
             var state = _agentStates[agent];

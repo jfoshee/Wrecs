@@ -4,11 +4,13 @@ public sealed class ValueInvestorAgent(
     int initialFairPrice,
     int maxPosition,
     int minCashReserve,
-    double adjustmentRate = 0.15) : Agent
+    double adjustmentRate = 0.15) : IAgent
 {
     private double fairPrice = initialFairPrice;
 
-    public override Decision Decide(AgentStateSnapshot state, List<Offer> offers)
+    public string Name => "ValueInvestor";
+
+    public Decision Decide(AgentStateSnapshot state, List<Offer> offers)
     {
         UpdateFairPrice(offers);
 
