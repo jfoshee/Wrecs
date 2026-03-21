@@ -1,6 +1,10 @@
 namespace CommerceSim.Core;
 
-public record class Offer(IAgent Author, int Price, int Resources);
+public record class Offer(IAgent Author, int Price, int Resources)
+{
+    public bool Used { get; set; }
+}
+
 public record class BuyOffer(IAgent Buyer, int Price, int Resources) : Offer(Buyer, Price, Resources);
 public record class SellOffer(IAgent Seller, int Price, int Resources) : Offer(Seller, Price, Resources);
 
@@ -124,6 +128,9 @@ public class Sim : ISimulator
                                     AgentState counterpartyState)
     {
         var offer = decision.Offer;
+        // Policy: An offer cannot be used more than once
+        if (offer.Used)
+            return;
         AgentState buyer, seller;
         switch (offer)
         {
@@ -138,11 +145,13 @@ public class Sim : ISimulator
             default:
                 throw new InvalidOperationException("Unknown offer type");
         }
-        // transfer money from buyer to seller
+        // Transfer money from buyer to seller
         buyer.MoneyBalance -= offer.Price;
         seller.MoneyBalance += offer.Price;
-        // transfer resources from seller to buyer
+        // Transfer resources from seller to buyer
         buyer.ResourceBalance += offer.Resources;
         seller.ResourceBalance -= offer.Resources;
+        // Mark the offer as used so that it cannot be used again
+        offer.Used = true;
     }
 }
