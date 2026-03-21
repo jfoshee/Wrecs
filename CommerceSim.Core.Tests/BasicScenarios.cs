@@ -43,4 +43,64 @@ public class BasicScenarios
         state2.MoneyBalance.Should().Be(3);
         state2.ResourceBalance.Should().Be(7);
     }
+
+    class AlwaysBuyingAgent : Agent
+    {
+        public override Decision Decide(AgentState state, List<Offer> opportunities)
+        {
+            // Take first sell offer
+            var sellOffer = opportunities.OfType<SellOffer>().First();
+            return new TakeOfferDecision(sellOffer);
+        }
+    }
+
+    [Fact(DisplayName = "Two Agents, One Sell Offer, One Buyer")]
+    public void TwoAgentsOneSellOfferOneBuyer()
+    {
+        var sim = new Sim();
+        var buyer = new AlwaysBuyingAgent();
+        var seller = Mock.Of<Agent>();
+        sim.InitAgents((buyer, new AgentState(moneyBalance: 32, resourceBalance: 9)),
+                       (seller, new AgentState(moneyBalance: 64, resourceBalance: 27)));
+        sim.InitOffers(new SellOffer(Seller: seller, Price: 7, Resources: 5));
+
+        sim.Tick();
+
+        var buyerState = sim.GetState(buyer);
+        buyerState.MoneyBalance.Should().Be(32 - 7);
+        buyerState.ResourceBalance.Should().Be(9 + 5);
+        var sellerState = sim.GetState(seller);
+        sellerState.MoneyBalance.Should().Be(64 + 7);
+        sellerState.ResourceBalance.Should().Be(27 - 5);
+    }
+
+    class AlwaysSellingAgent : Agent
+    {
+        public override Decision Decide(AgentState state, List<Offer> opportunities)
+        {
+            // Take first buy offer
+            var buyOffer = opportunities.OfType<BuyOffer>().First();
+            return new TakeOfferDecision(buyOffer);
+        }
+    }
+
+    [Fact(DisplayName = "Two Agents, One Buy Offer, One Seller")]
+    public void TwoAgentsOneBuyOfferOneSeller()
+    {
+        var sim = new Sim();
+        var seller = new AlwaysSellingAgent();
+        var buyer = Mock.Of<Agent>();
+        sim.InitAgents((seller, new AgentState(moneyBalance: 32, resourceBalance: 9)),
+                       (buyer, new AgentState(moneyBalance: 64, resourceBalance: 27)));
+        sim.InitOffers(new BuyOffer(Buyer: buyer, Price: 7, Resources: 5));
+
+        sim.Tick();
+
+        var sellerState = sim.GetState(seller);
+        sellerState.MoneyBalance.Should().Be(32 + 7);
+        sellerState.ResourceBalance.Should().Be(9 - 5);
+        var buyerState = sim.GetState(buyer);
+        buyerState.MoneyBalance.Should().Be(64 - 7);
+        buyerState.ResourceBalance.Should().Be(27 + 5);
+    }
 }
