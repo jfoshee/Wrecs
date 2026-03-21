@@ -40,13 +40,27 @@ public class Sim
     private readonly Dictionary<Agent, AgentState> _agentStates = [];
     private readonly List<Offer> _availableOffers = [];
 
+    public AgentState GetState(Agent agent) => _agentStates[agent];
+
+    public void InitAgents(params (Agent, AgentState?)[] initialAgents)
+    {
+        _agents.Clear();
+        _agentStates.Clear();
+        foreach (var (agent, state) in initialAgents)
+        {
+            _agents.Add(agent);
+            _agentStates[agent] = state ?? new AgentState();
+        }
+    }
+
     public void InitOffers(params Offer[] initialOffers)
     {
+        _availableOffers.Clear();
         _availableOffers.AddRange(initialOffers);
     }
 
     // Advance simulation by one tick
-    public void SimLoopTick()
+    public void Tick()
     {
         // ? should we randomize order of agents?
         // Decision making phase
