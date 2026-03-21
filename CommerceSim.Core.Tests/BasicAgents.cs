@@ -5,7 +5,10 @@ namespace CommerceSim.Core.Tests;
 /// </summary>
 class AlwaysBuyingAgent : IAgent
 {
-    public string Name => nameof(AlwaysBuyingAgent);
+    private static int _indexCounter = 0;
+    private readonly int _index = _indexCounter++;
+
+    public string Name => nameof(AlwaysBuyingAgent) + _index;
 
     public Decision Decide(AgentStateSnapshot _, List<Offer> opportunities)
     {
