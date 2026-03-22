@@ -3,12 +3,12 @@ namespace CommerceSim.Core.Tests;
 /// <summary>
 /// Always buys the first sell offer it sees, or does nothing if there are no sell offers.
 /// </summary>
-class AlwaysBuyingAgent : IAgent
+class AlwaysBuyingTaker : IAgent
 {
     private static int _indexCounter = 0;
     private readonly int _index = _indexCounter++;
 
-    public string Name => nameof(AlwaysBuyingAgent) + _index;
+    public string Name => nameof(AlwaysBuyingTaker) + _index;
 
     public Decision Decide(AgentStateSnapshot _, List<Offer> opportunities)
     {
@@ -22,9 +22,9 @@ class AlwaysBuyingAgent : IAgent
 /// <summary>
 /// Always sells to the first buy offer it sees, or does nothing if there are no buy offers.
 /// </summary>
-class AlwaysSellingAgent : IAgent
+class AlwaysSellingTaker : IAgent
 {
-    public string Name => nameof(AlwaysSellingAgent);
+    public string Name => nameof(AlwaysSellingTaker);
 
     public Decision Decide(AgentStateSnapshot _, List<Offer> opportunities)
     {
@@ -32,6 +32,19 @@ class AlwaysSellingAgent : IAgent
         if (buyOffer is not null)
             return new TakeOfferDecision(buyOffer);
         return new DoNothingDecision();
+    }
+}
+
+/// <summary>
+/// Always makes sell offers at a fixed price and quantity each tick.
+/// </summary>
+class AlwaysSellingMaker(int price, int resources) : IAgent
+{
+    public string Name => nameof(AlwaysSellingMaker);
+
+    public Decision Decide(AgentStateSnapshot _, List<Offer> opportunities)
+    {
+        return new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources));
     }
 }
 
@@ -68,18 +81,5 @@ class MakesBuyOfferAgent(int price, int resources) : IAgent
             return new DoNothingDecision();
         _hasMadeOffer = true;
         return new MakeOfferDecision(new BuyOffer(this, Price: price, Resources: resources));
-    }
-}
-
-/// <summary>
-/// Continuously makes sell offers at a fixed price and quantity each tick.
-/// </summary>
-class AlwaysSellingOfferMaker(int price, int resources) : IAgent
-{
-    public string Name => nameof(AlwaysSellingOfferMaker);
-
-    public Decision Decide(AgentStateSnapshot _, List<Offer> opportunities)
-    {
-        return new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources));
     }
 }

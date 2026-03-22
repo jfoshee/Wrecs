@@ -48,7 +48,7 @@ public class BasicScenarios
     public void TwoAgentsOneSellOfferOneBuyer()
     {
         var sim = new Sim();
-        var buyer = new AlwaysBuyingAgent();
+        var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
         sim.InitAgents((buyer, new(MoneyBalance: 32, ResourceBalance: 9)),
                        (seller, new(MoneyBalance: 64, ResourceBalance: 27)));
@@ -68,7 +68,7 @@ public class BasicScenarios
     public void TwoAgentsOneBuyOfferOneSeller()
     {
         var sim = new Sim();
-        var seller = new AlwaysSellingAgent();
+        var seller = new AlwaysSellingTaker();
         var buyer = MockAgent();
         sim.InitAgents((seller, new(MoneyBalance: 32, ResourceBalance: 9)),
                        (buyer, new(MoneyBalance: 64, ResourceBalance: 27)));
@@ -116,7 +116,7 @@ public class BasicScenarios
     public void ConsumedOfferHasNoEffectOnNextTick()
     {
         var sim = new Sim();
-        var buyer = new AlwaysBuyingAgent();
+        var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
         sim.InitAgents((buyer, new(MoneyBalance: 100, ResourceBalance: 0)),
                        (seller, new(MoneyBalance: 0, ResourceBalance: 50)));
@@ -144,7 +144,7 @@ public class BasicScenarios
     {
         var sim = new Sim();
         var seller = new MakesSellOfferAgent(price: 8, resources: 3);
-        var buyer = new AlwaysBuyingAgent();
+        var buyer = new AlwaysBuyingTaker();
         AgentStateSnapshot initialSellerState = new(MoneyBalance: 0, ResourceBalance: 100);
         AgentStateSnapshot initialBuyerState = new(MoneyBalance: 64, ResourceBalance: 0);
         sim.InitAgents((seller, initialSellerState),

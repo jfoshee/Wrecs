@@ -6,8 +6,8 @@ public class PolicyTests
     public void TwoBuyersCannotConsumeTheSameOffer()
     {
         var sim = new Sim();
-        var buyer1 = new AlwaysBuyingAgent();
-        var buyer2 = new AlwaysBuyingAgent();
+        var buyer1 = new AlwaysBuyingTaker();
+        var buyer2 = new AlwaysBuyingTaker();
         var seller = new MakesSellOfferAgent(price: 8, resources: 3);
         AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 100);
         AgentStateSnapshot buyer1State0 = new(MoneyBalance: 32, ResourceBalance: 0);
@@ -50,7 +50,7 @@ public class PolicyTests
         // Setup a seller that wants to sell 20 resources, but only has 19
         var sim = new Sim();
         var seller = new MakesSellOfferAgent(price: 10, resources: 20);
-        var buyer = new AlwaysBuyingAgent();
+        var buyer = new AlwaysBuyingTaker();
         AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 19);
         AgentStateSnapshot buyerState0 = new(MoneyBalance: 100, ResourceBalance: 0);
         sim.InitAgents((seller, sellerState0),
@@ -70,7 +70,7 @@ public class PolicyTests
         // Setup a buyer that wants to buy 6 resources from a seller that only has 5
         var sim = new Sim();
         var buyer = new MakesBuyOfferAgent(price: 50, resources: 6);
-        var seller = new AlwaysSellingAgent();
+        var seller = new AlwaysSellingTaker();
         AgentStateSnapshot buyerState0 = new(MoneyBalance: 100, ResourceBalance: 0);
         AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 5);
         sim.InitAgents((buyer, buyerState0),
@@ -90,7 +90,7 @@ public class PolicyTests
         // Setup a buyer that wants to buy resources for 50, but only has 49
         var sim = new Sim();
         var seller = new MakesSellOfferAgent(price: 50, resources: 5);
-        var buyer = new AlwaysBuyingAgent();
+        var buyer = new AlwaysBuyingTaker();
         AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 100);
         AgentStateSnapshot buyerState0 = new(MoneyBalance: 49, ResourceBalance: 0);
         sim.InitAgents((seller, sellerState0),
@@ -110,7 +110,7 @@ public class PolicyTests
         // Setup a buyer that makes an offer to buy resources for 50, but only has 49
         var sim = new Sim();
         var buyer = new MakesBuyOfferAgent(price: 50, resources: 5);
-        var seller = new AlwaysSellingAgent();
+        var seller = new AlwaysSellingTaker();
         AgentStateSnapshot buyerState0 = new(MoneyBalance: 49, ResourceBalance: 0);
         AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 100);
         sim.InitAgents((buyer, buyerState0),
@@ -129,9 +129,9 @@ public class PolicyTests
     {
         // Setup: one seller continuously making offers, two competing buyers
         var sim = new Sim();
-        var seller = new AlwaysSellingOfferMaker(price: 10, resources: 1);
-        var buyer1 = new AlwaysBuyingAgent();
-        var buyer2 = new AlwaysBuyingAgent();
+        var seller = new AlwaysSellingMaker(price: 10, resources: 1);
+        var buyer1 = new AlwaysBuyingTaker();
+        var buyer2 = new AlwaysBuyingTaker();
         AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 1000);
         AgentStateSnapshot buyerState0 = new(MoneyBalance: 1000, ResourceBalance: 0);
         sim.InitAgents((seller, sellerState0),

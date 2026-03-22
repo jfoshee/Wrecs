@@ -6,8 +6,8 @@ public class AdvancedScenarios
     public void OneRichDumbAgentAndOneValueInvestorAgent()
     {
         var sim = new Sim();
-        var sellTaker = new AlwaysSellingAgent();
-        var buyTaker = new AlwaysBuyingAgent();
+        var sellTaker = new AlwaysSellingTaker();
+        var buyTaker = new AlwaysBuyingTaker();
         var valueInvestor = new ValueInvestorAgent(initialFairPrice: 10,
                                                    maxPosition: 5,
                                                    minCashReserve: 10);
