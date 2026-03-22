@@ -8,16 +8,20 @@ public class AdvancedScenarios
         var sim = new Sim();
         var sellTaker = new AlwaysSellingTaker();
         var buyTaker = new AlwaysBuyingTaker();
+        var sellMaker = new AlwaysSellingMaker(10, 1);
+        var randomAgent = new RandomAgent(maxPrice: 10);
         var valueInvestor = new ValueInvestorAgent(initialFairPrice: 10,
                                                    maxPosition: 5,
                                                    minCashReserve: 10);
-        sim.InitAgents((sellTaker, new(MoneyBalance: 1_000_000, ResourceBalance: 1_000_000)),
-                       (buyTaker, new(MoneyBalance: 1_000_000, ResourceBalance: 0)),
-                       (valueInvestor, new(MoneyBalance: 50, ResourceBalance: 0)));
+        sim.InitAgents((sellTaker, new(MoneyBalance: 1_000, ResourceBalance: 1_000)),
+                       (buyTaker, new(MoneyBalance: 1_000, ResourceBalance: 0)),
+                       (valueInvestor, new(MoneyBalance: 50, ResourceBalance: 0)),
+                       (randomAgent, new(MoneyBalance: 1_000, ResourceBalance: 100)),
+                       (sellMaker, new(MoneyBalance: 1_000, ResourceBalance: 100)));
         sim.InitOffers(new SellOffer(Seller: sellTaker, Price: 10, Resources: 5));
         var loggingSim = new LoggingSim(sim);
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 250; i++)
         {
             loggingSim.Tick();
         }
