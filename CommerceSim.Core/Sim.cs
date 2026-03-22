@@ -1,51 +1,8 @@
 namespace CommerceSim.Core;
 
-public record class Offer(IAgent Author, int Price, int Resources)
-{
-    public bool Used { get; set; }
-}
-
-public record class BuyOffer(IAgent Buyer, int Price, int Resources) : Offer(Buyer, Price, Resources);
-public record class SellOffer(IAgent Seller, int Price, int Resources) : Offer(Seller, Price, Resources);
-
 public record struct AgentStateSnapshot(int MoneyBalance, int ResourceBalance)
 {
     internal AgentStateSnapshot(AgentState state) : this(state.MoneyBalance, state.ResourceBalance) { }
-}
-
-public abstract class Decision
-{
-}
-
-public class DoNothingDecision : Decision
-{
-}
-
-public class TakeOfferDecision(Offer offer) : Decision
-{
-    public Offer Offer { get; } = offer;
-}
-
-public class MakeOfferDecision(Offer offer) : Decision
-{
-    public Offer Offer { get; } = offer;
-}
-
-public interface IAgent
-{
-    /// <summary>
-    /// Returns a unique name for this agent.
-    /// </summary>
-    public string Name { get; }
-
-
-    /// <summary>
-    /// Decide what to do with this tick, given the current state and available offers.
-    /// </summary>
-    /// <param name="state">The current state of the agent.</param>
-    /// <param name="offers">The list of available offers.</param>
-    /// <returns>The decision made by the agent.</returns>
-    public Decision Decide(AgentStateSnapshot state, List<Offer> offers);
 }
 
 internal class AgentState(int moneyBalance = 0, int resourceBalance = 0)
