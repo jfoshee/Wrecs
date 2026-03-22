@@ -63,17 +63,18 @@ public class Sim : ISimulator
     // Advance simulation by one tick
     public void Tick()
     {
-        // ? should we randomize order of agents?
         // Decision making phase
-        var decisions = new Dictionary<IAgent, Decision>();
+        var decisions = new List<(IAgent Agent, Decision Decision)>();
         foreach (var agent in _agents)
         {
             var state = _agentStates[agent];
             var decision = agent.Decide(new(state), _availableOffers);
-            decisions[agent] = decision;
+            // decisions[agent] = decision;
+            decisions.Add((agent, decision));
         }
 
         // Processing phase
+        decisions = Shuffle(decisions);
         foreach (var (agent, decision) in decisions)
         {
             switch (decision)
@@ -89,6 +90,16 @@ public class Sim : ISimulator
                     break;
             }
         }
+    }
+
+    private static readonly Random _random = new();
+
+    /// <summary>
+    /// Randomly shuffle the order of decisions to ensure fairness in processing and avoid bias based on agent order.
+    /// </summary>
+    private static List<(IAgent Agent, Decision Decision)> Shuffle(List<(IAgent Agent, Decision Decision)> decisions)
+    {
+        return [.. decisions.OrderBy(_ => _random.Next())];
     }
 
     void ProcessOffer(TakeOfferDecision decision,

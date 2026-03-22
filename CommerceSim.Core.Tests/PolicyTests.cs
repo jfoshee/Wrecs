@@ -123,4 +123,29 @@ public class PolicyTests
         sim.GetState(buyer).Should().Be(buyerState0);
         sim.GetState(seller).Should().Be(sellerState0);
     }
+
+    [Fact(DisplayName = "Two buyers should have roughly equal outcomes")]
+    public void TwoBuyersShouldHaveRoughlyEqualOutcomes()
+    {
+        // Setup: one seller continuously making offers, two competing buyers
+        var sim = new Sim();
+        var seller = new AlwaysSellingOfferMaker(price: 10, resources: 1);
+        var buyer1 = new AlwaysBuyingAgent();
+        var buyer2 = new AlwaysBuyingAgent();
+        AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 1000);
+        AgentStateSnapshot buyerState0 = new(MoneyBalance: 1000, ResourceBalance: 0);
+        sim.InitAgents((seller, sellerState0),
+                       (buyer1, buyerState0),
+                       (buyer2, buyerState0));
+
+        for (int i = 0; i < 200; i++)
+        {
+            sim.Tick();
+        }
+
+        // Both buyers should have roughly the same ending balance and resources
+        var buyer1State = sim.GetState(buyer1);
+        var buyer2State = sim.GetState(buyer2);
+        buyer1State.ResourceBalance.Should().BeCloseTo(buyer2State.ResourceBalance, delta: 5);
+    }
 }

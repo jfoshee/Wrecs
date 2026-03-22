@@ -70,3 +70,16 @@ class MakesBuyOfferAgent(int price, int resources) : IAgent
         return new MakeOfferDecision(new BuyOffer(this, Price: price, Resources: resources));
     }
 }
+
+/// <summary>
+/// Continuously makes sell offers at a fixed price and quantity each tick.
+/// </summary>
+class AlwaysSellingOfferMaker(int price, int resources) : IAgent
+{
+    public string Name => nameof(AlwaysSellingOfferMaker);
+
+    public Decision Decide(AgentStateSnapshot _, List<Offer> opportunities)
+    {
+        return new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources));
+    }
+}
