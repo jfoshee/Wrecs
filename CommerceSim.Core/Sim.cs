@@ -20,7 +20,10 @@ public class Sim : ISimulator
     private readonly List<IAgent> _agents = [];
     private readonly Dictionary<IAgent, AgentState> _agentStates = [];
     private readonly List<Offer> _availableOffers = [];
-    private readonly List<IPolicy> _policies = [new OfferSingleUsePolicy()];
+    private readonly List<IPolicy> _policies = [
+        new OfferSingleUsePolicy(),
+        new CannotCreateResourcesPolicy()
+    ];
 
     public AgentStateSnapshot GetState(IAgent agent) => new(_agentStates[agent]);
 
@@ -88,7 +91,7 @@ public class Sim : ISimulator
         var offer = decision.Offer;
         foreach (var policy in _policies)
         {
-            if (!policy.CanExecute(offer))
+            if (!policy.CanExecute(offer, authorState: new(authorState)))
                 return;
         }
         AgentState buyer, seller;
