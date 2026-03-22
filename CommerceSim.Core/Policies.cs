@@ -36,3 +36,11 @@ public class CannotCreateResourcesPolicy : IPolicy
 
     public void OnExecuted(Trade trade) { }
 }
+
+public class CannotCreateMoneyPolicy : IPolicy
+{
+    public bool CanExecute(Trade trade) =>
+        trade.BuyerState.MoneyBalance >= trade.Price;
+
+    public void OnExecuted(Trade trade) { }
+}

@@ -83,4 +83,44 @@ public class PolicyTests
         sim.GetState(buyer).Should().Be(buyerState0);
         sim.GetState(seller).Should().Be(sellerState0);
     }
+
+    [Fact(DisplayName = "Buyer taker cannot spend more money than it has")]
+    public void BuyerCannotSpendMoreMoneyThanItHas()
+    {
+        // Setup a buyer that wants to buy resources for 50, but only has 49
+        var sim = new Sim();
+        var seller = new MakesSellOfferAgent(price: 50, resources: 5);
+        var buyer = new AlwaysBuyingAgent();
+        AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 100);
+        AgentStateSnapshot buyerState0 = new(MoneyBalance: 49, ResourceBalance: 0);
+        sim.InitAgents((seller, sellerState0),
+                       (buyer, buyerState0));
+
+        sim.Tick(); // Seller makes offer to sell for 50
+        sim.Tick(); // Buyer attempts to take the offer
+
+        // Trade should be rejected because buyer only has 49 money
+        sim.GetState(seller).Should().Be(sellerState0);
+        sim.GetState(buyer).Should().Be(buyerState0);
+    }
+
+    [Fact(DisplayName = "Buyer maker cannot spend more money than it has")]
+    public void BuyerMakerCannotSpendMoreMoneyThanItHas()
+    {
+        // Setup a buyer that makes an offer to buy resources for 50, but only has 49
+        var sim = new Sim();
+        var buyer = new MakesBuyOfferAgent(price: 50, resources: 5);
+        var seller = new AlwaysSellingAgent();
+        AgentStateSnapshot buyerState0 = new(MoneyBalance: 49, ResourceBalance: 0);
+        AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 100);
+        sim.InitAgents((buyer, buyerState0),
+                       (seller, sellerState0));
+
+        sim.Tick(); // Buyer makes offer to buy for 50
+        sim.Tick(); // Seller attempts to take the offer
+
+        // Trade should be rejected because buyer only has 49 money
+        sim.GetState(buyer).Should().Be(buyerState0);
+        sim.GetState(seller).Should().Be(sellerState0);
+    }
 }

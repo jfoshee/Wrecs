@@ -28,7 +28,8 @@ public class Sim : ISimulator
     private readonly List<Offer> _availableOffers = [];
     private readonly List<IPolicy> _policies = [
         new OfferSingleUsePolicy(),
-        new CannotCreateResourcesPolicy()
+        new CannotCreateResourcesPolicy(),
+        new CannotCreateMoneyPolicy()
     ];
 
     public AgentStateSnapshot GetState(IAgent agent) => new(_agentStates[agent]);
