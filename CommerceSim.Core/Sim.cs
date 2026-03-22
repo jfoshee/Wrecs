@@ -31,26 +31,6 @@ public class MakeOfferDecision(Offer offer) : Decision
     public Offer Offer { get; } = offer;
 }
 
-public interface IPolicy
-{
-    bool CanExecute(Offer offer);
-
-    /// <summary>
-    /// Called after a trade has been executed.
-    /// </summary>
-    void OnExecuted(Offer offer);
-}
-
-public class OfferSingleUsePolicy : IPolicy
-{
-    public bool CanExecute(Offer offer) => !offer.Used;
-
-    public void OnExecuted(Offer offer)
-    {
-        offer.Used = true;
-    }
-}
-
 public interface IAgent
 {
     /// <summary>
