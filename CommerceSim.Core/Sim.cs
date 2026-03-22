@@ -31,6 +31,26 @@ public class MakeOfferDecision(Offer offer) : Decision
     public Offer Offer { get; } = offer;
 }
 
+public interface IPolicy
+{
+    bool CanExecute(Offer offer);
+
+    /// <summary>
+    /// Called after a trade has been executed.
+    /// </summary>
+    void OnExecuted(Offer offer);
+}
+
+public class OfferSingleUsePolicy : IPolicy
+{
+    public bool CanExecute(Offer offer) => !offer.Used;
+
+    public void OnExecuted(Offer offer)
+    {
+        offer.Used = true;
+    }
+}
+
 public interface IAgent
 {
     /// <summary>
@@ -63,6 +83,7 @@ public class Sim : ISimulator
     private readonly List<IAgent> _agents = [];
     private readonly Dictionary<IAgent, AgentState> _agentStates = [];
     private readonly List<Offer> _availableOffers = [];
+    private readonly List<IPolicy> _policies = [new OfferSingleUsePolicy()];
 
     public AgentStateSnapshot GetState(IAgent agent) => new(_agentStates[agent]);
 
@@ -123,14 +144,16 @@ public class Sim : ISimulator
         }
     }
 
-    public static void ProcessOffer(TakeOfferDecision decision,
-                                    AgentState authorState,
-                                    AgentState counterpartyState)
+    public void ProcessOffer(TakeOfferDecision decision,
+                             AgentState authorState,
+                             AgentState counterpartyState)
     {
         var offer = decision.Offer;
-        // Policy: An offer cannot be used more than once
-        if (offer.Used)
-            return;
+        foreach (var policy in _policies)
+        {
+            if (!policy.CanExecute(offer))
+                return;
+        }
         AgentState buyer, seller;
         switch (offer)
         {
@@ -151,7 +174,10 @@ public class Sim : ISimulator
         // Transfer resources from seller to buyer
         buyer.ResourceBalance += offer.Resources;
         seller.ResourceBalance -= offer.Resources;
-        // Mark the offer as used so that it cannot be used again
-        offer.Used = true;
+        // Update policy state
+        foreach (var policy in _policies)
+        {
+            policy.OnExecuted(offer);
+        }
     }
 }
