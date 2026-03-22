@@ -91,7 +91,8 @@ public class Sim : ISimulator
         var offer = decision.Offer;
         foreach (var policy in _policies)
         {
-            if (!policy.CanExecute(offer, authorState: new(authorState)))
+            var counterpartyStateSnapshot = new AgentStateSnapshot(counterpartyState);
+            if (!policy.CanExecute(offer, authorState: new(authorState), counterpartyState: counterpartyStateSnapshot))
                 return;
         }
         AgentState buyer, seller;

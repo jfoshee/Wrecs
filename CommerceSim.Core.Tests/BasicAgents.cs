@@ -52,3 +52,21 @@ class MakesSellOfferAgent(int price, int resources) : IAgent
         return new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources));
     }
 }
+
+/// <summary>
+/// Makes a single buy offer on the first tick, then does nothing on subsequent ticks.
+/// </summary>
+class MakesBuyOfferAgent(int price, int resources) : IAgent
+{
+    private bool _hasMadeOffer = false;
+
+    public string Name => nameof(MakesBuyOfferAgent);
+
+    public Decision Decide(AgentStateSnapshot _, List<Offer> opportunities)
+    {
+        if (_hasMadeOffer)
+            return new DoNothingDecision();
+        _hasMadeOffer = true;
+        return new MakeOfferDecision(new BuyOffer(this, Price: price, Resources: resources));
+    }
+}

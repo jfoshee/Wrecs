@@ -63,4 +63,24 @@ public class PolicyTests
         sim.GetState(seller).Should().Be(sellerState0);
         sim.GetState(buyer).Should().Be(buyerState0);
     }
+
+    [Fact(DisplayName = "Agent cannot buy more resources than seller has")]
+    public void AgentCannotBuyMoreResourcesThanSellerHas()
+    {
+        // Setup a buyer that wants to buy 6 resources from a seller that only has 5
+        var sim = new Sim();
+        var buyer = new MakesBuyOfferAgent(price: 50, resources: 6);
+        var seller = new AlwaysSellingAgent();
+        AgentStateSnapshot buyerState0 = new(MoneyBalance: 100, ResourceBalance: 0);
+        AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 5);
+        sim.InitAgents((buyer, buyerState0),
+                       (seller, sellerState0));
+
+        sim.Tick(); // Buyer makes offer to buy 6 resources
+        sim.Tick(); // Seller attempts to take the offer
+
+        // Trade should be rejected because seller only has 5 resources
+        sim.GetState(buyer).Should().Be(buyerState0);
+        sim.GetState(seller).Should().Be(sellerState0);
+    }
 }

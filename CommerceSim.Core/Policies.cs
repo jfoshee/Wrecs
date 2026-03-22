@@ -7,8 +7,9 @@ public interface IPolicy
     /// </summary>
     /// <param name="offer">The offer to be evaluated.</param>
     /// <param name="authorState">The state of the agent who created the offer.</param>
+    /// <param name="counterpartyState">The state of the agent who accepted the offer.</param>
     /// <returns>True if the offer can be executed, false otherwise.</returns>
-    bool CanExecute(Offer offer, AgentStateSnapshot authorState);
+    bool CanExecute(Offer offer, AgentStateSnapshot authorState, AgentStateSnapshot counterpartyState);
 
     /// <summary>
     /// Called after a trade has been executed.
@@ -19,7 +20,7 @@ public interface IPolicy
 
 public class OfferSingleUsePolicy : IPolicy
 {
-    public bool CanExecute(Offer offer, AgentStateSnapshot authorState) => !offer.Used;
+    public bool CanExecute(Offer offer, AgentStateSnapshot authorState, AgentStateSnapshot counterpartyState) => !offer.Used;
 
     public void OnExecuted(Offer offer)
     {
@@ -29,11 +30,15 @@ public class OfferSingleUsePolicy : IPolicy
 
 public class CannotCreateResourcesPolicy : IPolicy
 {
-    public bool CanExecute(Offer offer, AgentStateSnapshot authorState)
+    public bool CanExecute(Offer offer, AgentStateSnapshot authorState, AgentStateSnapshot counterpartyState)
     {
-        if (offer is SellOffer sellOffer)
+        if (offer is SellOffer)
         {
-            return authorState.ResourceBalance >= sellOffer.Resources;
+            return authorState.ResourceBalance >= offer.Resources;
+        }
+        else if (offer is BuyOffer)
+        {
+            return counterpartyState.ResourceBalance >= offer.Resources;
         }
         return true;
     }
