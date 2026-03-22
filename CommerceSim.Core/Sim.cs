@@ -68,14 +68,14 @@ public interface IAgent
     public Decision Decide(AgentStateSnapshot state, List<Offer> offers);
 }
 
-// Would prefer this to be internal, but have some unit tests on it...
-public class AgentState(int moneyBalance = 0, int resourceBalance = 0)
+internal class AgentState(int moneyBalance = 0, int resourceBalance = 0)
 {
     public int MoneyBalance { get; set; } = moneyBalance;
     public int ResourceBalance { get; set; } = resourceBalance;
 
-    public AgentState(AgentStateSnapshot snapshot)
-    : this(snapshot.MoneyBalance, snapshot.ResourceBalance) { }
+    public AgentState(AgentStateSnapshot snapshot) :
+        this(snapshot.MoneyBalance, snapshot.ResourceBalance)
+    { }
 }
 
 public class Sim : ISimulator
@@ -144,9 +144,9 @@ public class Sim : ISimulator
         }
     }
 
-    public void ProcessOffer(TakeOfferDecision decision,
-                             AgentState authorState,
-                             AgentState counterpartyState)
+    void ProcessOffer(TakeOfferDecision decision,
+                      AgentState authorState,
+                      AgentState counterpartyState)
     {
         var offer = decision.Offer;
         foreach (var policy in _policies)
