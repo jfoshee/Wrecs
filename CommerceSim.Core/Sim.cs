@@ -15,6 +15,12 @@ internal class AgentState(int moneyBalance = 0, int resourceBalance = 0)
     { }
 }
 
+public record struct Trade(Offer Offer,
+                           AgentStateSnapshot SellerState,
+                           AgentStateSnapshot BuyerState,
+                           int Price,
+                           int Resources);
+
 public class Sim : ISimulator
 {
     private readonly List<IAgent> _agents = [];
@@ -89,12 +95,29 @@ public class Sim : ISimulator
                       AgentState counterpartyState)
     {
         var offer = decision.Offer;
+        // Construct a trade based on the offer
+        var trade = new Trade(Offer: offer,
+                              SellerState: offer is SellOffer ? new(authorState) : new(counterpartyState),
+                              BuyerState: offer is BuyOffer ? new(authorState) : new(counterpartyState),
+                              Price: offer.Price,
+                              Resources: offer.Resources);
+        // Check policies before executing the trade
         foreach (var policy in _policies)
         {
-            var counterpartyStateSnapshot = new AgentStateSnapshot(counterpartyState);
-            if (!policy.CanExecute(offer, authorState: new(authorState), counterpartyState: counterpartyStateSnapshot))
+            if (!policy.CanExecute(trade))
                 return;
         }
+        // Execute the trade
+        Execute(offer, authorState, counterpartyState);
+        // Update policy state
+        foreach (var policy in _policies)
+        {
+            policy.OnExecuted(trade);
+        }
+    }
+
+    private static void Execute(Offer offer, AgentState authorState, AgentState counterpartyState)
+    {
         AgentState buyer, seller;
         switch (offer)
         {
@@ -115,10 +138,5 @@ public class Sim : ISimulator
         // Transfer resources from seller to buyer
         buyer.ResourceBalance += offer.Resources;
         seller.ResourceBalance -= offer.Resources;
-        // Update policy state
-        foreach (var policy in _policies)
-        {
-            policy.OnExecuted(offer);
-        }
     }
 }
