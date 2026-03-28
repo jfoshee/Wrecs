@@ -3,8 +3,9 @@ namespace CommerceSim.Core.Agents;
 public sealed class RandomAgent(int maxPrice, Random? random = null) : IAgent
 {
     private readonly Random _random = random ?? Random.Shared;
+    private readonly int _id = AgentId.Next();
 
-    public string Name => "Random";
+    public string Name => "Random " + _id;
 
     public Decision Decide(AgentStateSnapshot state, List<Offer> offers)
     {

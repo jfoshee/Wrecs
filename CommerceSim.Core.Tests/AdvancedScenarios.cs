@@ -4,6 +4,13 @@ namespace CommerceSim.Core.Tests;
 
 public class AdvancedScenarios
 {
+    private sealed class NamedRandomAgent(string name, int maxPrice, Random? random = null) : IAgent
+    {
+        private readonly RandomAgent _inner = new(maxPrice, random);
+        public string Name => name;
+        public Decision Decide(AgentStateSnapshot state, List<Offer> offers) => _inner.Decide(state, offers);
+    }
+
     [Fact(DisplayName = "One Rich Dumb Agent and One Value Investor Agent")]
     public void OneRichDumbAgentAndOneValueInvestorAgent()
     {
@@ -35,6 +42,66 @@ public class AdvancedScenarios
         var snapshots = loggingSim.GetSnapshots();
         var agentNames = snapshots[0].Keys.OrderBy(name => name).ToList();
         using var writer = new StreamWriter("simulation_log.csv");
+        writer.WriteLine("Tick," + string.Join(",", agentNames.Select(name => $"{name} Money,{name} Resources")));
+        for (int tick = 0; tick < snapshots.Count; tick++)
+        {
+            var snapshot = snapshots[tick];
+            var row = new List<string> { tick.ToString() };
+            foreach (var agentName in agentNames)
+            {
+                var state = snapshot[agentName];
+                row.Add(state.MoneyBalance.ToString());
+                row.Add(state.ResourceBalance.ToString());
+            }
+            writer.WriteLine(string.Join(",", row));
+        }
+    }
+
+    [Fact(DisplayName = "All Agent Types Plus 20 Random Agents")]
+    public void AllAgentTypesPlusTwentyRandomAgents()
+    {
+        const int StartingMoney = 500;
+        const int StartingResources = 50;
+
+        var sim = new Sim();
+
+        // One of each agent type from the Agents namespace
+        var contrarianAgent = new ContrarianMeanReversionAgent();
+        var marketMakerAgent = new InventoryAwareMarketMakerAgent(anchorPrice: 10, targetInventory: 25, inventoryTolerance: 10);
+        var momentumAgent = new MomentumChaserAgent();
+        var spreadSniperAgent = new SpreadSniperAgent(minProfitPerUnit: 2, maxInventory: 20, minCashReserve: 50);
+        var randomAgent = new RandomAgent(maxPrice: 20);
+        var valueInvestorAgent = new ValueInvestorAgent(initialFairPrice: 10, maxPosition: 20, minCashReserve: 50);
+
+        var agentInitList = new List<(IAgent, AgentStateSnapshot)>
+        {
+            (contrarianAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
+            (marketMakerAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
+            (momentumAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
+            (spreadSniperAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
+            (randomAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
+            (valueInvestorAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
+        };
+
+        // Add 20 random agents
+        for (int i = 0; i < 20; i++)
+        {
+            var extraRandomAgent = new RandomAgent(maxPrice: 20, random: new Random(i));
+            agentInitList.Add((extraRandomAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)));
+        }
+
+        sim.InitAgents(agentInitList.ToArray());
+        var loggingSim = new LoggingSim(sim);
+
+        for (int i = 0; i < 400; i++)
+        {
+            loggingSim.Tick();
+        }
+
+        // Serialize the snapshot log to CSV
+        var snapshots = loggingSim.GetSnapshots();
+        var agentNames = snapshots[0].Keys.OrderBy(name => name).ToList();
+        using var writer = new StreamWriter("all_agents_simulation_log.csv");
         writer.WriteLine("Tick," + string.Join(",", agentNames.Select(name => $"{name} Money,{name} Resources")));
         for (int tick = 0; tick < snapshots.Count; tick++)
         {
