@@ -1,4 +1,5 @@
 using CommerceSim.Core.Agents;
+using ScottPlot;
 
 namespace CommerceSim.Core.Tests;
 
@@ -95,34 +96,51 @@ public class AdvancedScenarios
         var snapshots = loggingSim.GetSnapshots();
         var agentNames = snapshots[0].Keys.OrderBy(name => name).ToList();
 
-        using (var moneyWriter = new StreamWriter("all_agents_money.csv"))
+        // using (var moneyWriter = new StreamWriter("all_agents_money.csv"))
+        // {
+        //     moneyWriter.WriteLine("Tick," + string.Join(",", agentNames));
+        //     for (int tick = 0; tick < snapshots.Count; tick++)
+        //     {
+        //         var snapshot = snapshots[tick];
+        //         var row = new List<string> { tick.ToString() };
+        //         foreach (var agentName in agentNames)
+        //         {
+        //             row.Add(snapshot[agentName].MoneyBalance.ToString());
+        //         }
+        //         moneyWriter.WriteLine(string.Join(",", row));
+        //     }
+        // }
+
+        // using (var resourceWriter = new StreamWriter("all_agents_resources.csv"))
+        // {
+        //     resourceWriter.WriteLine("Tick," + string.Join(",", agentNames));
+        //     for (int tick = 0; tick < snapshots.Count; tick++)
+        //     {
+        //         var snapshot = snapshots[tick];
+        //         var row = new List<string> { tick.ToString() };
+        //         foreach (var agentName in agentNames)
+        //         {
+        //             row.Add(snapshot[agentName].ResourceBalance.ToString());
+        //         }
+        //         resourceWriter.WriteLine(string.Join(",", row));
+        //     }
+        // }
+
+        // Generate ScottPlot chart for money over time
+        var plot = new Plot();
+        double[] ticks = Enumerable.Range(0, snapshots.Count).Select(t => (double)t).ToArray();
+
+        foreach (var agentName in agentNames)
         {
-            moneyWriter.WriteLine("Tick," + string.Join(",", agentNames));
-            for (int tick = 0; tick < snapshots.Count; tick++)
-            {
-                var snapshot = snapshots[tick];
-                var row = new List<string> { tick.ToString() };
-                foreach (var agentName in agentNames)
-                {
-                    row.Add(snapshot[agentName].MoneyBalance.ToString());
-                }
-                moneyWriter.WriteLine(string.Join(",", row));
-            }
+            double[] moneyData = snapshots.Select(s => (double)s[agentName].MoneyBalance).ToArray();
+            var scatter = plot.Add.Scatter(ticks, moneyData);
+            scatter.LegendText = agentName;
         }
 
-        using (var resourceWriter = new StreamWriter("all_agents_resources.csv"))
-        {
-            resourceWriter.WriteLine("Tick," + string.Join(",", agentNames));
-            for (int tick = 0; tick < snapshots.Count; tick++)
-            {
-                var snapshot = snapshots[tick];
-                var row = new List<string> { tick.ToString() };
-                foreach (var agentName in agentNames)
-                {
-                    row.Add(snapshot[agentName].ResourceBalance.ToString());
-                }
-                resourceWriter.WriteLine(string.Join(",", row));
-            }
-        }
+        plot.Title("Agent Money Over Time");
+        plot.XLabel("Tick");
+        plot.YLabel("Money Balance");
+        plot.ShowLegend();
+        plot.SavePng("all_agents_money_plot.png", 1200, 800);
     }
 }
