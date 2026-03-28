@@ -61,7 +61,10 @@ public class AdvancedScenarios
 
         // One of each agent type from the Agents namespace
         var contrarianAgent = new ContrarianMeanReversionAgent();
-        var marketMakerAgent = new InventoryAwareMarketMakerAgent(anchorPrice: 10, targetInventory: 25, inventoryTolerance: 10);
+        var marketMaker = new InventoryAwareMarketMakerAgent(anchorPrice: 10, targetInventory: 25, inventoryTolerance: 10);
+        var marketMaker2 = new InventoryAwareMarketMakerAgent(anchorPrice: 10, targetInventory: 25, inventoryTolerance: 10);
+        var marketMaker3 = new InventoryAwareMarketMakerAgent(anchorPrice: 10, targetInventory: 25, inventoryTolerance: 10);
+        var marketMaker4 = new InventoryAwareMarketMakerAgent(anchorPrice: 10, targetInventory: 25, inventoryTolerance: 10);
         var momentumAgent = new MomentumChaserAgent();
         var spreadSniperAgent = new SpreadSniperAgent(minProfitPerUnit: 2, maxInventory: 20, minCashReserve: 50);
         var randomAgent = new RandomAgent(maxPrice: 20);
@@ -70,7 +73,10 @@ public class AdvancedScenarios
         var agentInitList = new List<(IAgent, AgentStateSnapshot)>
         {
             (contrarianAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
-            (marketMakerAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
+            (marketMaker, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
+            (marketMaker2, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
+            (marketMaker3, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
+            (marketMaker4, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
             (momentumAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
             (spreadSniperAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
             (randomAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
@@ -92,47 +98,18 @@ public class AdvancedScenarios
             loggingSim.Tick();
         }
 
-        // Serialize the snapshot log to separate CSV files for money and resources
-        var snapshots = loggingSim.GetSnapshots();
-        var agentNames = snapshots[0].Keys.OrderBy(name => name).ToList();
-
-        // using (var moneyWriter = new StreamWriter("all_agents_money.csv"))
-        // {
-        //     moneyWriter.WriteLine("Tick," + string.Join(",", agentNames));
-        //     for (int tick = 0; tick < snapshots.Count; tick++)
-        //     {
-        //         var snapshot = snapshots[tick];
-        //         var row = new List<string> { tick.ToString() };
-        //         foreach (var agentName in agentNames)
-        //         {
-        //             row.Add(snapshot[agentName].MoneyBalance.ToString());
-        //         }
-        //         moneyWriter.WriteLine(string.Join(",", row));
-        //     }
-        // }
-
-        // using (var resourceWriter = new StreamWriter("all_agents_resources.csv"))
-        // {
-        //     resourceWriter.WriteLine("Tick," + string.Join(",", agentNames));
-        //     for (int tick = 0; tick < snapshots.Count; tick++)
-        //     {
-        //         var snapshot = snapshots[tick];
-        //         var row = new List<string> { tick.ToString() };
-        //         foreach (var agentName in agentNames)
-        //         {
-        //             row.Add(snapshot[agentName].ResourceBalance.ToString());
-        //         }
-        //         resourceWriter.WriteLine(string.Join(",", row));
-        //     }
-        // }
-
         // Generate ScottPlot chart for money over time
+        var snapshots = loggingSim.GetSnapshots();
+        var agentNames = snapshots[0].Keys.Where(x => !x.StartsWith("Random"))
+                                          .OrderBy(name => name)
+                                          .ToList();
+
         var plot = new Plot();
-        double[] ticks = Enumerable.Range(0, snapshots.Count).Select(t => (double)t).ToArray();
+        var ticks = Enumerable.Range(0, snapshots.Count).Select(t => (double)t).ToArray();
 
         foreach (var agentName in agentNames)
         {
-            double[] moneyData = snapshots.Select(s => (double)s[agentName].MoneyBalance).ToArray();
+            var moneyData = snapshots.Select(s => (double)s[agentName].MoneyBalance).ToArray();
             var scatter = plot.Add.Scatter(ticks, moneyData);
             scatter.LegendText = agentName;
         }
