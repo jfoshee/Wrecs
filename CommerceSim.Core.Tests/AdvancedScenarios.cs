@@ -4,13 +4,6 @@ namespace CommerceSim.Core.Tests;
 
 public class AdvancedScenarios
 {
-    private sealed class NamedRandomAgent(string name, int maxPrice, Random? random = null) : IAgent
-    {
-        private readonly RandomAgent _inner = new(maxPrice, random);
-        public string Name => name;
-        public Decision Decide(AgentStateSnapshot state, List<Offer> offers) => _inner.Decide(state, offers);
-    }
-
     [Fact(DisplayName = "One Rich Dumb Agent and One Value Investor Agent")]
     public void OneRichDumbAgentAndOneValueInvestorAgent()
     {
@@ -98,22 +91,38 @@ public class AdvancedScenarios
             loggingSim.Tick();
         }
 
-        // Serialize the snapshot log to CSV
+        // Serialize the snapshot log to separate CSV files for money and resources
         var snapshots = loggingSim.GetSnapshots();
         var agentNames = snapshots[0].Keys.OrderBy(name => name).ToList();
-        using var writer = new StreamWriter("all_agents_simulation_log.csv");
-        writer.WriteLine("Tick," + string.Join(",", agentNames.Select(name => $"{name} Money,{name} Resources")));
-        for (int tick = 0; tick < snapshots.Count; tick++)
+
+        using (var moneyWriter = new StreamWriter("all_agents_money.csv"))
         {
-            var snapshot = snapshots[tick];
-            var row = new List<string> { tick.ToString() };
-            foreach (var agentName in agentNames)
+            moneyWriter.WriteLine("Tick," + string.Join(",", agentNames));
+            for (int tick = 0; tick < snapshots.Count; tick++)
             {
-                var state = snapshot[agentName];
-                row.Add(state.MoneyBalance.ToString());
-                row.Add(state.ResourceBalance.ToString());
+                var snapshot = snapshots[tick];
+                var row = new List<string> { tick.ToString() };
+                foreach (var agentName in agentNames)
+                {
+                    row.Add(snapshot[agentName].MoneyBalance.ToString());
+                }
+                moneyWriter.WriteLine(string.Join(",", row));
             }
-            writer.WriteLine(string.Join(",", row));
+        }
+
+        using (var resourceWriter = new StreamWriter("all_agents_resources.csv"))
+        {
+            resourceWriter.WriteLine("Tick," + string.Join(",", agentNames));
+            for (int tick = 0; tick < snapshots.Count; tick++)
+            {
+                var snapshot = snapshots[tick];
+                var row = new List<string> { tick.ToString() };
+                foreach (var agentName in agentNames)
+                {
+                    row.Add(snapshot[agentName].ResourceBalance.ToString());
+                }
+                resourceWriter.WriteLine(string.Join(",", row));
+            }
         }
     }
 }
