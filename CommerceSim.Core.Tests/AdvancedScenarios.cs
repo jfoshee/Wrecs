@@ -1,3 +1,5 @@
+using CommerceSim.Core.Agents;
+
 namespace CommerceSim.Core.Tests;
 
 public class AdvancedScenarios

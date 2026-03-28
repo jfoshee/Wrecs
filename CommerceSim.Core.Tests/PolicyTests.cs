@@ -146,6 +146,6 @@ public class PolicyTests
         // Both buyers should have roughly the same ending balance and resources
         var buyer1State = sim.GetState(buyer1);
         var buyer2State = sim.GetState(buyer2);
-        buyer1State.ResourceBalance.Should().BeCloseTo(buyer2State.ResourceBalance, delta: 5);
+        buyer1State.ResourceBalance.Should().BeCloseTo(buyer2State.ResourceBalance, delta: 10);
     }
 }

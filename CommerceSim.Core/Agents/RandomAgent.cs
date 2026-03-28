@@ -1,4 +1,4 @@
-namespace CommerceSim.Core;
+namespace CommerceSim.Core.Agents;
 
 public sealed class RandomAgent(int maxPrice, Random? random = null) : IAgent
 {
