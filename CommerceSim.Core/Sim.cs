@@ -1,20 +1,5 @@
 namespace CommerceSim.Core;
 
-public record struct AgentStateSnapshot(int MoneyBalance, int ResourceBalance)
-{
-    internal AgentStateSnapshot(AgentState state) : this(state.MoneyBalance, state.ResourceBalance) { }
-}
-
-internal class AgentState(int moneyBalance = 0, int resourceBalance = 0)
-{
-    public int MoneyBalance { get; set; } = moneyBalance;
-    public int ResourceBalance { get; set; } = resourceBalance;
-
-    public AgentState(AgentStateSnapshot snapshot) :
-        this(snapshot.MoneyBalance, snapshot.ResourceBalance)
-    { }
-}
-
 public record struct Trade(Offer Offer,
                            AgentStateSnapshot SellerState,
                            AgentStateSnapshot BuyerState,
@@ -150,5 +135,15 @@ public class Sim : ISimulator
         // Transfer resources from seller to buyer
         buyer.ResourceBalance += offer.Resources;
         seller.ResourceBalance -= offer.Resources;
+    }
+
+    internal class AgentState(int moneyBalance = 0, int resourceBalance = 0)
+    {
+        public int MoneyBalance { get; set; } = moneyBalance;
+        public int ResourceBalance { get; set; } = resourceBalance;
+
+        public AgentState(AgentStateSnapshot snapshot) :
+            this(snapshot.MoneyBalance, snapshot.ResourceBalance)
+        { }
     }
 }
