@@ -24,7 +24,7 @@ public class LlmAgentTests(ITestOutputHelper output)
         var chatClient = CreateChatClient();
         var llmAgent = new LlmAgent(chatClient, _output);
         var seller = Mock.Of<IAgent>(a => a.Name == "Seller" && a.Id == AgentId.Next());
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         sim.InitAgents((llmAgent, new(MoneyBalance: 100, ResourceBalance: 0)),
                        (seller, new(MoneyBalance: 0, ResourceBalance: 50)));
         // Very cheap offer - LLM should take it
@@ -47,7 +47,7 @@ public class LlmAgentTests(ITestOutputHelper output)
         var chatClient = CreateChatClient();
         var llmAgent = new LlmAgent(chatClient, _output);
         var buyer = Mock.Of<IAgent>(a => a.Name == "Buyer" && a.Id == AgentId.Next());
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         sim.InitAgents((llmAgent, new(MoneyBalance: 0, ResourceBalance: 100)),
                        (buyer, new(MoneyBalance: 500, ResourceBalance: 0)));
         // Very generous buy offer - LLM should take it
@@ -70,7 +70,7 @@ public class LlmAgentTests(ITestOutputHelper output)
         var chatClient = CreateChatClient();
         var llmAgent = new LlmAgent(chatClient, _output);
         var buyer = new AlwaysBuyingTaker();
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         var initialLlm = new AgentStateSnapshot(MoneyBalance: 0, ResourceBalance: 100);
         var initialBuyer = new AgentStateSnapshot(MoneyBalance: 1000, ResourceBalance: 0);
         sim.InitAgents((llmAgent, initialLlm), (buyer, initialBuyer));
@@ -96,7 +96,7 @@ public class LlmAgentTests(ITestOutputHelper output)
         var chatClient = CreateChatClient();
         var llmAgent = new LlmAgent(chatClient, _output);
         var seller = new AlwaysSellingTaker();
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         var initialLlm = new AgentStateSnapshot(MoneyBalance: 1000, ResourceBalance: 0);
         var initialSeller = new AgentStateSnapshot(MoneyBalance: 0, ResourceBalance: 100);
         sim.InitAgents((llmAgent, initialLlm), (seller, initialSeller));
@@ -122,7 +122,7 @@ public class LlmAgentTests(ITestOutputHelper output)
         var chatClient = CreateChatClient();
         var agent1 = new LlmAgent(chatClient, _output);
         var agent2 = new LlmAgent(chatClient, _output);
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         var initial1 = new AgentStateSnapshot(MoneyBalance: 100, ResourceBalance: 50);
         var initial2 = new AgentStateSnapshot(MoneyBalance: 50, ResourceBalance: 100);
         sim.InitAgents((agent1, initial1), (agent2, initial2));

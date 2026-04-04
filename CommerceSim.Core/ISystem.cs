@@ -1,6 +1,6 @@
 namespace CommerceSim.Core;
 
-public interface ISimulator
+public interface ISystem
 {
     void Tick();
 }

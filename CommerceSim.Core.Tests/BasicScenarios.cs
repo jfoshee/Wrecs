@@ -5,14 +5,14 @@ public class BasicScenarios
     [Fact(DisplayName = "No Agents, No Offers")]
     public void NoAgentsNoOffers()
     {
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         sim.Tick();
     }
 
     [Fact(DisplayName = "One Agent, No Offers")]
     public void OneAgentNoOffers()
     {
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         var agent = MockAgent();
         sim.InitAgents((agent, default));
         sim.InitOffers();
@@ -27,7 +27,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Agents With State, No Offers")]
     public void TwoAgentsWithStateNoOffers()
     {
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         var agent1 = MockAgent();
         var agent2 = MockAgent();
         sim.InitAgents((agent1, new(MoneyBalance: 4, ResourceBalance: 8)),
@@ -47,7 +47,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Agents, One Sell Offer, One Buyer")]
     public void TwoAgentsOneSellOfferOneBuyer()
     {
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
         sim.InitAgents((buyer, new(MoneyBalance: 32, ResourceBalance: 9)),
@@ -67,7 +67,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Agents, One Buy Offer, One Seller")]
     public void TwoAgentsOneBuyOfferOneSeller()
     {
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         var seller = new AlwaysSellingTaker();
         var buyer = MockAgent();
         sim.InitAgents((seller, new(MoneyBalance: 32, ResourceBalance: 9)),
@@ -87,7 +87,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Agents, Two Offers, No Takers")]
     public void TwoOffersNoTakers()
     {
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         var buyer = MockAgent();
         var seller = MockAgent();
         sim.InitAgents((buyer, new(MoneyBalance: 32, ResourceBalance: 9)),
@@ -115,7 +115,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Consumed offer has no effect on next tick")]
     public void ConsumedOfferHasNoEffectOnNextTick()
     {
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
         sim.InitAgents((buyer, new(MoneyBalance: 100, ResourceBalance: 0)),
@@ -142,7 +142,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Agent Makes Sell Offer, Other Agent Takes It")]
     public void AgentMakesSellOfferOtherAgentTakesIt()
     {
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         var seller = new MakesSellOfferAgent(price: 8, resources: 3);
         var buyer = new AlwaysBuyingTaker();
         AgentStateSnapshot initialSellerState = new(MoneyBalance: 0, ResourceBalance: 100);
@@ -176,7 +176,7 @@ public class BasicScenarios
     [Fact(DisplayName = "One Source, One Do-Nothing Agent")]
     public void OneSourceOneDoNothingAgent()
     {
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: 16, resources: 42);
         sim.InitAgents((agent, default));
@@ -192,7 +192,7 @@ public class BasicScenarios
     [Fact(DisplayName = "One Source, One Do-Nothing Agent, 2 Grants")]
     public void OneSourceOneDoNothingAgentTwoGrants()
     {
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: 10, resources: 300);
         sim.InitAgents((agent, default));
@@ -209,7 +209,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Sources, One Agent: Grants Add Up")]
     public void TwoSourcesOneAgentGrantsAddUp()
     {
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         var agent = new DoNothingAgent();
         var source1 = new FixedGrantSource(agent, money: 10, resources: 300);
         var source2 = new FixedGrantSource(agent, money: 5, resources: 20);
@@ -226,7 +226,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Sources, Two Agents: Grants assigned to correct agent")]
     public void TwoSourcesTwoAgentsGrantsAssignedToCorrectAgent()
     {
-        var sim = new Sim();
+        var sim = new CommerceSystem();
         var agent1 = MockAgent();
         var agent2 = MockAgent();
         var source1 = new FixedGrantSource(agent1, money: 3, resources: 5);

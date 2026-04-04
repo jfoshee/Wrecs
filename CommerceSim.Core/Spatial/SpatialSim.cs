@@ -11,7 +11,7 @@ public interface ISpatialAgent : IEntity
     Vector GetStep(Position currentPosition);
 }
 
-public class SpatialSim : ISimulator
+public class SpatialSim : ISystem
 {
     private readonly List<ISpatialAgent> _agents = [];
 
