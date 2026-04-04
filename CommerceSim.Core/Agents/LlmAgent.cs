@@ -3,7 +3,7 @@ using Microsoft.Extensions.AI;
 
 namespace CommerceSim.Core.Agents;
 
-public sealed class LlmAgent(IChatClient chatClient) : IAgent
+public sealed class LlmAgent(IChatClient chatClient, IOutput? output = null) : IAgent
 {
     private readonly int _id = AgentId.Next();
 
@@ -15,28 +15,67 @@ public sealed class LlmAgent(IChatClient chatClient) : IAgent
             .Where(o => o.Author != this && !o.Used)
             .Select((o, i) => new { Index = i, Type = o is BuyOffer ? "buy" : "sell", o.Price, o.Resources })
             .ToList();
-
         var prompt = $$"""
-            You are a trading agent in a market simulation. Make a profitable decision.
+    You are a trading agent in a market simulation.
 
-            Your current state:
-            - Money: {{state.MoneyBalance}}
-            - Resources: {{state.ResourceBalance}}
+    Goal:
+    - Make money over time by buying and selling resources.
 
-            Available offers to take:
-            {{(availableOffers.Count == 0 ? "None" : JsonSerializer.Serialize(availableOffers))}}
+    Offer semantics:
+    - A "sell" offer means another agent is selling resources. If you take it, you BUY those resources.
+    - A "buy" offer means another agent is buying resources. If you take it, you SELL those resources.
 
-            You can:
-            1. "nothing" - do nothing
-            2. "take" - accept an existing offer (specify offerIndex)
-            3. "buy" - post a buy offer (specify price and resources you want)
-            4. "sell" - post a sell offer (specify price and resources to sell)
+    Your state:
+    - Money: {{state.MoneyBalance}}
+    - Resources: {{state.ResourceBalance}}
 
-            Respond with ONLY valid JSON (no markdown):
-            {"action": "nothing|take|buy|sell", "offerIndex": 0, "price": 10, "resources": 1}
-            """;
+    Available offers:
+    {{(availableOffers.Count == 0 ? "[]" : JsonSerializer.Serialize(availableOffers))}}
+
+    Available actions / schema for response:
+    - {"action":"nothing"}
+    - {"action":"take","offerIndex":<number>}
+    - {"action":"buy","price":<number>,"resources":<number>}
+    - {"action":"sell","price":<number>,"resources":<number>}
+
+    Rules:
+    - Only choose actions you can afford and complete immediately.
+    - If there are no available offers, you may only create new offers or do nothing.
+    - If an existing offer already gives you the deal you want, use "take" instead of creating a new offer.
+    - Do not create a "buy" offer at a price and quantity that could already be satisfied by an existing "sell" offer.
+    - Do not create a "sell" offer at a price and quantity that could already be satisfied by an existing "buy" offer.
+    - Do not over-think this. No more than 3 rounds of thoughts.
+
+    Response requirements:
+    - Return valid JSON only.
+    """;
+
+        output?.WriteLine($"[{Name}] PROMPT:\n{prompt}");
 
         var response = chatClient.GetResponseAsync(prompt).GetAwaiter().GetResult();
+
+        // Output all message contents including thinking
+        foreach (var message in response.Messages)
+        {
+            foreach (var content in message.Contents)
+            {
+                var contentType = content.GetType().Name;
+                var thinkingProp = content.GetType().GetProperty("Thinking");
+
+                if (contentType.Contains("Thinking", StringComparison.OrdinalIgnoreCase) || thinkingProp is not null)
+                {
+                    var thinkingText = thinkingProp?.GetValue(content)?.ToString() ?? content.ToString();
+                    output?.WriteLine($"[{Name}] THINKING:\n{thinkingText}");
+                }
+                else if (content is not TextContent)
+                {
+                    output?.WriteLine($"[{Name}] {contentType}:\n{content}");
+                }
+            }
+        }
+
+        output?.WriteLine($"[{Name}] RESPONSE:\n{response.Text}");
+
         return ParseDecision(response.Text ?? "", offers.Where(o => o.Author != this && !o.Used).ToList());
     }
 
@@ -62,7 +101,7 @@ public sealed class LlmAgent(IChatClient chatClient) : IAgent
                     => new TakeOfferDecision(availableOffers[idx.GetInt32()]),
                 "buy" => new MakeOfferDecision(new BuyOffer(this, root.GetProperty("price").GetInt32(), root.GetProperty("resources").GetInt32())),
                 "sell" => new MakeOfferDecision(new SellOffer(this, root.GetProperty("price").GetInt32(), root.GetProperty("resources").GetInt32())),
-                _ => new DoNothingDecision()
+                _ => throw new Exception("Failed to parse JSON: \n" + responseText)
             };
         }
         catch

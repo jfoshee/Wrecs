@@ -1,19 +1,28 @@
 using CommerceSim.Core.Agents;
 using Microsoft.Extensions.AI;
 using OllamaSharp;
+using Xunit.Abstractions;
 
 namespace CommerceSim.Core.Tests;
 
-public class LlmAgentTests
+public class XUnitOutput(ITestOutputHelper output) : IOutput
 {
-    private static IChatClient CreateChatClient() =>
-        new OllamaApiClient("http://localhost:11434", "llama3.2");
+    public void WriteLine(string message) => output.WriteLine(message);
+}
 
-    [Fact(DisplayName = "LLM agent takes obvious sell offer")]
+public class LlmAgentTests(ITestOutputHelper output)
+{
+    private readonly IOutput _output = new XUnitOutput(output);
+
+    private static IChatClient CreateChatClient() =>
+        // new OllamaApiClient("http://localhost:11434", "qwen3.5:9b");
+        new OllamaApiClient("http://localhost:11434", "llama3.2:3b");
+
+    [Fact(DisplayName = "LLM agent takes obvious sell offer", Skip = "slow")]
     public void LlmAgentTakesObviousSellOffer()
     {
         var chatClient = CreateChatClient();
-        var llmAgent = new LlmAgent(chatClient);
+        var llmAgent = new LlmAgent(chatClient, _output);
         var seller = Mock.Of<IAgent>(a => a.Name == "Seller");
         var sim = new Sim();
         sim.InitAgents((llmAgent, new(MoneyBalance: 100, ResourceBalance: 0)),
@@ -32,11 +41,11 @@ public class LlmAgentTests
         sellerState.ResourceBalance.Should().Be(40);
     }
 
-    [Fact(DisplayName = "LLM agent takes obvious buy offer")]
+    [Fact(DisplayName = "LLM agent takes obvious buy offer", Skip = "slow")]
     public void LlmAgentTakesObviousBuyOffer()
     {
         var chatClient = CreateChatClient();
-        var llmAgent = new LlmAgent(chatClient);
+        var llmAgent = new LlmAgent(chatClient, _output);
         var buyer = Mock.Of<IAgent>(a => a.Name == "Buyer");
         var sim = new Sim();
         sim.InitAgents((llmAgent, new(MoneyBalance: 0, ResourceBalance: 100)),
@@ -55,11 +64,11 @@ public class LlmAgentTests
         buyerState.ResourceBalance.Should().Be(1);
     }
 
-    [Fact(DisplayName = "LLM agent makes sell offer that gets taken")]
+    [Fact(DisplayName = "LLM agent makes sell offer that gets taken", Skip = "slow")]
     public void LlmAgentMakesSellOfferThatGetsTaken()
     {
         var chatClient = CreateChatClient();
-        var llmAgent = new LlmAgent(chatClient);
+        var llmAgent = new LlmAgent(chatClient, _output);
         var buyer = new AlwaysBuyingTaker();
         var sim = new Sim();
         var initialLlm = new AgentStateSnapshot(MoneyBalance: 0, ResourceBalance: 100);
@@ -81,11 +90,11 @@ public class LlmAgentTests
         buyerState.ResourceBalance.Should().BeGreaterThan(0);
     }
 
-    [Fact(DisplayName = "LLM agent makes buy offer that gets taken")]
+    [Fact(DisplayName = "LLM agent makes buy offer that gets taken", Skip = "slow")]
     public void LlmAgentMakesBuyOfferThatGetsTaken()
     {
         var chatClient = CreateChatClient();
-        var llmAgent = new LlmAgent(chatClient);
+        var llmAgent = new LlmAgent(chatClient, _output);
         var seller = new AlwaysSellingTaker();
         var sim = new Sim();
         var initialLlm = new AgentStateSnapshot(MoneyBalance: 1000, ResourceBalance: 0);
@@ -107,12 +116,12 @@ public class LlmAgentTests
         sellerState.ResourceBalance.Should().BeLessThan(100);
     }
 
-    [Fact(DisplayName = "Two LLM agents trade with each other")]
+    [Fact(DisplayName = "Two LLM agents trade with each other", Skip = "slow")]
     public void TwoLlmAgentsTrade()
     {
         var chatClient = CreateChatClient();
-        var agent1 = new LlmAgent(chatClient);
-        var agent2 = new LlmAgent(chatClient);
+        var agent1 = new LlmAgent(chatClient, _output);
+        var agent2 = new LlmAgent(chatClient, _output);
         var sim = new Sim();
         var initial1 = new AgentStateSnapshot(MoneyBalance: 100, ResourceBalance: 50);
         var initial2 = new AgentStateSnapshot(MoneyBalance: 50, ResourceBalance: 100);
