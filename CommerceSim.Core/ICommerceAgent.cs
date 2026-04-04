@@ -1,6 +1,6 @@
 namespace CommerceSim.Core;
 
-public interface IAgent : IEntity
+public interface ICommerceAgent : IEntity
 {
     /// <summary>
     /// Decide what to do with this tick, given the current state and available offers.

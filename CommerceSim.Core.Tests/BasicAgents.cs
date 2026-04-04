@@ -5,7 +5,7 @@ namespace CommerceSim.Core.Tests;
 /// <summary>
 /// Agent that always does nothing.
 /// </summary>
-class DoNothingAgent : IAgent
+class DoNothingAgent : ICommerceAgent
 {
     private readonly int _id = AgentId.Next();
     public int Id => _id;
@@ -17,7 +17,7 @@ class DoNothingAgent : IAgent
 /// <summary>
 /// Always buys the first sell offer it sees, or does nothing if there are no sell offers.
 /// </summary>
-class AlwaysBuyingTaker : IAgent
+class AlwaysBuyingTaker : ICommerceAgent
 {
     private readonly int _id = AgentId.Next();
     public int Id => _id;
@@ -36,7 +36,7 @@ class AlwaysBuyingTaker : IAgent
 /// <summary>
 /// Always sells to the first buy offer it sees, or does nothing if there are no buy offers.
 /// </summary>
-class AlwaysSellingTaker : IAgent
+class AlwaysSellingTaker : ICommerceAgent
 {
     private readonly int _id = AgentId.Next();
     public int Id => _id;
@@ -55,7 +55,7 @@ class AlwaysSellingTaker : IAgent
 /// <summary>
 /// Always makes sell offers at a fixed price and quantity each tick.
 /// </summary>
-class AlwaysSellingMaker(int price, int resources) : IAgent
+class AlwaysSellingMaker(int price, int resources) : ICommerceAgent
 {
     private readonly int _id = AgentId.Next();
     public int Id => _id;
@@ -71,7 +71,7 @@ class AlwaysSellingMaker(int price, int resources) : IAgent
 /// <summary>
 /// Makes a single sell offer on the first tick, then does nothing on subsequent ticks.
 /// </summary>
-class MakesSellOfferAgent(int price, int resources) : IAgent
+class MakesSellOfferAgent(int price, int resources) : ICommerceAgent
 {
     private readonly int _id = AgentId.Next();
     public int Id => _id;
@@ -91,7 +91,7 @@ class MakesSellOfferAgent(int price, int resources) : IAgent
 /// <summary>
 /// Makes a single buy offer on the first tick, then does nothing on subsequent ticks.
 /// </summary>
-class MakesBuyOfferAgent(int price, int resources) : IAgent
+class MakesBuyOfferAgent(int price, int resources) : ICommerceAgent
 {
     private readonly int _id = AgentId.Next();
     public int Id => _id;
@@ -111,7 +111,7 @@ class MakesBuyOfferAgent(int price, int resources) : IAgent
 /// <summary>
 /// Offers to sell all of its resources at a fixed price each tick. If it has no resources, does nothing.
 /// </summary>
-class OffersToSellAllResourcesAgent(int price) : IAgent
+class OffersToSellAllResourcesAgent(int price) : ICommerceAgent
 {
     private readonly int _id = AgentId.Next();
     public int Id => _id;

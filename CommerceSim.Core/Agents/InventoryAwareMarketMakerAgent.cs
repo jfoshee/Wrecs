@@ -4,7 +4,7 @@ public sealed class InventoryAwareMarketMakerAgent(
     int anchorPrice,
     int targetInventory,
     int inventoryTolerance,
-    int minSpread = 2) : IAgent
+    int minSpread = 2) : ICommerceAgent
 {
     private readonly int _id = AgentId.Next();
     public int Id => _id;

@@ -3,7 +3,7 @@ namespace CommerceSim.Core.Agents;
 public sealed class SpreadSniperAgent(
     int minProfitPerUnit,
     int maxInventory,
-    int minCashReserve) : IAgent
+    int minCashReserve) : ICommerceAgent
 {
     private readonly int _id = AgentId.Next();
     public int Id => _id;

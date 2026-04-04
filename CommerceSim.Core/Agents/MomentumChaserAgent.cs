@@ -3,7 +3,7 @@ namespace CommerceSim.Core.Agents;
 public sealed class MomentumChaserAgent(
     int lookback = 6,
     int maxInventory = 6,
-    int minCashReserve = 2) : IAgent
+    int minCashReserve = 2) : ICommerceAgent
 {
     private readonly int _id = AgentId.Next();
     public int Id => _id;

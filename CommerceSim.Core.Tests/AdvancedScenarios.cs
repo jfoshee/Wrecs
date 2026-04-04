@@ -71,7 +71,7 @@ public class AdvancedScenarios
         var randomAgent = new RandomAgent(maxPrice: 20);
         var valueInvestorAgent = new ValueInvestorAgent(initialFairPrice: 10, maxPosition: 20, minCashReserve: 50);
 
-        var agentInitList = new List<(IAgent, AgentStateSnapshot)>
+        var agentInitList = new List<(ICommerceAgent, AgentStateSnapshot)>
         {
             (contrarianAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
             (marketMaker, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),

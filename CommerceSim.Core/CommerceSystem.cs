@@ -8,9 +8,9 @@ public record struct Trade(Offer Offer,
 
 public class CommerceSystem : ISystem
 {
-    private readonly List<IAgent> _agents = [];
+    private readonly List<ICommerceAgent> _agents = [];
     private readonly List<ISource> _sources = [];
-    private readonly Dictionary<IAgent, AgentState> _agentStates = [];
+    private readonly Dictionary<ICommerceAgent, AgentState> _agentStates = [];
     private readonly List<Offer> _availableOffers = [];
 
     private readonly List<ITradePolicy> _tradePolicies = [
@@ -22,7 +22,7 @@ public class CommerceSystem : ISystem
         new NoNegativeGrantsPolicy()
     ];
 
-    public AgentStateSnapshot GetState(IAgent agent) => new(_agentStates[agent]);
+    public AgentStateSnapshot GetState(ICommerceAgent agent) => new(_agentStates[agent]);
 
     public IReadOnlyDictionary<int, AgentStateSnapshot> GetStateSnapshot() =>
         _agentStates.ToDictionary(kvp => kvp.Key.Id, kvp => new AgentStateSnapshot(kvp.Value));
@@ -30,7 +30,7 @@ public class CommerceSystem : ISystem
     public IReadOnlyDictionary<int, string> GetAgentNames() =>
         _agents.ToDictionary(a => a.Id, a => a.Name);
 
-    public void InitAgents(params (IAgent agent, AgentStateSnapshot state)[] initialAgents)
+    public void InitAgents(params (ICommerceAgent agent, AgentStateSnapshot state)[] initialAgents)
     {
         _agents.Clear();
         _agentStates.Clear();
@@ -73,7 +73,7 @@ public class CommerceSystem : ISystem
         }
 
         // Decision making phase
-        var decisions = new List<(IAgent Agent, Decision Decision)>();
+        var decisions = new List<(ICommerceAgent Agent, Decision Decision)>();
         foreach (var agent in _agents)
         {
             var state = _agentStates[agent];
@@ -106,7 +106,7 @@ public class CommerceSystem : ISystem
     /// <summary>
     /// Randomly shuffle the order of decisions to ensure fairness in processing and avoid bias based on agent order.
     /// </summary>
-    private static List<(IAgent Agent, Decision Decision)> Shuffle(List<(IAgent Agent, Decision Decision)> decisions)
+    private static List<(ICommerceAgent Agent, Decision Decision)> Shuffle(List<(ICommerceAgent Agent, Decision Decision)> decisions)
     {
         return [.. decisions.OrderBy(_ => _random.Next())];
     }
