@@ -4,6 +4,7 @@ public sealed class RandomAgent(int maxPrice, Random? random = null) : IAgent
 {
     private readonly Random _random = random ?? Random.Shared;
     private readonly int _id = AgentId.Next();
+    public int Id => _id;
 
     public string Name => "Random " + _id;
 

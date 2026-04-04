@@ -6,6 +6,7 @@ namespace CommerceSim.Core.Agents;
 public sealed class LlmAgent(IChatClient chatClient, IOutput? output = null) : IAgent
 {
     private readonly int _id = AgentId.Next();
+    public int Id => _id;
 
     public string Name => $"LLM-{_id}";
 

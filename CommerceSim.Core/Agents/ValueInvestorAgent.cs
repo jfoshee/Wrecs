@@ -6,6 +6,8 @@ public sealed class ValueInvestorAgent(
     int minCashReserve,
     double adjustmentRate = 0.15) : IAgent
 {
+    private readonly int _id = AgentId.Next();
+    public int Id => _id;
     private double fairPrice = initialFairPrice;
 
     public string Name => "ValueInvestor";

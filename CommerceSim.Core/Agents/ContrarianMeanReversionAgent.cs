@@ -6,6 +6,8 @@ public sealed class ContrarianMeanReversionAgent(
     int minCashReserve = 2,
     double zThreshold = 1.25) : IAgent
 {
+    private readonly int _id = AgentId.Next();
+    public int Id => _id;
     private readonly Queue<double> midPrices = new();
 
     public string Name => "ContrarianMeanReversion";

@@ -24,17 +24,14 @@ public class Sim : ISimulator
 
     public AgentStateSnapshot GetState(IAgent agent) => new(_agentStates[agent]);
 
-    public IReadOnlyDictionary<string, AgentStateSnapshot> GetStateSnapshot() =>
-        _agentStates.ToDictionary(kvp => kvp.Key.Name, kvp => new AgentStateSnapshot(kvp.Value));
+    public IReadOnlyDictionary<int, AgentStateSnapshot> GetStateSnapshot() =>
+        _agentStates.ToDictionary(kvp => kvp.Key.Id, kvp => new AgentStateSnapshot(kvp.Value));
+
+    public IReadOnlyDictionary<int, string> GetAgentNames() =>
+        _agents.ToDictionary(a => a.Id, a => a.Name);
 
     public void InitAgents(params (IAgent agent, AgentStateSnapshot state)[] initialAgents)
     {
-        // Ensure Agent names are unique
-        var duplicateNames = initialAgents.GroupBy(x => x.agent.Name)
-                                          .Where(g => g.Count() > 1)
-                                          .Select(g => $"'{g.Key}'");
-        if (duplicateNames.Any())
-            throw new ArgumentException($"Agent names must be unique. Duplicates: {string.Join(", ", duplicateNames)}");
         _agents.Clear();
         _agentStates.Clear();
         foreach (var (agent, state) in initialAgents)

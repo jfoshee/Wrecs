@@ -246,6 +246,9 @@ public class BasicScenarios
         snapshot2.ResourceBalance.Should().Be(11);
     }
 
-    private static IAgent MockAgent() =>
-        Mock.Of<IAgent>(a => a.Name == Guid.NewGuid().ToString());
+    private static IAgent MockAgent()
+    {
+        var id = Agents.AgentId.Next();
+        return Mock.Of<IAgent>(a => a.Name == Guid.NewGuid().ToString() && a.Id == id);
+    }
 }

@@ -5,9 +5,9 @@ namespace CommerceSim.Core;
 /// </summary>
 public class LoggingSim(Sim sim) : ISimulator
 {
-    private readonly List<IReadOnlyDictionary<string, AgentStateSnapshot>> _snapshots = [];
+    private readonly List<IReadOnlyDictionary<int, AgentStateSnapshot>> _snapshots = [];
 
-    public IReadOnlyList<IReadOnlyDictionary<string, AgentStateSnapshot>> GetSnapshots() => _snapshots;
+    public IReadOnlyList<IReadOnlyDictionary<int, AgentStateSnapshot>> GetSnapshots() => _snapshots;
 
     public void Tick()
     {

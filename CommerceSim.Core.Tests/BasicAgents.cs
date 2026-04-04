@@ -1,3 +1,5 @@
+using CommerceSim.Core.Agents;
+
 namespace CommerceSim.Core.Tests;
 
 /// <summary>
@@ -5,6 +7,8 @@ namespace CommerceSim.Core.Tests;
 /// </summary>
 class DoNothingAgent : IAgent
 {
+    private readonly int _id = AgentId.Next();
+    public int Id => _id;
     public string Name => nameof(DoNothingAgent);
 
     public Decision Decide(AgentStateSnapshot _, List<Offer> opportunities) => new DoNothingDecision();
@@ -15,10 +19,10 @@ class DoNothingAgent : IAgent
 /// </summary>
 class AlwaysBuyingTaker : IAgent
 {
-    private static int _indexCounter = 0;
-    private readonly int _index = _indexCounter++;
+    private readonly int _id = AgentId.Next();
+    public int Id => _id;
 
-    public string Name => nameof(AlwaysBuyingTaker) + _index;
+    public string Name => nameof(AlwaysBuyingTaker);
 
     public Decision Decide(AgentStateSnapshot _, List<Offer> opportunities)
     {
@@ -34,6 +38,9 @@ class AlwaysBuyingTaker : IAgent
 /// </summary>
 class AlwaysSellingTaker : IAgent
 {
+    private readonly int _id = AgentId.Next();
+    public int Id => _id;
+
     public string Name => nameof(AlwaysSellingTaker);
 
     public Decision Decide(AgentStateSnapshot _, List<Offer> opportunities)
@@ -50,6 +57,9 @@ class AlwaysSellingTaker : IAgent
 /// </summary>
 class AlwaysSellingMaker(int price, int resources) : IAgent
 {
+    private readonly int _id = AgentId.Next();
+    public int Id => _id;
+
     public string Name => nameof(AlwaysSellingMaker);
 
     public Decision Decide(AgentStateSnapshot _, List<Offer> opportunities)
@@ -63,6 +73,8 @@ class AlwaysSellingMaker(int price, int resources) : IAgent
 /// </summary>
 class MakesSellOfferAgent(int price, int resources) : IAgent
 {
+    private readonly int _id = AgentId.Next();
+    public int Id => _id;
     private bool _hasMadeOffer = false;
 
     public string Name => nameof(MakesSellOfferAgent);
@@ -81,6 +93,8 @@ class MakesSellOfferAgent(int price, int resources) : IAgent
 /// </summary>
 class MakesBuyOfferAgent(int price, int resources) : IAgent
 {
+    private readonly int _id = AgentId.Next();
+    public int Id => _id;
     private bool _hasMadeOffer = false;
 
     public string Name => nameof(MakesBuyOfferAgent);
@@ -99,6 +113,9 @@ class MakesBuyOfferAgent(int price, int resources) : IAgent
 /// </summary>
 class OffersToSellAllResourcesAgent(int price) : IAgent
 {
+    private readonly int _id = AgentId.Next();
+    public int Id => _id;
+
     public string Name => nameof(OffersToSellAllResourcesAgent);
 
     public Decision Decide(AgentStateSnapshot state, List<Offer> opportunities)

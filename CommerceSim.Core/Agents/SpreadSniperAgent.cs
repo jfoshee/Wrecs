@@ -5,6 +5,9 @@ public sealed class SpreadSniperAgent(
     int maxInventory,
     int minCashReserve) : IAgent
 {
+    private readonly int _id = AgentId.Next();
+    public int Id => _id;
+
     public string Name => "SpreadSniper";
 
     public Decision Decide(AgentStateSnapshot state, List<Offer> offers)

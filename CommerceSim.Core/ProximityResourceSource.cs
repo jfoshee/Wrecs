@@ -2,6 +2,8 @@ namespace CommerceSim.Core;
 
 public class ProximityResourceSource(int resourcesGranted, int intervalTicks, double proximity) : ISource, IEntity
 {
+    private readonly int _id = Agents.AgentId.Next();
+    public int Id => _id;
     private IAgent? _nearbyAgent = null;
     private int _nearbyTimeTicks = 0;
 

@@ -5,6 +5,8 @@ public sealed class MomentumChaserAgent(
     int maxInventory = 6,
     int minCashReserve = 2) : IAgent
 {
+    private readonly int _id = AgentId.Next();
+    public int Id => _id;
     private readonly Queue<double> midPrices = new();
 
     public string Name => "MomentumChaser";

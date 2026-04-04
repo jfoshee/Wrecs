@@ -34,16 +34,17 @@ public class AdvancedScenarios
 
         // Serialize the snapshot log to CSV
         var snapshots = loggingSim.GetSnapshots();
-        var agentNames = snapshots[0].Keys.OrderBy(name => name).ToList();
+        var agentNames = sim.GetAgentNames();
+        var sortedIds = agentNames.Keys.OrderBy(id => agentNames[id]).ToList();
         using var writer = new StreamWriter("simulation_log.csv");
-        writer.WriteLine("Tick," + string.Join(",", agentNames.Select(name => $"{name} Money,{name} Resources")));
+        writer.WriteLine("Tick," + string.Join(",", sortedIds.Select(id => $"{agentNames[id]} Money,{agentNames[id]} Resources")));
         for (int tick = 0; tick < snapshots.Count; tick++)
         {
             var snapshot = snapshots[tick];
             var row = new List<string> { tick.ToString() };
-            foreach (var agentName in agentNames)
+            foreach (var id in sortedIds)
             {
-                var state = snapshot[agentName];
+                var state = snapshot[id];
                 row.Add(state.MoneyBalance.ToString());
                 row.Add(state.ResourceBalance.ToString());
             }
@@ -100,18 +101,21 @@ public class AdvancedScenarios
 
         // Generate ScottPlot chart for money over time
         var snapshots = loggingSim.GetSnapshots();
-        var agentNames = snapshots[0].Keys.Where(x => !x.StartsWith("Random"))
-                                          .OrderBy(name => name)
-                                          .ToList();
+        var agentNames = sim.GetAgentNames();
+        var chartIds = agentNames
+            .Where(kvp => !kvp.Value.StartsWith("Random"))
+            .OrderBy(kvp => kvp.Value)
+            .Select(kvp => kvp.Key)
+            .ToList();
 
         var plot = new Plot();
         var ticks = Enumerable.Range(0, snapshots.Count).Select(t => (double)t).ToArray();
 
-        foreach (var agentName in agentNames)
+        foreach (var id in chartIds)
         {
-            var moneyData = snapshots.Select(s => (double)s[agentName].MoneyBalance).ToArray();
+            var moneyData = snapshots.Select(s => (double)s[id].MoneyBalance).ToArray();
             var scatter = plot.Add.Scatter(ticks, moneyData);
-            scatter.LegendText = agentName;
+            scatter.LegendText = agentNames[id];
         }
 
         plot.Title("Agent Money Over Time");

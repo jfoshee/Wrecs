@@ -1,17 +1,11 @@
 namespace CommerceSim.Core;
 
-public interface IEntity
-{
-    // int Id { get; }
-}
-
 public interface IAgent : IEntity
 {
     /// <summary>
     /// Returns a unique name for this agent.
     /// </summary>
     public string Name { get; }
-
 
     /// <summary>
     /// Decide what to do with this tick, given the current state and available offers.

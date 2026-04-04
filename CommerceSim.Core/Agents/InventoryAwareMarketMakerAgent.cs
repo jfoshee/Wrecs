@@ -7,6 +7,7 @@ public sealed class InventoryAwareMarketMakerAgent(
     int minSpread = 2) : IAgent
 {
     private readonly int _id = AgentId.Next();
+    public int Id => _id;
     public string Name => "Inventory-Aware Market-Maker " + _id;
 
     public Decision Decide(AgentStateSnapshot state, List<Offer> offers)
