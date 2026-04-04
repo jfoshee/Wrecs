@@ -6,6 +6,9 @@ public class ProximityResourceSource(int resourcesGranted, int intervalTicks, do
 {
     private readonly int _id = Agents.AgentId.Next();
     public int Id => _id;
+
+    public string Name => nameof(ProximityResourceSource);
+
     private IAgent? _nearbyAgent = null;
     private int _nearbyTimeTicks = 0;
 

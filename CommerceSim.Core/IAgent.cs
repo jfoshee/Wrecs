@@ -3,11 +3,6 @@ namespace CommerceSim.Core;
 public interface IAgent : IEntity
 {
     /// <summary>
-    /// Returns a unique name for this agent.
-    /// </summary>
-    public string Name { get; }
-
-    /// <summary>
     /// Decide what to do with this tick, given the current state and available offers.
     /// </summary>
     /// <param name="state">The current state of the agent.</param>
