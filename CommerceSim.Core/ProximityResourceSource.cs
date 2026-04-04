@@ -9,7 +9,7 @@ public class ProximityResourceSource(int resourcesGranted, int intervalTicks, do
 
     public IEnumerable<Grant> CreateGrants(Context context)
     {
-        var spatial = context.SpatialSim;
+        var spatial = context.Spatial;
         var myPosition = spatial.GetPosition(this);
         var agents = context.Entities.OfType<IAgent>();
         // If we aren't already tracking a nearby agent, look for one within proximity

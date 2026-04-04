@@ -7,14 +7,14 @@ public class BasicSpatialScenarios
     [Fact(DisplayName = "No Agents, Tick Does Nothing")]
     public void NoAgentsTickDoesNothing()
     {
-        var sim = new SpatialSim();
+        var sim = new SpatialSystem();
         sim.Tick();
     }
 
     [Fact(DisplayName = "One Stationary Agent Stays Put")]
     public void OneStationaryAgentStaysPut()
     {
-        var sim = new SpatialSim();
+        var sim = new SpatialSystem();
         var agent = MockSpatialAgent(step: 0);
         sim.InitAgents((agent, 5));
 
@@ -26,7 +26,7 @@ public class BasicSpatialScenarios
     [Fact(DisplayName = "One Agent Moves Right")]
     public void OneAgentMovesRight()
     {
-        var sim = new SpatialSim();
+        var sim = new SpatialSystem();
         var agent = MockSpatialAgent(step: 1);
         sim.InitAgents((agent, 0));
 
@@ -38,7 +38,7 @@ public class BasicSpatialScenarios
     [Fact(DisplayName = "One Agent Moves Left")]
     public void OneAgentMovesLeft()
     {
-        var sim = new SpatialSim();
+        var sim = new SpatialSystem();
         var agent = MockSpatialAgent(step: -1);
         sim.InitAgents((agent, 10));
 
@@ -50,7 +50,7 @@ public class BasicSpatialScenarios
     [Fact(DisplayName = "Agent Accumulates Position Over Multiple Ticks")]
     public void AgentAccumulatesPositionOverMultipleTicks()
     {
-        var sim = new SpatialSim();
+        var sim = new SpatialSystem();
         var agent = MockSpatialAgent(step: 3);
         sim.InitAgents((agent, 0));
 
@@ -64,7 +64,7 @@ public class BasicSpatialScenarios
     [Fact(DisplayName = "Two Agents Move Independently")]
     public void TwoAgentsMoveIndependently()
     {
-        var sim = new SpatialSim();
+        var sim = new SpatialSystem();
         var agent1 = MockSpatialAgent(step: 2);
         var agent2 = MockSpatialAgent(step: -1);
         sim.InitAgents((agent1, 0), (agent2, 10));
@@ -83,7 +83,7 @@ public class BasicSpatialScenarios
         mock.Setup(a => a.GetStep(It.IsAny<int>())).Returns(1);
         var agent = mock.Object;
 
-        var sim = new SpatialSim();
+        var sim = new SpatialSystem();
         sim.InitAgents((agent, 7));
 
         sim.Tick();
@@ -98,7 +98,7 @@ public class BasicSpatialScenarios
     [Fact(DisplayName = "Agent Can Move To Negative Position")]
     public void AgentCanMoveToNegativePosition()
     {
-        var sim = new SpatialSim();
+        var sim = new SpatialSystem();
         var agent = MockSpatialAgent(step: -5);
         sim.InitAgents((agent, 2));
 
