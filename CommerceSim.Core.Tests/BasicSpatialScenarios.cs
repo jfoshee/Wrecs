@@ -1,0 +1,115 @@
+using CommerceSim.Core.Spatial;
+
+namespace CommerceSim.Core.Tests;
+
+public class BasicSpatialScenarios
+{
+    [Fact(DisplayName = "No Agents, Tick Does Nothing")]
+    public void NoAgentsTickDoesNothing()
+    {
+        var sim = new SpatialSim();
+        sim.Tick();
+    }
+
+    [Fact(DisplayName = "One Stationary Agent Stays Put")]
+    public void OneStationaryAgentStaysPut()
+    {
+        var sim = new SpatialSim();
+        var agent = MockSpatialAgent(step: 0);
+        sim.InitAgents((agent, 5));
+
+        sim.Tick();
+
+        sim.GetPosition(agent).Should().Be(5);
+    }
+
+    [Fact(DisplayName = "One Agent Moves Right")]
+    public void OneAgentMovesRight()
+    {
+        var sim = new SpatialSim();
+        var agent = MockSpatialAgent(step: 1);
+        sim.InitAgents((agent, 0));
+
+        sim.Tick();
+
+        sim.GetPosition(agent).Should().Be(1);
+    }
+
+    [Fact(DisplayName = "One Agent Moves Left")]
+    public void OneAgentMovesLeft()
+    {
+        var sim = new SpatialSim();
+        var agent = MockSpatialAgent(step: -1);
+        sim.InitAgents((agent, 10));
+
+        sim.Tick();
+
+        sim.GetPosition(agent).Should().Be(9);
+    }
+
+    [Fact(DisplayName = "Agent Accumulates Position Over Multiple Ticks")]
+    public void AgentAccumulatesPositionOverMultipleTicks()
+    {
+        var sim = new SpatialSim();
+        var agent = MockSpatialAgent(step: 3);
+        sim.InitAgents((agent, 0));
+
+        sim.Tick();
+        sim.Tick();
+        sim.Tick();
+
+        sim.GetPosition(agent).Should().Be(9);
+    }
+
+    [Fact(DisplayName = "Two Agents Move Independently")]
+    public void TwoAgentsMoveIndependently()
+    {
+        var sim = new SpatialSim();
+        var agent1 = MockSpatialAgent(step: 2);
+        var agent2 = MockSpatialAgent(step: -1);
+        sim.InitAgents((agent1, 0), (agent2, 10));
+
+        sim.Tick();
+
+        sim.GetPosition(agent1).Should().Be(2);
+        sim.GetPosition(agent2).Should().Be(9);
+    }
+
+    [Fact(DisplayName = "Agent Receives Current Position In GetStep")]
+    public void AgentReceivesCurrentPositionInGetStep()
+    {
+        var mock = new Mock<ISpatialAgent>();
+        mock.Setup(a => a.GetStep(It.IsAny<int>())).Returns(1);
+        var agent = mock.Object;
+
+        var sim = new SpatialSim();
+        sim.InitAgents((agent, 7));
+
+        sim.Tick();
+
+        mock.Verify(a => a.GetStep(7), Times.Once);
+
+        sim.Tick();
+
+        mock.Verify(a => a.GetStep(8), Times.Once);
+    }
+
+    [Fact(DisplayName = "Agent Can Move To Negative Position")]
+    public void AgentCanMoveToNegativePosition()
+    {
+        var sim = new SpatialSim();
+        var agent = MockSpatialAgent(step: -5);
+        sim.InitAgents((agent, 2));
+
+        sim.Tick();
+
+        sim.GetPosition(agent).Should().Be(-3);
+    }
+
+    private static ISpatialAgent MockSpatialAgent(int step)
+    {
+        var mock = new Mock<ISpatialAgent>();
+        mock.Setup(a => a.GetStep(It.IsAny<int>())).Returns(step);
+        return mock.Object;
+    }
+}

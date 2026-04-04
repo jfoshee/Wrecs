@@ -11,13 +11,24 @@ public interface ISpatialAgent : IEntity
     Vector GetStep(Position currentPosition);
 }
 
-class SpatialSim : ISimulator
+public class SpatialSim : ISimulator
 {
     private readonly List<ISpatialAgent> _agents = [];
 
     private readonly Dictionary<IEntity, Position> _entityPositions = [];
 
     public Position GetPosition(IEntity entity) => _entityPositions[entity];
+
+    public void InitAgents(params (ISpatialAgent agent, Position position)[] initialAgents)
+    {
+        _agents.Clear();
+        _entityPositions.Clear();
+        foreach (var (agent, position) in initialAgents)
+        {
+            _agents.Add(agent);
+            _entityPositions[agent] = position;
+        }
+    }
 
     public void Tick()
     {
