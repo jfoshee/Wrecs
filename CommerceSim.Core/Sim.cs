@@ -9,12 +9,17 @@ public record struct Trade(Offer Offer,
 public class Sim : ISimulator
 {
     private readonly List<IAgent> _agents = [];
+    private readonly List<ISource> _sources = [];
     private readonly Dictionary<IAgent, AgentState> _agentStates = [];
     private readonly List<Offer> _availableOffers = [];
-    private readonly List<IPolicy> _policies = [
+
+    private readonly List<ITradePolicy> _tradePolicies = [
         new OfferSingleUsePolicy(),
         new CannotCreateResourcesPolicy(),
         new CannotCreateMoneyPolicy()
+    ];
+    private readonly List<IGrantPolicy> _grantPolicies = [
+        new NoNegativeGrantsPolicy()
     ];
 
     public AgentStateSnapshot GetState(IAgent agent) => new(_agentStates[agent]);
@@ -39,6 +44,12 @@ public class Sim : ISimulator
         }
     }
 
+    public void InitSources(params ISource[] sources)
+    {
+        _sources.Clear();
+        _sources.AddRange(sources);
+    }
+
     public void InitOffers(params Offer[] initialOffers)
     {
         _availableOffers.Clear();
@@ -48,6 +59,19 @@ public class Sim : ISimulator
     // Advance simulation by one tick
     public void Tick()
     {
+        // Grant phase
+        // (Run first so that on first tick grants can be used for seeding agents)
+        var grants = _sources.SelectMany(s => s.CreateGrants());
+        foreach (var grant in grants)
+        {
+            // Skip grants that violate policies
+            if (_grantPolicies.Any(p => !p.CanExecute(grant)))
+                continue;
+            var state = _agentStates[grant.Recipient];
+            state.MoneyBalance += grant.Money;
+            state.ResourceBalance += grant.Resources;
+        }
+
         // Decision making phase
         var decisions = new List<(IAgent Agent, Decision Decision)>();
         foreach (var agent in _agents)
@@ -87,9 +111,9 @@ public class Sim : ISimulator
         return [.. decisions.OrderBy(_ => _random.Next())];
     }
 
-    void ProcessOffer(TakeOfferDecision decision,
-                      AgentState authorState,
-                      AgentState counterpartyState)
+    private void ProcessOffer(TakeOfferDecision decision,
+                              AgentState authorState,
+                              AgentState counterpartyState)
     {
         var offer = decision.Offer;
         // Construct a trade based on the offer
@@ -99,7 +123,7 @@ public class Sim : ISimulator
                               Price: offer.Price,
                               Resources: offer.Resources);
         // Check policies before executing the trade
-        foreach (var policy in _policies)
+        foreach (var policy in _tradePolicies)
         {
             if (!policy.CanExecute(trade))
                 return;
@@ -107,7 +131,7 @@ public class Sim : ISimulator
         // Execute the trade
         Execute(offer, authorState, counterpartyState);
         // Update policy state
-        foreach (var policy in _policies)
+        foreach (var policy in _tradePolicies)
         {
             policy.OnExecuted(trade);
         }

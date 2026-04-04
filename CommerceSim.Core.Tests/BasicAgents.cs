@@ -1,6 +1,16 @@
 namespace CommerceSim.Core.Tests;
 
 /// <summary>
+/// Agent that always does nothing.
+/// </summary>
+class DoNothingAgent : IAgent
+{
+    public string Name => nameof(DoNothingAgent);
+
+    public Decision Decide(AgentStateSnapshot _, List<Offer> opportunities) => new DoNothingDecision();
+}
+
+/// <summary>
 /// Always buys the first sell offer it sees, or does nothing if there are no sell offers.
 /// </summary>
 class AlwaysBuyingTaker : IAgent
@@ -81,5 +91,20 @@ class MakesBuyOfferAgent(int price, int resources) : IAgent
             return new DoNothingDecision();
         _hasMadeOffer = true;
         return new MakeOfferDecision(new BuyOffer(this, Price: price, Resources: resources));
+    }
+}
+
+/// <summary>
+/// Offers to sell all of its resources at a fixed price each tick. If it has no resources, does nothing.
+/// </summary>
+class OffersToSellAllResourcesAgent(int price) : IAgent
+{
+    public string Name => nameof(OffersToSellAllResourcesAgent);
+
+    public Decision Decide(AgentStateSnapshot state, List<Offer> opportunities)
+    {
+        if (state.ResourceBalance > 0)
+            return new MakeOfferDecision(new SellOffer(this, Price: price, Resources: state.ResourceBalance));
+        return new DoNothingDecision();
     }
 }

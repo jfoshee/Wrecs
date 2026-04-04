@@ -148,4 +148,36 @@ public class PolicyTests
         var buyer2State = sim.GetState(buyer2);
         buyer1State.ResourceBalance.Should().BeCloseTo(buyer2State.ResourceBalance, delta: 10);
     }
+
+    [Fact(DisplayName = "Source cannot take away resources")]
+    public void SourceCannotTakeAwayResources()
+    {
+        var sim = new Sim();
+        var agent = new DoNothingAgent();
+        var source = new FixedGrantSource(agent, money: 0, resources: -10);
+        AgentStateSnapshot agentState0 = new(MoneyBalance: 0, ResourceBalance: 100);
+        sim.InitAgents((agent, agentState0));
+        sim.InitSources(source);
+
+        sim.Tick();
+
+        // State should be unchanged because the grant cannot take away resources
+        sim.GetState(agent).Should().Be(agentState0);
+    }
+
+    [Fact(DisplayName = "Source cannot take away money")]
+    public void SourceCannotTakeAwayMoney()
+    {
+        var sim = new Sim();
+        var agent = new DoNothingAgent();
+        var source = new FixedGrantSource(agent, money: -10, resources: 0);
+        AgentStateSnapshot agentState0 = new(MoneyBalance: 100, ResourceBalance: 0);
+        sim.InitAgents((agent, agentState0));
+        sim.InitSources(source);
+
+        sim.Tick();
+
+        // State should be unchanged because the grant cannot take away money
+        sim.GetState(agent).Should().Be(agentState0);
+    }
 }

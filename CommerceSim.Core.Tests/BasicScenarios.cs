@@ -173,6 +173,79 @@ public class BasicScenarios
         sim.GetState(buyer).Should().Be(buyerState);
     }
 
+    [Fact(DisplayName = "One Source, One Do-Nothing Agent")]
+    public void OneSourceOneDoNothingAgent()
+    {
+        var sim = new Sim();
+        var agent = new DoNothingAgent();
+        var source = new FixedGrantSource(agent, money: 16, resources: 42);
+        sim.InitAgents((agent, default));
+        sim.InitSources(source);
+
+        sim.Tick();
+
+        var snapshot = sim.GetState(agent);
+        snapshot.MoneyBalance.Should().Be(16);
+        snapshot.ResourceBalance.Should().Be(42);
+    }
+
+    [Fact(DisplayName = "One Source, One Do-Nothing Agent, 2 Grants")]
+    public void OneSourceOneDoNothingAgentTwoGrants()
+    {
+        var sim = new Sim();
+        var agent = new DoNothingAgent();
+        var source = new FixedGrantSource(agent, money: 10, resources: 300);
+        sim.InitAgents((agent, default));
+        sim.InitSources(source);
+
+        sim.Tick();
+        sim.Tick();
+
+        var snapshot = sim.GetState(agent);
+        snapshot.MoneyBalance.Should().Be(20);
+        snapshot.ResourceBalance.Should().Be(600);
+    }
+
+    [Fact(DisplayName = "Two Sources, One Agent: Grants Add Up")]
+    public void TwoSourcesOneAgentGrantsAddUp()
+    {
+        var sim = new Sim();
+        var agent = new DoNothingAgent();
+        var source1 = new FixedGrantSource(agent, money: 10, resources: 300);
+        var source2 = new FixedGrantSource(agent, money: 5, resources: 20);
+        sim.InitAgents((agent, default));
+        sim.InitSources(source1, source2);
+
+        sim.Tick();
+
+        var snapshot = sim.GetState(agent);
+        snapshot.MoneyBalance.Should().Be(15);
+        snapshot.ResourceBalance.Should().Be(320);
+    }
+
+    [Fact(DisplayName = "Two Sources, Two Agents: Grants assigned to correct agent")]
+    public void TwoSourcesTwoAgentsGrantsAssignedToCorrectAgent()
+    {
+        var sim = new Sim();
+        var agent1 = MockAgent();
+        var agent2 = MockAgent();
+        var source1 = new FixedGrantSource(agent1, money: 3, resources: 5);
+        var source2 = new FixedGrantSource(agent2, money: 7, resources: 11);
+        sim.InitAgents((agent1, default),
+                       (agent2, default));
+        sim.InitSources(source1, source2);
+
+        sim.Tick();
+
+        // Verify each agent received the correct grant
+        var snapshot1 = sim.GetState(agent1);
+        snapshot1.MoneyBalance.Should().Be(3);
+        snapshot1.ResourceBalance.Should().Be(5);
+        var snapshot2 = sim.GetState(agent2);
+        snapshot2.MoneyBalance.Should().Be(7);
+        snapshot2.ResourceBalance.Should().Be(11);
+    }
+
     private static IAgent MockAgent() =>
         Mock.Of<IAgent>(a => a.Name == Guid.NewGuid().ToString());
 }

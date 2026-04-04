@@ -1,6 +1,6 @@
 namespace CommerceSim.Core;
 
-public interface IPolicy
+public interface ITradePolicy
 {
     /// <summary>
     /// Called before an accepted offer is executed to determine if it can proceed.
@@ -18,7 +18,15 @@ public interface IPolicy
     void OnExecuted(Trade trade);
 }
 
-public class OfferSingleUsePolicy : IPolicy
+public interface IGrantPolicy
+{
+    /// <summary>
+    /// Called before a grant is executed to determine if it can proceed.
+    /// </summary>
+    bool CanExecute(Grant grant);
+}
+
+public class OfferSingleUsePolicy : ITradePolicy
 {
     public bool CanExecute(Trade trade) =>
         !trade.Offer.Used;
@@ -29,7 +37,7 @@ public class OfferSingleUsePolicy : IPolicy
     }
 }
 
-public class CannotCreateResourcesPolicy : IPolicy
+public class CannotCreateResourcesPolicy : ITradePolicy
 {
     public bool CanExecute(Trade trade) =>
         trade.SellerState.ResourceBalance >= trade.Resources;
@@ -37,10 +45,16 @@ public class CannotCreateResourcesPolicy : IPolicy
     public void OnExecuted(Trade trade) { }
 }
 
-public class CannotCreateMoneyPolicy : IPolicy
+public class CannotCreateMoneyPolicy : ITradePolicy
 {
     public bool CanExecute(Trade trade) =>
         trade.BuyerState.MoneyBalance >= trade.Price;
 
     public void OnExecuted(Trade trade) { }
+}
+
+public class NoNegativeGrantsPolicy : IGrantPolicy
+{
+    public bool CanExecute(Grant grant) =>
+        grant.Money >= 0 && grant.Resources >= 0;
 }
