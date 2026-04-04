@@ -57,7 +57,7 @@ public class CommerceSystem : ISystem
     public void Tick()
     {
         // Hack context
-        var context = new Context(this, new(), _agentStates.Keys);
+        var context = new Context(_agentStates.Keys);
 
         // Grant phase
         // (Run first so that on first tick grants can be used for seeding agents)

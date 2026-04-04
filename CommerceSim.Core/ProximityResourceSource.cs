@@ -1,15 +1,23 @@
+using CommerceSim.Core.Spatial;
+
 namespace CommerceSim.Core;
 
-public class ProximityResourceSource(int resourcesGranted, int intervalTicks, double proximity) : ISource, IEntity
+public class ProximityResourceSource(int resourcesGranted, int intervalTicks, double proximity) : ISource, IEntity, IRequire<SpatialSystem>
 {
     private readonly int _id = Agents.AgentId.Next();
     public int Id => _id;
     private IAgent? _nearbyAgent = null;
     private int _nearbyTimeTicks = 0;
 
+    private SpatialSystem _spatial = null!;
+    public void Inject(SpatialSystem dependency)
+    {
+        _spatial = dependency;
+    }
+
     public IEnumerable<Grant> CreateGrants(Context context)
     {
-        var spatial = context.Spatial;
+        var spatial = _spatial;
         var myPosition = spatial.GetPosition(this);
         var agents = context.Entities.OfType<IAgent>();
         // If we aren't already tracking a nearby agent, look for one within proximity
