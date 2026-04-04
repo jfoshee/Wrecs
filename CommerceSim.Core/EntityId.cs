@@ -1,6 +1,6 @@
-namespace CommerceSim.Core.Agents;
+namespace CommerceSim.Core;
 
-public static class AgentId
+public static class EntityId
 {
     private static int _counter = 0;
 

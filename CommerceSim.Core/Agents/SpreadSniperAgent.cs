@@ -5,7 +5,7 @@ public sealed class SpreadSniperAgent(
     int maxInventory,
     int minCashReserve) : ICommerceAgent
 {
-    private readonly int _id = AgentId.Next();
+    private readonly int _id = EntityId.Next();
     public int Id => _id;
 
     public string Name => "SpreadSniper";

@@ -79,7 +79,7 @@ public class BasicSpatialScenarios
     public void AgentReceivesCurrentPositionInGetStep()
     {
         var mock = new Mock<ISpatialAgent>();
-        mock.Setup(a => a.Id).Returns(Agents.AgentId.Next());
+        mock.Setup(a => a.Id).Returns(EntityId.Next());
         mock.Setup(a => a.GetStep(It.IsAny<int>())).Returns(1);
         var agent = mock.Object;
 
@@ -109,7 +109,7 @@ public class BasicSpatialScenarios
 
     private static ISpatialAgent MockSpatialAgent(int step)
     {
-        var id = Agents.AgentId.Next();
+        var id = EntityId.Next();
         var mock = new Mock<ISpatialAgent>();
         mock.Setup(a => a.Id).Returns(id);
         mock.Setup(a => a.GetStep(It.IsAny<int>())).Returns(step);

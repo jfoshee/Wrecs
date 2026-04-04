@@ -6,7 +6,7 @@ public sealed class InventoryAwareMarketMakerAgent(
     int inventoryTolerance,
     int minSpread = 2) : ICommerceAgent
 {
-    private readonly int _id = AgentId.Next();
+    private readonly int _id = EntityId.Next();
     public int Id => _id;
     public string Name => "Inventory-Aware Market-Maker " + _id;
 

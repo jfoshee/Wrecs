@@ -248,7 +248,7 @@ public class BasicScenarios
 
     private static ICommerceAgent MockAgent()
     {
-        var id = Agents.AgentId.Next();
+        var id = EntityId.Next();
         return Mock.Of<ICommerceAgent>(a => a.Name == Guid.NewGuid().ToString() && a.Id == id);
     }
 }

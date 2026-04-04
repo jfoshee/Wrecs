@@ -23,7 +23,7 @@ public class LlmAgentTests(ITestOutputHelper output)
     {
         var chatClient = CreateChatClient();
         var llmAgent = new LlmAgent(chatClient, _output);
-        var seller = Mock.Of<ICommerceAgent>(a => a.Name == "Seller" && a.Id == AgentId.Next());
+        var seller = Mock.Of<ICommerceAgent>(a => a.Name == "Seller" && a.Id == EntityId.Next());
         var sim = new CommerceSystem();
         sim.InitAgents((llmAgent, new(MoneyBalance: 100, ResourceBalance: 0)),
                        (seller, new(MoneyBalance: 0, ResourceBalance: 50)));
@@ -46,7 +46,7 @@ public class LlmAgentTests(ITestOutputHelper output)
     {
         var chatClient = CreateChatClient();
         var llmAgent = new LlmAgent(chatClient, _output);
-        var buyer = Mock.Of<ICommerceAgent>(a => a.Name == "Buyer" && a.Id == AgentId.Next());
+        var buyer = Mock.Of<ICommerceAgent>(a => a.Name == "Buyer" && a.Id == EntityId.Next());
         var sim = new CommerceSystem();
         sim.InitAgents((llmAgent, new(MoneyBalance: 0, ResourceBalance: 100)),
                        (buyer, new(MoneyBalance: 500, ResourceBalance: 0)));

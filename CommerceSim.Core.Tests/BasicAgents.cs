@@ -7,7 +7,7 @@ namespace CommerceSim.Core.Tests;
 /// </summary>
 class DoNothingAgent : ICommerceAgent
 {
-    private readonly int _id = AgentId.Next();
+    private readonly int _id = EntityId.Next();
     public int Id => _id;
     public string Name => nameof(DoNothingAgent);
 
@@ -19,7 +19,7 @@ class DoNothingAgent : ICommerceAgent
 /// </summary>
 class AlwaysBuyingTaker : ICommerceAgent
 {
-    private readonly int _id = AgentId.Next();
+    private readonly int _id = EntityId.Next();
     public int Id => _id;
 
     public string Name => nameof(AlwaysBuyingTaker);
@@ -38,7 +38,7 @@ class AlwaysBuyingTaker : ICommerceAgent
 /// </summary>
 class AlwaysSellingTaker : ICommerceAgent
 {
-    private readonly int _id = AgentId.Next();
+    private readonly int _id = EntityId.Next();
     public int Id => _id;
 
     public string Name => nameof(AlwaysSellingTaker);
@@ -57,7 +57,7 @@ class AlwaysSellingTaker : ICommerceAgent
 /// </summary>
 class AlwaysSellingMaker(int price, int resources) : ICommerceAgent
 {
-    private readonly int _id = AgentId.Next();
+    private readonly int _id = EntityId.Next();
     public int Id => _id;
 
     public string Name => nameof(AlwaysSellingMaker);
@@ -73,7 +73,7 @@ class AlwaysSellingMaker(int price, int resources) : ICommerceAgent
 /// </summary>
 class MakesSellOfferAgent(int price, int resources) : ICommerceAgent
 {
-    private readonly int _id = AgentId.Next();
+    private readonly int _id = EntityId.Next();
     public int Id => _id;
     private bool _hasMadeOffer = false;
 
@@ -93,7 +93,7 @@ class MakesSellOfferAgent(int price, int resources) : ICommerceAgent
 /// </summary>
 class MakesBuyOfferAgent(int price, int resources) : ICommerceAgent
 {
-    private readonly int _id = AgentId.Next();
+    private readonly int _id = EntityId.Next();
     public int Id => _id;
     private bool _hasMadeOffer = false;
 
@@ -113,7 +113,7 @@ class MakesBuyOfferAgent(int price, int resources) : ICommerceAgent
 /// </summary>
 class OffersToSellAllResourcesAgent(int price) : ICommerceAgent
 {
-    private readonly int _id = AgentId.Next();
+    private readonly int _id = EntityId.Next();
     public int Id => _id;
 
     public string Name => nameof(OffersToSellAllResourcesAgent);
