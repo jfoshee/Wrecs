@@ -1,6 +1,11 @@
 namespace CommerceSim.Core;
 
-public interface IAgent
+public interface IEntity
+{
+    // int Id { get; }
+}
+
+public interface IAgent : IEntity
 {
     /// <summary>
     /// Returns a unique name for this agent.
