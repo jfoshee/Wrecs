@@ -7,5 +7,5 @@ public record struct Grant(IAgent Recipient, int Money, int Resources);
 /// </summary>
 public interface ISource
 {
-    IEnumerable<Grant> CreateGrants();
+    IEnumerable<Grant> CreateGrants(Context context);
 }

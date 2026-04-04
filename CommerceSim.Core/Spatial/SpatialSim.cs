@@ -41,4 +41,9 @@ public class SpatialSim : ISimulator
             _entityPositions[agent] += step;
         }
     }
+
+    public double GetDistance(Position p1, Position p2)
+    {
+        return Math.Abs(p1 - p2);
+    }
 }

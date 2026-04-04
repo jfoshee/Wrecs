@@ -59,9 +59,12 @@ public class Sim : ISimulator
     // Advance simulation by one tick
     public void Tick()
     {
+        // Hack context
+        var context = new Context(this, new(), _agentStates.Keys);
+
         // Grant phase
         // (Run first so that on first tick grants can be used for seeding agents)
-        var grants = _sources.SelectMany(s => s.CreateGrants());
+        var grants = _sources.SelectMany(s => s.CreateGrants(context));
         foreach (var grant in grants)
         {
             // Skip grants that violate policies
