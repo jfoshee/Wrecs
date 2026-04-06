@@ -58,5 +58,16 @@ public class BasicCombinedScenarios
         // Agent should have received resources from the source
         sim.GetPosition(agent).Should().Be(sim.GetPosition(source)); // at same position as source
         sim.GetAgentState(agent).Should().Be(new AgentStateSnapshot(0, 10));
+
+        // Move agent 1 unit beyond the source
+        agent.NextStep = 1;
+        sim.Tick();
+
+        // Agent has moved and no longer receives grant
+        sim.GetPosition(agent).Should().Be(6);
+        sim.GetAgentState(agent).Should().Be(new AgentStateSnapshot(0, 10));
     }
+
+    // TODO: Source has proximity > 0, Agent moves nearby within proximity
+    // TODO: Source requires more than 1 tick to grant
 }

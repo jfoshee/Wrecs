@@ -46,7 +46,9 @@ public class ProximityResourceSource(int resourcesGranted, int intervalTicks, do
         if (_nearbyTimeTicks >= intervalTicks)
         {
             yield return new Grant(Recipient: _nearbyAgent, Money: 0, Resources: resourcesGranted);
+            // Reset tracking
             _nearbyTimeTicks = 0;
+            _nearbyAgent = null;
         }
     }
 
