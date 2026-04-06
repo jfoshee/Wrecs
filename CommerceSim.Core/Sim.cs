@@ -9,6 +9,10 @@ public class Sim
     private readonly SpatialSystem _spatialSystem = new();
     private readonly List<IEntity> _entities = [];
 
+    // TODO: Try union types in initialization so can handle various positions and resource types
+    // Position could be union of int, double, xy, xyz
+    // Resource could be union of int, double (unitless), or resource quantities with units
+
     public void InitEntities(params (IEntity entity, AgentStateSnapshot? snapshot, int? initialPosition)[] entitiesWithState)
     {
         _entities.Clear();
