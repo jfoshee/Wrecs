@@ -46,4 +46,9 @@ public class SpatialSystem : ISystem
     {
         return Math.Abs(p1 - p2);
     }
+
+    public double GetDistance(IEntity e1, IEntity e2)
+    {
+        return GetDistance(_entityPositions[e1], _entityPositions[e2]);
+    }
 }

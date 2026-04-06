@@ -21,15 +21,13 @@ public class ProximityResourceSource(int resourcesGranted, int intervalTicks, do
     public IEnumerable<Grant> CreateGrants(Context context)
     {
         var spatial = _spatial;
-        var myPosition = spatial.GetPosition(this);
         var agents = context.Entities.OfType<ICommerceAgent>();
         // If we aren't already tracking a nearby agent, look for one within proximity
         if (_nearbyAgent is null)
         {
             foreach (var agent in agents)
             {
-                var p = spatial.GetPosition(agent);
-                var agentDistance = spatial.GetDistance(myPosition, p);
+                var agentDistance = spatial.GetDistance(this, agent);
                 if (agentDistance <= proximity)
                 {
                     _nearbyAgent = (ICommerceAgent?)agent;
@@ -52,7 +50,7 @@ public class ProximityResourceSource(int resourcesGranted, int intervalTicks, do
         }
     }
 
-    public int GetStep(int currentPosition) => 0; // doesn't move
+    public int GetStep(int _) => 0; // doesn't move
 
     // TODO: Can this be a spatial entity without being a spatial agent? i.e. a position but doesn't have agency to move
 }
