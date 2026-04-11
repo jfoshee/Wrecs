@@ -23,7 +23,7 @@ public interface ISpatialController
     Position GetNewPosition(IEntity entity, Position currentPosition);
 }
 
-public class SpatialSystem : ISystem
+public class SpatialSystem : ISystem<ISpatialEntity, Position>
 {
     private List<IEntity> _entities = [];
     private IEnumerable<ISpatialAgent> Agents => _entities.OfType<ISpatialAgent>();
@@ -31,7 +31,7 @@ public class SpatialSystem : ISystem
 
     private readonly Dictionary<IEntity, Position> _entityPositions = [];
 
-    public Position GetPosition(IEntity entity) => _entityPositions[entity];
+    public Position GetState(IEntity entity) => _entityPositions[entity];
 
     public void InitEntities(params (IEntity entity, Position? position)[] initialEntities)
     {

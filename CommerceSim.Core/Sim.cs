@@ -49,7 +49,7 @@ public class Sim
     }
 
     public CommercialSnapshot GetCommercialState(IEntity entity) => _commercialSystem.GetState(entity);
-    public Position GetPosition(IEntity entity) => _spatialSystem.GetPosition(entity);
+    public Position GetPosition(IEntity entity) => _spatialSystem.GetState(entity);
 
     private void InitEntity(IEntity entity)
     {

@@ -13,7 +13,7 @@ public interface ICommercialEntity : IEntity
 {
 }
 
-public class CommercialSystem : ISystem
+public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
 {
     private List<IEntity> _entities = [];
     private IEnumerable<ICommerceAgent> agents => _entities.OfType<ICommerceAgent>();

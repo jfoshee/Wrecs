@@ -20,7 +20,7 @@ public class BasicSpatialScenarios
 
         sim.Tick();
 
-        sim.GetPosition(agent).Should().Be(5);
+        sim.GetState(agent).Should().Be(5);
     }
 
     [Fact(DisplayName = "One Agent Moves Right")]
@@ -32,7 +32,7 @@ public class BasicSpatialScenarios
 
         sim.Tick();
 
-        sim.GetPosition(agent).Should().Be(1);
+        sim.GetState(agent).Should().Be(1);
     }
 
     [Fact(DisplayName = "One Agent Moves Left")]
@@ -44,7 +44,7 @@ public class BasicSpatialScenarios
 
         sim.Tick();
 
-        sim.GetPosition(agent).Should().Be(9);
+        sim.GetState(agent).Should().Be(9);
     }
 
     [Fact(DisplayName = "Agent Accumulates Position Over Multiple Ticks")]
@@ -58,7 +58,7 @@ public class BasicSpatialScenarios
         sim.Tick();
         sim.Tick();
 
-        sim.GetPosition(agent).Should().Be(9);
+        sim.GetState(agent).Should().Be(9);
     }
 
     [Fact(DisplayName = "Two Agents Move Independently")]
@@ -71,8 +71,8 @@ public class BasicSpatialScenarios
 
         sim.Tick();
 
-        sim.GetPosition(agent1).Should().Be(2);
-        sim.GetPosition(agent2).Should().Be(9);
+        sim.GetState(agent1).Should().Be(2);
+        sim.GetState(agent2).Should().Be(9);
     }
 
     [Fact(DisplayName = "Agent Receives Current Position In GetStep")]
@@ -104,7 +104,7 @@ public class BasicSpatialScenarios
 
         sim.Tick();
 
-        sim.GetPosition(agent).Should().Be(-3);
+        sim.GetState(agent).Should().Be(-3);
     }
 
     private static ISpatialAgent MockSpatialAgent(int step)
