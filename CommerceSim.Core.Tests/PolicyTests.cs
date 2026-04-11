@@ -5,7 +5,7 @@ public class PolicyTests
     [Fact(DisplayName = "Two buyers cannot consume the same offer")]
     public void TwoBuyersCannotConsumeTheSameOffer()
     {
-        var sim = new CommerceSystem();
+        var sim = new CommercialSystem();
         var buyer1 = new AlwaysBuyingTaker();
         var buyer2 = new AlwaysBuyingTaker();
         var seller = new MakesSellOfferAgent(price: 8, resources: 3);
@@ -48,7 +48,7 @@ public class PolicyTests
     public void AgentCannotSellMoreResourcesThanItHas()
     {
         // Setup a seller that wants to sell 20 resources, but only has 19
-        var sim = new CommerceSystem();
+        var sim = new CommercialSystem();
         var seller = new MakesSellOfferAgent(price: 10, resources: 20);
         var buyer = new AlwaysBuyingTaker();
         AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 19);
@@ -68,7 +68,7 @@ public class PolicyTests
     public void AgentCannotBuyMoreResourcesThanSellerHas()
     {
         // Setup a buyer that wants to buy 6 resources from a seller that only has 5
-        var sim = new CommerceSystem();
+        var sim = new CommercialSystem();
         var buyer = new MakesBuyOfferAgent(price: 50, resources: 6);
         var seller = new AlwaysSellingTaker();
         AgentStateSnapshot buyerState0 = new(MoneyBalance: 100, ResourceBalance: 0);
@@ -88,7 +88,7 @@ public class PolicyTests
     public void BuyerCannotSpendMoreMoneyThanItHas()
     {
         // Setup a buyer that wants to buy resources for 50, but only has 49
-        var sim = new CommerceSystem();
+        var sim = new CommercialSystem();
         var seller = new MakesSellOfferAgent(price: 50, resources: 5);
         var buyer = new AlwaysBuyingTaker();
         AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 100);
@@ -108,7 +108,7 @@ public class PolicyTests
     public void BuyerMakerCannotSpendMoreMoneyThanItHas()
     {
         // Setup a buyer that makes an offer to buy resources for 50, but only has 49
-        var sim = new CommerceSystem();
+        var sim = new CommercialSystem();
         var buyer = new MakesBuyOfferAgent(price: 50, resources: 5);
         var seller = new AlwaysSellingTaker();
         AgentStateSnapshot buyerState0 = new(MoneyBalance: 49, ResourceBalance: 0);
@@ -128,7 +128,7 @@ public class PolicyTests
     public void TwoBuyersShouldHaveRoughlyEqualOutcomes()
     {
         // Setup: one seller continuously making offers, two competing buyers
-        var sim = new CommerceSystem();
+        var sim = new CommercialSystem();
         var seller = new AlwaysSellingMaker(price: 10, resources: 1);
         var buyer1 = new AlwaysBuyingTaker();
         var buyer2 = new AlwaysBuyingTaker();
@@ -152,7 +152,7 @@ public class PolicyTests
     [Fact(DisplayName = "Source cannot take away resources")]
     public void SourceCannotTakeAwayResources()
     {
-        var sim = new CommerceSystem();
+        var sim = new CommercialSystem();
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: 0, resources: -10);
         AgentStateSnapshot agentState0 = new(MoneyBalance: 0, ResourceBalance: 100);
@@ -168,7 +168,7 @@ public class PolicyTests
     [Fact(DisplayName = "Source cannot take away money")]
     public void SourceCannotTakeAwayMoney()
     {
-        var sim = new CommerceSystem();
+        var sim = new CommercialSystem();
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: -10, resources: 0);
         AgentStateSnapshot agentState0 = new(MoneyBalance: 100, ResourceBalance: 0);

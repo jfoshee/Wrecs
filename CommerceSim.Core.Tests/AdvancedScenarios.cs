@@ -8,7 +8,7 @@ public class AdvancedScenarios
     [Fact(DisplayName = "One Rich Dumb Agent and One Value Investor Agent")]
     public void OneRichDumbAgentAndOneValueInvestorAgent()
     {
-        var sim = new CommerceSystem();
+        var sim = new CommercialSystem();
         var sellTaker = new AlwaysSellingTaker();
         var buyTaker = new AlwaysBuyingTaker();
         var sellMaker = new AlwaysSellingMaker(10, 1);
@@ -58,7 +58,7 @@ public class AdvancedScenarios
         const int StartingMoney = 500;
         const int StartingResources = 50;
 
-        var sim = new CommerceSystem();
+        var sim = new CommercialSystem();
 
         // One of each agent type from the Agents namespace
         var contrarianAgent = new ContrarianMeanReversionAgent();

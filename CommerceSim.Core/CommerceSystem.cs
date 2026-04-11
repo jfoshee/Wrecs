@@ -6,7 +6,7 @@ public record struct Trade(Offer Offer,
                            int Price,
                            int Resources);
 
-public class CommerceSystem : ISystem
+public class CommercialSystem : ISystem
 {
     private readonly List<ICommerceAgent> _agents = [];
     private readonly List<ISource> _sources = [];

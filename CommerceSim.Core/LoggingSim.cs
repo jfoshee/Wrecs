@@ -3,7 +3,7 @@ namespace CommerceSim.Core;
 /// <summary>
 /// Takes a snapshot of all state at every tick
 /// </summary>
-public class LoggingSim(CommerceSystem sim) : ISystem
+public class LoggingSim(CommercialSystem sim) : ISystem
 {
     private readonly List<IReadOnlyDictionary<int, AgentStateSnapshot>> _snapshots = [];
 
