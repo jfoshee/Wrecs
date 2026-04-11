@@ -9,10 +9,10 @@ public class PolicyTests
         var buyer1 = new AlwaysBuyingTaker();
         var buyer2 = new AlwaysBuyingTaker();
         var seller = new MakesSellOfferAgent(price: 8, resources: 3);
-        AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 100);
-        AgentStateSnapshot buyer1State0 = new(MoneyBalance: 32, ResourceBalance: 0);
-        AgentStateSnapshot buyer2State0 = new(MoneyBalance: 64, ResourceBalance: 0);
-        sim.InitAgents((seller, sellerState0),
+        CommercialSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 100);
+        CommercialSnapshot buyer1State0 = new(MoneyBalance: 32, ResourceBalance: 0);
+        CommercialSnapshot buyer2State0 = new(MoneyBalance: 64, ResourceBalance: 0);
+        sim.InitEntities((seller, sellerState0),
                        (buyer1, buyer1State0),
                        (buyer2, buyer2State0));
 
@@ -28,7 +28,7 @@ public class PolicyTests
         // Verify the offer was taken by only one buyer and state updated accordingly
         var sellerState = sim.GetState(seller);
         sellerState.Should()
-            .Be(new AgentStateSnapshot(MoneyBalance: 8, ResourceBalance: 97));
+            .Be(new CommercialSnapshot(MoneyBalance: 8, ResourceBalance: 97));
         var buyer1State = sim.GetState(buyer1);
         var buyer2State = sim.GetState(buyer2);
         ((buyer1State.MoneyBalance == 32 - 8 && buyer1State.ResourceBalance == 3) ||
@@ -51,9 +51,9 @@ public class PolicyTests
         var sim = new CommercialSystem();
         var seller = new MakesSellOfferAgent(price: 10, resources: 20);
         var buyer = new AlwaysBuyingTaker();
-        AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 19);
-        AgentStateSnapshot buyerState0 = new(MoneyBalance: 100, ResourceBalance: 0);
-        sim.InitAgents((seller, sellerState0),
+        CommercialSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 19);
+        CommercialSnapshot buyerState0 = new(MoneyBalance: 100, ResourceBalance: 0);
+        sim.InitEntities((seller, sellerState0),
                        (buyer, buyerState0));
 
         sim.Tick(); // Seller makes offer to sell 20 resources
@@ -71,9 +71,9 @@ public class PolicyTests
         var sim = new CommercialSystem();
         var buyer = new MakesBuyOfferAgent(price: 50, resources: 6);
         var seller = new AlwaysSellingTaker();
-        AgentStateSnapshot buyerState0 = new(MoneyBalance: 100, ResourceBalance: 0);
-        AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 5);
-        sim.InitAgents((buyer, buyerState0),
+        CommercialSnapshot buyerState0 = new(MoneyBalance: 100, ResourceBalance: 0);
+        CommercialSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 5);
+        sim.InitEntities((buyer, buyerState0),
                        (seller, sellerState0));
 
         sim.Tick(); // Buyer makes offer to buy 6 resources
@@ -91,9 +91,9 @@ public class PolicyTests
         var sim = new CommercialSystem();
         var seller = new MakesSellOfferAgent(price: 50, resources: 5);
         var buyer = new AlwaysBuyingTaker();
-        AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 100);
-        AgentStateSnapshot buyerState0 = new(MoneyBalance: 49, ResourceBalance: 0);
-        sim.InitAgents((seller, sellerState0),
+        CommercialSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 100);
+        CommercialSnapshot buyerState0 = new(MoneyBalance: 49, ResourceBalance: 0);
+        sim.InitEntities((seller, sellerState0),
                        (buyer, buyerState0));
 
         sim.Tick(); // Seller makes offer to sell for 50
@@ -111,9 +111,9 @@ public class PolicyTests
         var sim = new CommercialSystem();
         var buyer = new MakesBuyOfferAgent(price: 50, resources: 5);
         var seller = new AlwaysSellingTaker();
-        AgentStateSnapshot buyerState0 = new(MoneyBalance: 49, ResourceBalance: 0);
-        AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 100);
-        sim.InitAgents((buyer, buyerState0),
+        CommercialSnapshot buyerState0 = new(MoneyBalance: 49, ResourceBalance: 0);
+        CommercialSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 100);
+        sim.InitEntities((buyer, buyerState0),
                        (seller, sellerState0));
 
         sim.Tick(); // Buyer makes offer to buy for 50
@@ -132,9 +132,9 @@ public class PolicyTests
         var seller = new AlwaysSellingMaker(price: 10, resources: 1);
         var buyer1 = new AlwaysBuyingTaker();
         var buyer2 = new AlwaysBuyingTaker();
-        AgentStateSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 1000);
-        AgentStateSnapshot buyerState0 = new(MoneyBalance: 1000, ResourceBalance: 0);
-        sim.InitAgents((seller, sellerState0),
+        CommercialSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 1000);
+        CommercialSnapshot buyerState0 = new(MoneyBalance: 1000, ResourceBalance: 0);
+        sim.InitEntities((seller, sellerState0),
                        (buyer1, buyerState0),
                        (buyer2, buyerState0));
 
@@ -155,8 +155,8 @@ public class PolicyTests
         var sim = new CommercialSystem();
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: 0, resources: -10);
-        AgentStateSnapshot agentState0 = new(MoneyBalance: 0, ResourceBalance: 100);
-        sim.InitAgents((agent, agentState0));
+        CommercialSnapshot agentState0 = new(MoneyBalance: 0, ResourceBalance: 100);
+        sim.InitEntities((agent, agentState0));
         sim.InitSources(source);
 
         sim.Tick();
@@ -171,8 +171,8 @@ public class PolicyTests
         var sim = new CommercialSystem();
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: -10, resources: 0);
-        AgentStateSnapshot agentState0 = new(MoneyBalance: 100, ResourceBalance: 0);
-        sim.InitAgents((agent, agentState0));
+        CommercialSnapshot agentState0 = new(MoneyBalance: 100, ResourceBalance: 0);
+        sim.InitEntities((agent, agentState0));
         sim.InitSources(source);
 
         sim.Tick();

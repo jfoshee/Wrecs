@@ -11,7 +11,7 @@ class BasicComboAgent : ICommerceAgent, ISpatialAgent
 
     public int NextStep { get; set; } = 0;
 
-    public Decision Decide(AgentStateSnapshot state, List<Offer> offers)
+    public Decision Decide(CommercialSnapshot state, List<Offer> offers)
     {
         return new DoNothingDecision();
     }
@@ -41,14 +41,14 @@ public class BasicCombinedScenarios
         sim.Tick();
 
         // Nothing should have changed
-        sim.GetAgentState(agent).Should().Be(new AgentStateSnapshot(0, 0));
+        sim.GetCommercialState(agent).Should().Be(new CommercialSnapshot(0, 0));
 
         // Move the agent closer to the source
         agent.NextStep = 4;
         sim.Tick();
 
         // Agent should have new position, but still no resources
-        sim.GetAgentState(agent).Should().Be(new AgentStateSnapshot(0, 0));
+        sim.GetCommercialState(agent).Should().Be(new CommercialSnapshot(0, 0));
         sim.GetPosition(agent).Should().Be(4);
 
         // Move the agent on top of the source
@@ -57,7 +57,7 @@ public class BasicCombinedScenarios
 
         // Agent should have received resources from the source
         sim.GetPosition(agent).Should().Be(sim.GetPosition(source)); // at same position as source
-        sim.GetAgentState(agent).Should().Be(new AgentStateSnapshot(0, 10));
+        sim.GetCommercialState(agent).Should().Be(new CommercialSnapshot(0, 10));
 
         // Move agent 1 unit beyond the source
         agent.NextStep = 1;
@@ -65,7 +65,7 @@ public class BasicCombinedScenarios
 
         // Agent has moved and no longer receives grant
         sim.GetPosition(agent).Should().Be(6);
-        sim.GetAgentState(agent).Should().Be(new AgentStateSnapshot(0, 10));
+        sim.GetCommercialState(agent).Should().Be(new CommercialSnapshot(0, 10));
     }
 
     // TODO: Source has proximity > 0, Agent moves nearby within proximity

@@ -10,7 +10,7 @@ public sealed class LlmAgent(IChatClient chatClient, IOutput? output = null) : I
 
     public string Name => $"LLM-{_id}";
 
-    public Decision Decide(AgentStateSnapshot state, List<Offer> offers)
+    public Decision Decide(CommercialSnapshot state, List<Offer> offers)
     {
         var availableOffers = offers
             .Where(o => o.Author != this && !o.Used)

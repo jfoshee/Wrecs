@@ -13,7 +13,7 @@ public sealed class ContrarianMeanReversionAgent(
     public string Name => "ContrarianMeanReversion";
 
 
-    public Decision Decide(AgentStateSnapshot state, List<Offer> offers)
+    public Decision Decide(CommercialSnapshot state, List<Offer> offers)
     {
         var market = OfferMath.GetMarketSnapshot(offers, this);
 

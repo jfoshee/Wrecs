@@ -10,7 +10,7 @@ public sealed class InventoryAwareMarketMakerAgent(
     public int Id => _id;
     public string Name => "Inventory-Aware Market-Maker " + _id;
 
-    public Decision Decide(AgentStateSnapshot state, List<Offer> offers)
+    public Decision Decide(CommercialSnapshot state, List<Offer> offers)
     {
         var market = OfferMath.GetMarketSnapshot(offers, this);
         var mid = market.MidPrice ?? anchorPrice;

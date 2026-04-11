@@ -11,7 +11,7 @@ public sealed class MomentumChaserAgent(
 
     public string Name => "MomentumChaser";
 
-    public Decision Decide(AgentStateSnapshot state, List<Offer> offers)
+    public Decision Decide(CommercialSnapshot state, List<Offer> offers)
     {
         var market = OfferMath.GetMarketSnapshot(offers, this);
 
@@ -63,7 +63,7 @@ public sealed class MomentumChaserAgent(
         return PassiveQuote(state, market);
     }
 
-    private Decision PassiveQuote(AgentStateSnapshot state, OfferMath.MarketSnapshot market)
+    private Decision PassiveQuote(CommercialSnapshot state, OfferMath.MarketSnapshot market)
     {
         var mid = market.MidPrice ?? 5.0;
 

@@ -1,6 +1,6 @@
 namespace CommerceSim.Core;
 
-public interface ICommerceAgent : IEntity
+public interface ICommerceAgent : ICommercialEntity
 {
     /// <summary>
     /// Decide what to do with this tick, given the current state and available offers.
@@ -8,5 +8,5 @@ public interface ICommerceAgent : IEntity
     /// <param name="state">The current state of the agent.</param>
     /// <param name="offers">The list of available offers.</param>
     /// <returns>The decision made by the agent.</returns>
-    public Decision Decide(AgentStateSnapshot state, List<Offer> offers);
+    public Decision Decide(CommercialSnapshot state, List<Offer> offers);
 }

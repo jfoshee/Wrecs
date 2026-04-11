@@ -13,20 +13,20 @@ public class Sim
     // Position could be union of int, double, xy, xyz
     // Resource could be union of int, double (unitless), or resource quantities with units
 
-    public void InitEntities(params (IEntity entity, AgentStateSnapshot? snapshot, int? initialPosition)[] entitiesWithState)
+    public void InitEntities(params (IEntity entity, CommercialSnapshot? initialCommercialState, int? initialPosition)[] entitiesWithState)
     {
         _entities.Clear();
         // Inject dependencies into all entities and add to master list
-        foreach (var (entity, snapshot, initialPosition) in entitiesWithState)
+        foreach (var (entity, initialCommercialState, initialPosition) in entitiesWithState)
         {
             InitEntity(entity);
             _entities.Add(entity);
         }
         // Init commerce system with entities that have snapshot
-        var commercialEntities = entitiesWithState.Where(e => e.snapshot is not null)
-            .Select(e => ((ICommerceAgent)e.entity, e.snapshot!.Value))
+        var commercialEntities = entitiesWithState.Where(e => e.entity is ICommercialEntity || e.initialCommercialState is not null)
+            .Select(e => (e.entity, e.initialCommercialState))
             .ToArray();
-        _commercialSystem.InitAgents(commercialEntities);
+        _commercialSystem.InitEntities(commercialEntities);
         // Init commercial sources
         var sources = entitiesWithState.Select(e => e.entity).OfType<ISource>().ToArray();
         _commercialSystem.InitSources(sources);
@@ -48,8 +48,7 @@ public class Sim
         _commercialSystem.Tick();
     }
 
-    public AgentStateSnapshot GetAgentState(ICommerceAgent agent) => _commercialSystem.GetState(agent);
-
+    public CommercialSnapshot GetCommercialState(IEntity entity) => _commercialSystem.GetState(entity);
     public Position GetPosition(IEntity entity) => _spatialSystem.GetPosition(entity);
 
     private void InitEntity(IEntity entity)

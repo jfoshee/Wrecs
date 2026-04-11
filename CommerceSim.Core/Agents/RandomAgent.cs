@@ -8,7 +8,7 @@ public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommerce
 
     public string Name => "Random " + _id;
 
-    public Decision Decide(AgentStateSnapshot state, List<Offer> offers)
+    public Decision Decide(CommercialSnapshot state, List<Offer> offers)
     {
         // Randomly choose an action: 0 = do nothing, 1 = take offer, 2 = make buy offer, 3 = make sell offer
         var action = _random.Next(4);
@@ -22,7 +22,7 @@ public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommerce
         };
     }
 
-    private Decision TryTakeRandomOffer(AgentStateSnapshot state, List<Offer> offers)
+    private Decision TryTakeRandomOffer(CommercialSnapshot state, List<Offer> offers)
     {
         var availableOffers = offers
             .Where(o => o.Author != this && !o.Used)
@@ -43,7 +43,7 @@ public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommerce
         return new DoNothingDecision();
     }
 
-    private Decision TryMakeBuyOffer(AgentStateSnapshot state)
+    private Decision TryMakeBuyOffer(CommercialSnapshot state)
     {
         var price = _random.Next(1, maxPrice + 1);
         if (state.MoneyBalance >= price)
@@ -52,7 +52,7 @@ public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommerce
         return new DoNothingDecision();
     }
 
-    private Decision TryMakeSellOffer(AgentStateSnapshot state)
+    private Decision TryMakeSellOffer(CommercialSnapshot state)
     {
         if (state.ResourceBalance <= 0)
             return new DoNothingDecision();

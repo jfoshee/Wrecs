@@ -1,16 +1,24 @@
 namespace CommerceSim.Core;
 
 public record struct Trade(Offer Offer,
-                           AgentStateSnapshot SellerState,
-                           AgentStateSnapshot BuyerState,
+                           CommercialSnapshot SellerState,
+                           CommercialSnapshot BuyerState,
                            int Price,
                            int Resources);
 
+/// <summary>
+/// Marker interface for entities in the commercial system (agents, sources, etc.)
+/// </summary>
+public interface ICommercialEntity : IEntity
+{
+}
+
 public class CommercialSystem : ISystem
 {
-    private readonly List<ICommerceAgent> _agents = [];
+    private List<IEntity> _entities = [];
+    private IEnumerable<ICommerceAgent> agents => _entities.OfType<ICommerceAgent>();
     private readonly List<ISource> _sources = [];
-    private readonly Dictionary<ICommerceAgent, AgentState> _agentStates = [];
+    private readonly Dictionary<IEntity, CommercialState> _states = [];
     private readonly List<Offer> _availableOffers = [];
 
     private readonly List<ITradePolicy> _tradePolicies = [
@@ -22,22 +30,22 @@ public class CommercialSystem : ISystem
         new NoNegativeGrantsPolicy()
     ];
 
-    public AgentStateSnapshot GetState(ICommerceAgent agent) => new(_agentStates[agent]);
+    public CommercialSnapshot GetState(IEntity entity) => new(_states[entity]);
 
-    public IReadOnlyDictionary<int, AgentStateSnapshot> GetStateSnapshot() =>
-        _agentStates.ToDictionary(kvp => kvp.Key.Id, kvp => new AgentStateSnapshot(kvp.Value));
+    public IReadOnlyDictionary<int, CommercialSnapshot> GetStateSnapshot() =>
+        _states.ToDictionary(kvp => kvp.Key.Id, kvp => new CommercialSnapshot(kvp.Value));
 
     public IReadOnlyDictionary<int, string> GetAgentNames() =>
-        _agents.ToDictionary(a => a.Id, a => a.Name);
+        agents.ToDictionary(a => a.Id, a => a.Name);
 
-    public void InitAgents(params (ICommerceAgent agent, AgentStateSnapshot state)[] initialAgents)
+    public void InitEntities(params (IEntity entity, CommercialSnapshot? state)[] initialEntities)
     {
-        _agents.Clear();
-        _agentStates.Clear();
-        foreach (var (agent, state) in initialAgents)
+        _entities.Clear();
+        _states.Clear();
+        foreach (var (entity, state) in initialEntities)
         {
-            _agents.Add(agent);
-            _agentStates[agent] = new(state);
+            _entities.Add(entity);
+            _states[entity] = new(state ?? default);
         }
     }
 
@@ -57,7 +65,7 @@ public class CommercialSystem : ISystem
     public void Tick()
     {
         // Hack context
-        var context = new Context(_agentStates.Keys);
+        var context = new Context(_states.Keys);
 
         // Grant phase
         // (Run first so that on first tick grants can be used for seeding agents)
@@ -67,16 +75,16 @@ public class CommercialSystem : ISystem
             // Skip grants that violate policies
             if (_grantPolicies.Any(p => !p.CanExecute(grant)))
                 continue;
-            var state = _agentStates[grant.Recipient];
+            var state = _states[grant.Recipient];
             state.MoneyBalance += grant.Money;
             state.ResourceBalance += grant.Resources;
         }
 
         // Decision making phase
         var decisions = new List<(ICommerceAgent Agent, Decision Decision)>();
-        foreach (var agent in _agents)
+        foreach (var agent in agents)
         {
-            var state = _agentStates[agent];
+            var state = _states[agent];
             var decision = agent.Decide(new(state), _availableOffers);
             decisions.Add((agent, decision));
         }
@@ -90,7 +98,7 @@ public class CommercialSystem : ISystem
                 case TakeOfferDecision takeOfferDecision:
                     var offer = takeOfferDecision.Offer;
                     _availableOffers.Remove(offer);
-                    ProcessOffer(takeOfferDecision, _agentStates[offer.Author], _agentStates[agent]);
+                    ProcessOffer(takeOfferDecision, _states[offer.Author], _states[agent]);
                     break;
                 case MakeOfferDecision makeOfferDecision:
                     var newOffer = makeOfferDecision.Offer;
@@ -111,8 +119,8 @@ public class CommercialSystem : ISystem
     }
 
     private void ProcessOffer(TakeOfferDecision decision,
-                              AgentState authorState,
-                              AgentState counterpartyState)
+                              CommercialState authorState,
+                              CommercialState counterpartyState)
     {
         var offer = decision.Offer;
         // Construct a trade based on the offer
@@ -136,9 +144,9 @@ public class CommercialSystem : ISystem
         }
     }
 
-    private static void Execute(Offer offer, AgentState authorState, AgentState counterpartyState)
+    private static void Execute(Offer offer, CommercialState authorState, CommercialState counterpartyState)
     {
-        AgentState buyer, seller;
+        CommercialState buyer, seller;
         switch (offer)
         {
             case BuyOffer buyOffer:
@@ -160,12 +168,12 @@ public class CommercialSystem : ISystem
         seller.ResourceBalance -= offer.Resources;
     }
 
-    internal class AgentState(int moneyBalance = 0, int resourceBalance = 0)
+    internal class CommercialState(int moneyBalance = 0, int resourceBalance = 0)
     {
         public int MoneyBalance { get; set; } = moneyBalance;
         public int ResourceBalance { get; set; } = resourceBalance;
 
-        public AgentState(AgentStateSnapshot snapshot) :
+        public CommercialState(CommercialSnapshot snapshot) :
             this(snapshot.MoneyBalance, snapshot.ResourceBalance)
         { }
     }

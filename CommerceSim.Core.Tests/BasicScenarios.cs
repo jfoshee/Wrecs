@@ -14,7 +14,7 @@ public class BasicScenarios
     {
         var sim = new CommercialSystem();
         var agent = MockAgent();
-        sim.InitAgents((agent, default));
+        sim.InitEntities((agent, default));
         sim.InitOffers();
 
         sim.Tick();
@@ -30,7 +30,7 @@ public class BasicScenarios
         var sim = new CommercialSystem();
         var agent1 = MockAgent();
         var agent2 = MockAgent();
-        sim.InitAgents((agent1, new(MoneyBalance: 4, ResourceBalance: 8)),
+        sim.InitEntities((agent1, new(MoneyBalance: 4, ResourceBalance: 8)),
                        (agent2, new(MoneyBalance: 3, ResourceBalance: 7)));
         sim.InitOffers();
 
@@ -50,7 +50,7 @@ public class BasicScenarios
         var sim = new CommercialSystem();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
-        sim.InitAgents((buyer, new(MoneyBalance: 32, ResourceBalance: 9)),
+        sim.InitEntities((buyer, new(MoneyBalance: 32, ResourceBalance: 9)),
                        (seller, new(MoneyBalance: 64, ResourceBalance: 27)));
         sim.InitOffers(new SellOffer(Seller: seller, Price: 7, Resources: 5));
 
@@ -70,7 +70,7 @@ public class BasicScenarios
         var sim = new CommercialSystem();
         var seller = new AlwaysSellingTaker();
         var buyer = MockAgent();
-        sim.InitAgents((seller, new(MoneyBalance: 32, ResourceBalance: 9)),
+        sim.InitEntities((seller, new(MoneyBalance: 32, ResourceBalance: 9)),
                        (buyer, new(MoneyBalance: 64, ResourceBalance: 27)));
         sim.InitOffers(new BuyOffer(Buyer: buyer, Price: 7, Resources: 5));
 
@@ -90,7 +90,7 @@ public class BasicScenarios
         var sim = new CommercialSystem();
         var buyer = MockAgent();
         var seller = MockAgent();
-        sim.InitAgents((buyer, new(MoneyBalance: 32, ResourceBalance: 9)),
+        sim.InitEntities((buyer, new(MoneyBalance: 32, ResourceBalance: 9)),
                        (seller, new(MoneyBalance: 64, ResourceBalance: 27)));
         sim.InitOffers(new SellOffer(Seller: seller, Price: 7, Resources: 5),
                        new BuyOffer(Buyer: buyer, Price: 7, Resources: 5));
@@ -118,7 +118,7 @@ public class BasicScenarios
         var sim = new CommercialSystem();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
-        sim.InitAgents((buyer, new(MoneyBalance: 100, ResourceBalance: 0)),
+        sim.InitEntities((buyer, new(MoneyBalance: 100, ResourceBalance: 0)),
                        (seller, new(MoneyBalance: 0, ResourceBalance: 50)));
         sim.InitOffers(new SellOffer(Seller: seller, Price: 10, Resources: 5));
 
@@ -145,9 +145,9 @@ public class BasicScenarios
         var sim = new CommercialSystem();
         var seller = new MakesSellOfferAgent(price: 8, resources: 3);
         var buyer = new AlwaysBuyingTaker();
-        AgentStateSnapshot initialSellerState = new(MoneyBalance: 0, ResourceBalance: 100);
-        AgentStateSnapshot initialBuyerState = new(MoneyBalance: 64, ResourceBalance: 0);
-        sim.InitAgents((seller, initialSellerState),
+        CommercialSnapshot initialSellerState = new(MoneyBalance: 0, ResourceBalance: 100);
+        CommercialSnapshot initialBuyerState = new(MoneyBalance: 64, ResourceBalance: 0);
+        sim.InitEntities((seller, initialSellerState),
                        (buyer, initialBuyerState));
 
         sim.Tick();
@@ -161,10 +161,10 @@ public class BasicScenarios
         // Verify the offer was taken and state updated accordingly
         var sellerState = sim.GetState(seller);
         sellerState.Should()
-            .Be(new AgentStateSnapshot(MoneyBalance: 8, ResourceBalance: 97));
+            .Be(new CommercialSnapshot(MoneyBalance: 8, ResourceBalance: 97));
         var buyerState = sim.GetState(buyer);
         buyerState.Should()
-            .Be(new AgentStateSnapshot(MoneyBalance: 64 - 8, ResourceBalance: 3));
+            .Be(new CommercialSnapshot(MoneyBalance: 64 - 8, ResourceBalance: 3));
 
         sim.Tick();
 
@@ -179,7 +179,7 @@ public class BasicScenarios
         var sim = new CommercialSystem();
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: 16, resources: 42);
-        sim.InitAgents((agent, default));
+        sim.InitEntities((agent, default));
         sim.InitSources(source);
 
         sim.Tick();
@@ -195,7 +195,7 @@ public class BasicScenarios
         var sim = new CommercialSystem();
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: 10, resources: 300);
-        sim.InitAgents((agent, default));
+        sim.InitEntities((agent, default));
         sim.InitSources(source);
 
         sim.Tick();
@@ -213,7 +213,7 @@ public class BasicScenarios
         var agent = new DoNothingAgent();
         var source1 = new FixedGrantSource(agent, money: 10, resources: 300);
         var source2 = new FixedGrantSource(agent, money: 5, resources: 20);
-        sim.InitAgents((agent, default));
+        sim.InitEntities((agent, default));
         sim.InitSources(source1, source2);
 
         sim.Tick();
@@ -231,7 +231,7 @@ public class BasicScenarios
         var agent2 = MockAgent();
         var source1 = new FixedGrantSource(agent1, money: 3, resources: 5);
         var source2 = new FixedGrantSource(agent2, money: 7, resources: 11);
-        sim.InitAgents((agent1, default),
+        sim.InitEntities((agent1, default),
                        (agent2, default));
         sim.InitSources(source1, source2);
 

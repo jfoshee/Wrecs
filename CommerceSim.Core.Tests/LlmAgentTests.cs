@@ -25,7 +25,7 @@ public class LlmAgentTests(ITestOutputHelper output)
         var llmAgent = new LlmAgent(chatClient, _output);
         var seller = Mock.Of<ICommerceAgent>(a => a.Name == "Seller" && a.Id == EntityId.Next());
         var sim = new CommercialSystem();
-        sim.InitAgents((llmAgent, new(MoneyBalance: 100, ResourceBalance: 0)),
+        sim.InitEntities((llmAgent, new(MoneyBalance: 100, ResourceBalance: 0)),
                        (seller, new(MoneyBalance: 0, ResourceBalance: 50)));
         // Very cheap offer - LLM should take it
         sim.InitOffers(new SellOffer(seller, Price: 1, Resources: 10));
@@ -48,7 +48,7 @@ public class LlmAgentTests(ITestOutputHelper output)
         var llmAgent = new LlmAgent(chatClient, _output);
         var buyer = Mock.Of<ICommerceAgent>(a => a.Name == "Buyer" && a.Id == EntityId.Next());
         var sim = new CommercialSystem();
-        sim.InitAgents((llmAgent, new(MoneyBalance: 0, ResourceBalance: 100)),
+        sim.InitEntities((llmAgent, new(MoneyBalance: 0, ResourceBalance: 100)),
                        (buyer, new(MoneyBalance: 500, ResourceBalance: 0)));
         // Very generous buy offer - LLM should take it
         sim.InitOffers(new BuyOffer(buyer, Price: 100, Resources: 1));
@@ -71,9 +71,9 @@ public class LlmAgentTests(ITestOutputHelper output)
         var llmAgent = new LlmAgent(chatClient, _output);
         var buyer = new AlwaysBuyingTaker();
         var sim = new CommercialSystem();
-        var initialLlm = new AgentStateSnapshot(MoneyBalance: 0, ResourceBalance: 100);
-        var initialBuyer = new AgentStateSnapshot(MoneyBalance: 1000, ResourceBalance: 0);
-        sim.InitAgents((llmAgent, initialLlm), (buyer, initialBuyer));
+        var initialLlm = new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 100);
+        var initialBuyer = new CommercialSnapshot(MoneyBalance: 1000, ResourceBalance: 0);
+        sim.InitEntities((llmAgent, initialLlm), (buyer, initialBuyer));
 
         sim.Tick(); // LLM makes offer
         sim.Tick(); // Buyer takes it
@@ -97,9 +97,9 @@ public class LlmAgentTests(ITestOutputHelper output)
         var llmAgent = new LlmAgent(chatClient, _output);
         var seller = new AlwaysSellingTaker();
         var sim = new CommercialSystem();
-        var initialLlm = new AgentStateSnapshot(MoneyBalance: 1000, ResourceBalance: 0);
-        var initialSeller = new AgentStateSnapshot(MoneyBalance: 0, ResourceBalance: 100);
-        sim.InitAgents((llmAgent, initialLlm), (seller, initialSeller));
+        var initialLlm = new CommercialSnapshot(MoneyBalance: 1000, ResourceBalance: 0);
+        var initialSeller = new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 100);
+        sim.InitEntities((llmAgent, initialLlm), (seller, initialSeller));
 
         sim.Tick(); // LLM makes offer
         sim.Tick(); // Seller takes it
@@ -123,9 +123,9 @@ public class LlmAgentTests(ITestOutputHelper output)
         var agent1 = new LlmAgent(chatClient, _output);
         var agent2 = new LlmAgent(chatClient, _output);
         var sim = new CommercialSystem();
-        var initial1 = new AgentStateSnapshot(MoneyBalance: 100, ResourceBalance: 50);
-        var initial2 = new AgentStateSnapshot(MoneyBalance: 50, ResourceBalance: 100);
-        sim.InitAgents((agent1, initial1), (agent2, initial2));
+        var initial1 = new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 50);
+        var initial2 = new CommercialSnapshot(MoneyBalance: 50, ResourceBalance: 100);
+        sim.InitEntities((agent1, initial1), (agent2, initial2));
 
         // Run several ticks
         for (int i = 0; i < 10; i++)

@@ -22,6 +22,29 @@ public class SimInitTest
         public Position GetNewPosition(IEntity _, Position currentPosition) => currentPosition + 1;
     }
 
+    class InheritsCommercialEntity : BasicEntity, ICommercialEntity
+    {
+    }
+
+    [Fact(DisplayName = "Entities inheriting ICommercialEntity or initial state are added to commercial system")]
+    public void InitializingCommercialEntities()
+    {
+        var sim = new Sim();
+        var inheritsCommercialEntity = new InheritsCommercialEntity();
+        var hasInitialStateEntity = new BasicEntity();
+        var nonCommercialEntity = new BasicEntity();
+
+        sim.InitEntities(
+            (inheritsCommercialEntity, null, null),
+            (nonCommercialEntity, null, null),
+            (hasInitialStateEntity, new CommercialSnapshot(100, 50), null)
+        );
+
+        sim.GetCommercialState(inheritsCommercialEntity).Should().Be(new CommercialSnapshot(0, 0));
+        sim.GetCommercialState(hasInitialStateEntity).Should().Be(new CommercialSnapshot(100, 50));
+        sim.Invoking((s) => s.GetCommercialState(nonCommercialEntity)).Should().Throw<Exception>();
+    }
+
     [Fact(DisplayName = "Entities inheriting ISpatialEntity or initial position are added to spatial system")]
     public void InitializingSpatialEntities()
     {

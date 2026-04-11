@@ -16,7 +16,7 @@ public class AdvancedScenarios
         var valueInvestor = new ValueInvestorAgent(initialFairPrice: 10,
                                                    maxPosition: 5,
                                                    minCashReserve: 10);
-        sim.InitAgents((sellTaker, new(MoneyBalance: 1_000, ResourceBalance: 1_000)),
+        sim.InitEntities((sellTaker, new(MoneyBalance: 1_000, ResourceBalance: 1_000)),
                        (buyTaker, new(MoneyBalance: 1_000, ResourceBalance: 0)),
                        (valueInvestor, new(MoneyBalance: 50, ResourceBalance: 0)),
                        (randomAgent, new(MoneyBalance: 1_000, ResourceBalance: 100)),
@@ -71,7 +71,7 @@ public class AdvancedScenarios
         var randomAgent = new RandomAgent(maxPrice: 20);
         var valueInvestorAgent = new ValueInvestorAgent(initialFairPrice: 10, maxPosition: 20, minCashReserve: 50);
 
-        var agentInitList = new List<(ICommerceAgent, AgentStateSnapshot)>
+        var agentInitList = new List<(IEntity, CommercialSnapshot?)>
         {
             (contrarianAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
             (marketMaker, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
@@ -91,7 +91,7 @@ public class AdvancedScenarios
             agentInitList.Add((extraRandomAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)));
         }
 
-        sim.InitAgents(agentInitList.ToArray());
+        sim.InitEntities([.. agentInitList]);
         var loggingSim = new LoggingSim(sim);
 
         for (int i = 0; i < 400; i++)
