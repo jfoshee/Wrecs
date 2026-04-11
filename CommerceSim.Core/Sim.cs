@@ -30,11 +30,11 @@ public class Sim
         // Init commercial sources
         var sources = entitiesWithState.Select(e => e.entity).OfType<ISource>().ToArray();
         _commercialSystem.InitSources(sources);
-        // Init spatial system with entities that have initial position
-        var spatialEntities = entitiesWithState.Where(e => e.initialPosition is not null)
-            .Select(e => ((ISpatialAgent)e.entity, e.initialPosition!.Value))
+        // Init spatial system with entities that are marked as ISpatialEntity or have initial position
+        var spatialEntities = entitiesWithState.Where(e => (e.entity is ISpatialEntity) || e.initialPosition is not null)
+            .Select(e => (e.entity, e.initialPosition))
             .ToArray();
-        _spatialSystem.InitAgents(spatialEntities);
+        _spatialSystem.InitEntities(spatialEntities);
     }
 
     public void Tick()

@@ -3,7 +3,13 @@ namespace CommerceSim.Core.Spatial;
 using Position = int;
 using Vector = int;
 
-public interface ISpatialAgent : IEntity
+/// <summary>
+/// Marker that an entity has a Spatial Position
+/// </summary>
+public interface ISpatialEntity : IEntity
+{ }
+
+public interface ISpatialAgent : ISpatialEntity
 {
     /// <summary>
     /// Given the agent's current position, returns the vector representing the step the agent wants to take.
@@ -19,21 +25,20 @@ public interface ISpatialController
 
 public class SpatialSystem : ISystem
 {
-    private readonly List<ISpatialAgent> _agents = [];
+    private List<IEntity> _entities = [];
+    private IEnumerable<ISpatialAgent> Agents => _entities.OfType<ISpatialAgent>();
     private readonly List<ISpatialController> _controllers = [];
 
     private readonly Dictionary<IEntity, Position> _entityPositions = [];
 
     public Position GetPosition(IEntity entity) => _entityPositions[entity];
 
-    public void InitAgents(params (ISpatialAgent agent, Position position)[] initialAgents)
+    public void InitEntities(params (IEntity entity, Position? position)[] initialEntities)
     {
-        _agents.Clear();
-        _entityPositions.Clear();
-        foreach (var (agent, position) in initialAgents)
+        _entities = [.. initialEntities.Select(e => e.entity)];
+        foreach (var (entity, initialPosition) in initialEntities)
         {
-            _agents.Add(agent);
-            _entityPositions[agent] = position;
+            _entityPositions[entity] = initialPosition ?? default;
         }
     }
 
@@ -46,7 +51,7 @@ public class SpatialSystem : ISystem
     public void Tick()
     {
         // Get steps that all agents want to take
-        var agentSteps = _agents.ToDictionary(agent => agent, agent => agent.GetStep(_entityPositions[agent]));
+        var agentSteps = Agents.ToDictionary(agent => agent, agent => agent.GetStep(_entityPositions[agent]));
 
         // Update Agents based on their steps
         foreach (var (agent, step) in agentSteps)

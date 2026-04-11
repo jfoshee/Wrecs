@@ -16,7 +16,7 @@ public class BasicSpatialScenarios
     {
         var sim = new SpatialSystem();
         var agent = MockSpatialAgent(step: 0);
-        sim.InitAgents((agent, 5));
+        sim.InitEntities((agent, 5));
 
         sim.Tick();
 
@@ -28,7 +28,7 @@ public class BasicSpatialScenarios
     {
         var sim = new SpatialSystem();
         var agent = MockSpatialAgent(step: 1);
-        sim.InitAgents((agent, 0));
+        sim.InitEntities((agent, 0));
 
         sim.Tick();
 
@@ -40,7 +40,7 @@ public class BasicSpatialScenarios
     {
         var sim = new SpatialSystem();
         var agent = MockSpatialAgent(step: -1);
-        sim.InitAgents((agent, 10));
+        sim.InitEntities((agent, 10));
 
         sim.Tick();
 
@@ -52,7 +52,7 @@ public class BasicSpatialScenarios
     {
         var sim = new SpatialSystem();
         var agent = MockSpatialAgent(step: 3);
-        sim.InitAgents((agent, 0));
+        sim.InitEntities((agent, 0));
 
         sim.Tick();
         sim.Tick();
@@ -67,7 +67,7 @@ public class BasicSpatialScenarios
         var sim = new SpatialSystem();
         var agent1 = MockSpatialAgent(step: 2);
         var agent2 = MockSpatialAgent(step: -1);
-        sim.InitAgents((agent1, 0), (agent2, 10));
+        sim.InitEntities((agent1, 0), (agent2, 10));
 
         sim.Tick();
 
@@ -84,7 +84,7 @@ public class BasicSpatialScenarios
         var agent = mock.Object;
 
         var sim = new SpatialSystem();
-        sim.InitAgents((agent, 7));
+        sim.InitEntities((agent, 7));
 
         sim.Tick();
 
@@ -100,7 +100,7 @@ public class BasicSpatialScenarios
     {
         var sim = new SpatialSystem();
         var agent = MockSpatialAgent(step: -5);
-        sim.InitAgents((agent, 2));
+        sim.InitEntities((agent, 2));
 
         sim.Tick();
 
