@@ -37,6 +37,11 @@ public class Sim
         _spatialSystem.InitEntities(spatialEntities);
     }
 
+    public void InitControllers(params ISpatialController[] controllers)
+    {
+        _spatialSystem.InitControllers(controllers);
+    }
+
     public void Tick()
     {
         _spatialSystem.Tick();
