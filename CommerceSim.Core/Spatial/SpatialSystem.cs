@@ -11,9 +11,16 @@ public interface ISpatialAgent : IEntity
     Vector GetStep(Position currentPosition);
 }
 
+public interface ISpatialController
+{
+    IEnumerable<IEntity> GetEntitiesToMove();
+    Position GetNewPosition(IEntity entity, Position currentPosition);
+}
+
 public class SpatialSystem : ISystem
 {
     private readonly List<ISpatialAgent> _agents = [];
+    private readonly List<ISpatialController> _controllers = [];
 
     private readonly Dictionary<IEntity, Position> _entityPositions = [];
 
@@ -30,15 +37,32 @@ public class SpatialSystem : ISystem
         }
     }
 
+    public void InitControllers(params ISpatialController[] controllers)
+    {
+        _controllers.Clear();
+        _controllers.AddRange(controllers);
+    }
+
     public void Tick()
     {
         // Get steps that all agents want to take
         var agentSteps = _agents.ToDictionary(agent => agent, agent => agent.GetStep(_entityPositions[agent]));
 
-        // Update positions based on steps
+        // Update Agents based on their steps
         foreach (var (agent, step) in agentSteps)
         {
             _entityPositions[agent] += step;
+        }
+
+        // Apply controllers to modify entity positions
+        foreach (var controller in _controllers)
+        {
+            foreach (var entity in controller.GetEntitiesToMove())
+            {
+                var currentPosition = _entityPositions[entity];
+                var newPosition = controller.GetNewPosition(entity, currentPosition);
+                _entityPositions[entity] = newPosition;
+            }
         }
     }
 

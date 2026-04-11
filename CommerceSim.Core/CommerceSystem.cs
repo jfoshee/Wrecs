@@ -78,7 +78,6 @@ public class CommerceSystem : ISystem
         {
             var state = _agentStates[agent];
             var decision = agent.Decide(new(state), _availableOffers);
-            // decisions[agent] = decision;
             decisions.Add((agent, decision));
         }
 
