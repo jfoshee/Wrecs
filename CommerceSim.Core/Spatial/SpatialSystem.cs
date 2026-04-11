@@ -1,7 +1,9 @@
 namespace CommerceSim.Core.Spatial;
 
-using Position = int;
 using Vector = int;
+
+public union Position(int);
+
 
 /// <summary>
 /// Marker that an entity has a Spatial Position
@@ -56,7 +58,12 @@ public class SpatialSystem : ISystem
         // Update Agents based on their steps
         foreach (var (agent, step) in agentSteps)
         {
-            _entityPositions[agent] += step;
+            int intPosition = _entityPositions[agent] switch
+            {
+                int p => p,
+                _ => throw new Exception("Unsupported position type")
+            };
+            _entityPositions[agent] = intPosition + step;
         }
 
         // Apply controllers to modify entity positions

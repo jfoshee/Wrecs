@@ -1,6 +1,4 @@
-using System.Runtime.CompilerServices;
 using CommerceSim.Core.Spatial;
-using Position = int;
 
 namespace CommerceSim.Core.Tests;
 

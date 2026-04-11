@@ -2,7 +2,7 @@ using CommerceSim.Core.Spatial;
 
 namespace CommerceSim.Core;
 
-public class ProximityResourceSource(int resourcesGranted, int intervalTicks, double proximity) : ISource, ISpatialAgent, IRequire<SpatialSystem>
+public class ProximityResourceSource(int resourcesGranted, int intervalTicks, double proximity) : ISource, ISpatialEntity, IRequire<SpatialSystem>
 {
     private readonly int _id = EntityId.Next();
     public int Id => _id;
@@ -49,8 +49,4 @@ public class ProximityResourceSource(int resourcesGranted, int intervalTicks, do
             _nearbyAgent = null;
         }
     }
-
-    public int GetStep(int _) => 0; // doesn't move
-
-    // TODO: Can this be a spatial entity without being a spatial agent? i.e. a position but doesn't have agency to move
 }
