@@ -5,12 +5,12 @@ namespace CommerceSim.Core;
 
 public class Sim
 {
-    private CommercialSystem CommercialSystem => _systems.OfType<CommercialSystem>().First();
     private SpatialSystem SpatialSystem => _systems.OfType<SpatialSystem>().First();
+    private CommercialSystem CommercialSystem => _systems.OfType<CommercialSystem>().First();
     private readonly List<ISystem> _systems =
     [
+        new SpatialSystem(),
         new CommercialSystem(),
-        new SpatialSystem()
     ];
     private readonly List<IEntity> _entities = [];
 
