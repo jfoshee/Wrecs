@@ -65,6 +65,23 @@ public static class MonopolyBoard
     }
 }
 
+
+public class MonopolyBoardTest
+{
+    [Fact(DisplayName = "Board configuration maps positions to properties correctly")]
+    public void BoardConfig_MapsPositionsCorrectly()
+    {
+        MonopolyBoard.GetPropertyAtPosition(1).Should().NotBeNull();
+        MonopolyBoard.GetPropertyAtPosition(1)!.Name.Should().Be("Mediterranean Avenue");
+
+        MonopolyBoard.GetPropertyAtPosition(3).Should().NotBeNull();
+        MonopolyBoard.GetPropertyAtPosition(3)!.Name.Should().Be("Baltic Avenue");
+
+        MonopolyBoard.GetPropertyAtPosition(0).Should().BeNull(); // GO space
+        MonopolyBoard.GetPropertyAtPosition(10).Should().BeNull(); // Jail
+    }
+}
+
 /// <summary>
 /// Agent responsible for holding initial property inventory and making
 /// targeted sell offers to players as they land on properties.
@@ -113,33 +130,6 @@ public class RealEstateAgent(MonopolyProperty?[] boardConfig) : ICommercialAgent
         );
 
         return new MakeOfferDecision(offer);
-    }
-}
-
-// HACK: Make this an entity just so turn system is injected
-class BoardGameMovementController(IGameDice dice, int boardSize) : ISpatialController, IRequire<TurnSystem>, IEntity
-{
-    private TurnSystem _turnSystem = null!;
-
-    public int Id { get; } = EntityId.Next();
-    public string Name => nameof(BoardGameMovementController);
-
-    public IEnumerable<IEntity> GetEntitiesToMove(IEnumerable<IEntity> _)
-    {
-        return [_turnSystem.GetCurrentPlayer()];
-    }
-
-    public int GetNewPosition(IEntity entity, int currentPosition)
-    {
-        if (entity != _turnSystem.GetCurrentPlayer())
-            throw new InvalidOperationException("Only the current player can move");
-        int roll = dice.Roll();
-        return (currentPosition + roll) % boardSize;
-    }
-
-    public void Inject(TurnSystem dependency)
-    {
-        _turnSystem = dependency;
     }
 }
 
@@ -377,18 +367,5 @@ public class RealEstateAgentTests
 
         // Assert
         decision.Should().BeOfType<DoNothingDecision>();
-    }
-
-    [Fact(DisplayName = "Board configuration maps positions to properties correctly")]
-    public void BoardConfig_MapsPositionsCorrectly()
-    {
-        MonopolyBoard.GetPropertyAtPosition(1).Should().NotBeNull();
-        MonopolyBoard.GetPropertyAtPosition(1)!.Name.Should().Be("Mediterranean Avenue");
-
-        MonopolyBoard.GetPropertyAtPosition(3).Should().NotBeNull();
-        MonopolyBoard.GetPropertyAtPosition(3)!.Name.Should().Be("Baltic Avenue");
-
-        MonopolyBoard.GetPropertyAtPosition(0).Should().BeNull(); // GO space
-        MonopolyBoard.GetPropertyAtPosition(10).Should().BeNull(); // Not a property in config
     }
 }
