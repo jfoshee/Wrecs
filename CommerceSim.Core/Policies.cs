@@ -40,7 +40,7 @@ public class OfferSingleUsePolicy : ITradePolicy
 public class CannotCreateResourcesPolicy : ITradePolicy
 {
     public bool CanExecute(Trade trade) =>
-        trade.SellerState.ResourceBalance >= trade.Resources;
+        trade.SellerState.GetResourceBalance(trade.ResourceType) >= trade.Resources;
 
     public void OnExecuted(Trade trade) { }
 }

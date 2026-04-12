@@ -4,7 +4,8 @@ public record struct Trade(Offer Offer,
                            CommercialSnapshot SellerState,
                            CommercialSnapshot BuyerState,
                            int Price,
-                           int Resources);
+                           int Resources,
+                           string? ResourceType = null);
 
 /// <summary>
 /// Marker interface for entities in the commercial system (agents, sources, etc.)
@@ -77,7 +78,7 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
                 continue;
             var state = _states[grant.Recipient];
             state.MoneyBalance += grant.Money;
-            state.ResourceBalance += grant.Resources;
+            state.AddResources(grant.ResourceType, grant.Resources);
         }
 
         // Decision making phase
@@ -132,7 +133,8 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
                               SellerState: offer is SellOffer ? new(authorState) : new(counterpartyState),
                               BuyerState: offer is BuyOffer ? new(authorState) : new(counterpartyState),
                               Price: offer.Price,
-                              Resources: offer.Resources);
+                              Resources: offer.Resources,
+                              ResourceType: offer.ResourceType);
         // Check policies before executing the trade
         foreach (var policy in _tradePolicies)
         {
@@ -168,17 +170,46 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
         buyer.MoneyBalance -= offer.Price;
         seller.MoneyBalance += offer.Price;
         // Transfer resources from seller to buyer
-        buyer.ResourceBalance += offer.Resources;
-        seller.ResourceBalance -= offer.Resources;
+        buyer.AddResources(offer.ResourceType, offer.Resources);
+        seller.AddResources(offer.ResourceType, -offer.Resources);
     }
 
-    internal class CommercialState(int moneyBalance = 0, int resourceBalance = 0)
+    internal class CommercialState
     {
-        public int MoneyBalance { get; set; } = moneyBalance;
-        public int ResourceBalance { get; set; } = resourceBalance;
+        // Internally use empty string for unitless (null) since Dictionary doesn't allow null keys
+        private const string UnitlessKey = "";
 
-        public CommercialState(CommercialSnapshot snapshot) :
-            this(snapshot.MoneyBalance, snapshot.ResourceBalance)
-        { }
+        public int MoneyBalance { get; set; }
+        public Dictionary<string, int> Inventory { get; } = [];
+
+        /// <summary>
+        /// Gets the balance for unitless resources (backward compatibility).
+        /// </summary>
+        public int ResourceBalance => GetResourceBalance(null);
+
+        public int GetResourceBalance(string? resourceType) =>
+            Inventory.TryGetValue(resourceType ?? UnitlessKey, out var balance) ? balance : 0;
+
+        public void AddResources(string? resourceType, int amount)
+        {
+            var key = resourceType ?? UnitlessKey;
+            if (!Inventory.TryGetValue(key, out var current))
+                current = 0;
+            Inventory[key] = current + amount;
+        }
+
+        public CommercialState(int moneyBalance = 0, int resourceBalance = 0)
+        {
+            MoneyBalance = moneyBalance;
+            if (resourceBalance != 0)
+                Inventory[UnitlessKey] = resourceBalance;
+        }
+
+        public CommercialState(CommercialSnapshot snapshot)
+        {
+            MoneyBalance = snapshot.MoneyBalance;
+            foreach (var kvp in snapshot.Inventory)
+                Inventory[kvp.Key] = kvp.Value;
+        }
     }
 }
