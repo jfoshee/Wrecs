@@ -14,9 +14,10 @@ public class Sim
     ];
     private readonly List<IEntity> _entities = [];
 
-    // TODO: Try union types in initialization so can handle various positions and resource types
-    // Position could be union of int, double, xy, xyz
-    // Resource could be union of int, double (unitless), or resource quantities with units
+    public void AddSystem(ISystem system)
+    {
+        _systems.Add(system);
+    }
 
     public void InitEntities(params (IEntity entity, IStateSnapshot[] initialStates)[] entitiesWithState)
     {
@@ -45,6 +46,10 @@ public class Sim
         // Init commercial sources
         var sources = entitiesWithState.Select(e => e.entity).OfType<ISource>().ToArray();
         CommercialSystem.InitSources(sources);
+
+        // Init spatial controllers
+        var controllers = entitiesWithState.Select(e => e.entity).OfType<ISpatialController>().ToArray();
+        SpatialSystem.InitControllers(controllers);
     }
 
     public void InitControllers(params ISpatialController[] controllers)
@@ -54,8 +59,10 @@ public class Sim
 
     public void Tick()
     {
-        SpatialSystem.Tick();
-        CommercialSystem.Tick();
+        foreach (var system in _systems)
+        {
+            system.Tick();
+        }
     }
 
     public CommercialSnapshot GetCommercialState(IEntity entity) => CommercialSystem.GetState(entity);
