@@ -63,13 +63,23 @@ public class Sim
 
     private void InitEntity(IEntity entity)
     {
-        if (entity is IRequire<SpatialSystem> spatialEntity)
-            spatialEntity.Inject(SpatialSystem);
-        if (entity is IRequire<CommercialSystem> commerceEntity)
-            commerceEntity.Inject(CommercialSystem);
+        foreach (var system in _systems)
+        {
+            InjectSystemIfRequired(entity, system);
+        }
     }
 
     #region Ugly Reflection for generic initialization
+    private static void InjectSystemIfRequired(IEntity entity, ISystem system)
+    {
+        var requireInterface = typeof(IRequire<>).MakeGenericType(system.GetType());
+        if (requireInterface.IsInstanceOfType(entity))
+        {
+            var injectMethod = requireInterface.GetMethod(nameof(IRequire<>.Inject))!;
+            injectMethod.Invoke(entity, [system]);
+        }
+    }
+
     private static bool IsSnapshotForSystem(IStateSnapshot snapshot, Type systemType) =>
         snapshot.GetType().GetInterfaces()
             .Any(i => i.IsGenericType
