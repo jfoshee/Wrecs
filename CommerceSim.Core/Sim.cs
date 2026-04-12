@@ -38,7 +38,7 @@ public class Sim
         // Init spatial system with entities that are marked as ISpatialEntity or have initial position
         var spatialEntities = entitiesWithState
             .Where(e => e.entity is ISpatialEntity || e.initialStates.OfType<PositionSnapshot>().Any())
-            .Select(e => (e.entity, e.initialStates.OfType<PositionSnapshot>().Select(p => (int?)p.Position).FirstOrDefault()))
+            .Select(e => (e.entity, e.initialStates.OfType<PositionSnapshot>().Cast<PositionSnapshot?>().FirstOrDefault()))
             .ToArray();
         SpatialSystem.InitEntities(spatialEntities);
 

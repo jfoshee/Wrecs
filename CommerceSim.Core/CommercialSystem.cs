@@ -38,14 +38,14 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
     public IReadOnlyDictionary<int, string> GetAgentNames() =>
         agents.ToDictionary(a => a.Id, a => a.Name);
 
-    public void InitEntities(params (IEntity entity, CommercialSnapshot? state)[] initialEntities)
+    public void InitEntities(params (IEntity entity, CommercialSnapshot? initialState)[] initialEntities)
     {
         _entities.Clear();
         _states.Clear();
-        foreach (var (entity, state) in initialEntities)
+        foreach (var (entity, initialState) in initialEntities)
         {
             _entities.Add(entity);
-            _states[entity] = new(state ?? default);
+            _states[entity] = new(initialState ?? default);
         }
     }
 

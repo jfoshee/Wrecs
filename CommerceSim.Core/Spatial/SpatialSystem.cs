@@ -5,14 +5,14 @@ using Vector = int;
 
 public record struct PositionSnapshot(Position Position) : IStateSnapshot<SpatialSystem>
 {
-    // public static implicit operator int(PositionSnapshot snapshot) => snapshot.Position;
+    public static implicit operator int(PositionSnapshot snapshot) => snapshot.Position;
+    public static implicit operator PositionSnapshot(int position) => new(position);
 }
 
 /// <summary>
 /// Marker that an entity has a Spatial Position
 /// </summary>
-public interface ISpatialEntity : IEntity
-{ }
+public interface ISpatialEntity : IEntity;
 
 public interface ISpatialAgent : ISpatialEntity
 {
@@ -38,12 +38,12 @@ public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
 
     public PositionSnapshot GetState(IEntity entity) => new(_entityPositions[entity]);
 
-    public void InitEntities(params (IEntity entity, Position? position)[] initialEntities)
+    public void InitEntities(params (IEntity entity, PositionSnapshot? initialState)[] initialEntities)
     {
         _entities = [.. initialEntities.Select(e => e.entity)];
-        foreach (var (entity, initialPosition) in initialEntities)
+        foreach (var (entity, initialState) in initialEntities)
         {
-            _entityPositions[entity] = initialPosition ?? default;
+            _entityPositions[entity] = initialState ?? default;
         }
     }
 
