@@ -14,6 +14,7 @@ public class TurnSystemTests
         var state = system.GetState(entity);
 
         state.IsMyTurn.Should().BeTrue();
+        system.GetCurrentPlayer().Should().Be(entity);
     }
 
     [Fact(DisplayName = "First entity is current by default")]
@@ -26,6 +27,7 @@ public class TurnSystemTests
 
         system.GetState(entity1).IsMyTurn.Should().BeTrue();
         system.GetState(entity2).IsMyTurn.Should().BeFalse();
+        system.GetCurrentPlayer().Should().Be(entity1);
     }
 
     [Fact(DisplayName = "Initial state sets current turn")]
@@ -38,6 +40,7 @@ public class TurnSystemTests
 
         system.GetState(entity1).IsMyTurn.Should().BeFalse();
         system.GetState(entity2).IsMyTurn.Should().BeTrue();
+        system.GetCurrentPlayer().Should().Be(entity2);
     }
 
     [Fact(DisplayName = "Tick advances to next entity")]
@@ -52,6 +55,7 @@ public class TurnSystemTests
 
         system.GetState(entity1).IsMyTurn.Should().BeFalse();
         system.GetState(entity2).IsMyTurn.Should().BeTrue();
+        system.GetCurrentPlayer().Should().Be(entity2);
     }
 
     [Fact(DisplayName = "Tick wraps around to first entity")]
@@ -67,6 +71,7 @@ public class TurnSystemTests
 
         system.GetState(entity1).IsMyTurn.Should().BeTrue();
         system.GetState(entity2).IsMyTurn.Should().BeFalse();
+        system.GetCurrentPlayer().Should().Be(entity1);
     }
 
     [Fact(DisplayName = "Multiple ticks cycle through all entities")]

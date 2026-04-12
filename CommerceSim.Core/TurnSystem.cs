@@ -34,4 +34,6 @@ public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>
         // Next turn
         _currentTurnIndex = (_currentTurnIndex + 1) % _entities.Count;
     }
+
+    public IEntity GetCurrentPlayer() => _entities[_currentTurnIndex];
 }
