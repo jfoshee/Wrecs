@@ -208,8 +208,8 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
         public CommercialState(CommercialSnapshot snapshot)
         {
             MoneyBalance = snapshot.MoneyBalance;
-            foreach (var kvp in snapshot.Inventory)
-                Inventory[kvp.Key] = kvp.Value;
+            foreach (var (type, amount) in snapshot.Inventory)
+                Inventory[type] = amount;
         }
     }
 }

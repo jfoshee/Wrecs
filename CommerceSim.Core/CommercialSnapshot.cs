@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace CommerceSim.Core;
@@ -6,64 +6,70 @@ namespace CommerceSim.Core;
 [DebuggerDisplay("Money: {MoneyBalance}, Resources: {ResourceBalance}")]
 public record struct CommercialSnapshot : IStateSnapshot<CommercialSystem>
 {
-    // Internally use empty string for unitless (null) since Dictionary doesn't allow null keys
+    // Internally use empty string for unitless (null)
     private const string UnitlessKey = "";
 
     public int MoneyBalance { get; init; }
-    private readonly IReadOnlyDictionary<string, int>? _inventory;
-    public IReadOnlyDictionary<string, int> Inventory => _inventory ?? EmptyInventory;
-    private static readonly IReadOnlyDictionary<string, int> EmptyInventory = new Dictionary<string, int>();
+    private readonly ImmutableArray<(string Type, int Amount)> _inventory;
+
+    /// <summary>
+    /// Gets the inventory as an immutable array of (Type, Amount) tuples.
+    /// Always sorted by Type and excludes zero amounts.
+    /// </summary>
+    public ImmutableArray<(string Type, int Amount)> Inventory =>
+        _inventory.IsDefault ? [] : _inventory;
 
     /// <summary>
     /// Gets the balance for unitless resources (backward compatibility).
     /// </summary>
     public int ResourceBalance => GetResourceBalance(null);
 
-    public int GetResourceBalance(string? resourceType) =>
-        _inventory?.TryGetValue(resourceType ?? UnitlessKey, out var balance) == true ? balance : 0;
-
-    public CommercialSnapshot(int MoneyBalance = 0, int ResourceBalance = 0)
-        : this(MoneyBalance, new Dictionary<string, int> { [UnitlessKey] = ResourceBalance })
+    public int GetResourceBalance(string? resourceType)
     {
+        var key = resourceType ?? UnitlessKey;
+        foreach (var (type, amount) in Inventory)
+            if (type == key) return amount;
+        return 0;
     }
 
-    public CommercialSnapshot(int moneyBalance, IReadOnlyDictionary<string, int> inventory)
+    public CommercialSnapshot(int MoneyBalance = 0, int ResourceBalance = 0)
+    {
+        this.MoneyBalance = MoneyBalance;
+        _inventory = Normalize([(UnitlessKey, ResourceBalance)]);
+    }
+
+    public CommercialSnapshot(int moneyBalance, ImmutableArray<(string Type, int Amount)> inventory)
     {
         MoneyBalance = moneyBalance;
-        _inventory = inventory;
+        _inventory = Normalize(inventory);
     }
 
     internal CommercialSnapshot(CommercialSystem.CommercialState state)
-        : this(state.MoneyBalance, new ReadOnlyDictionary<string, int>(new Dictionary<string, int>(state.Inventory)))
     {
+        MoneyBalance = state.MoneyBalance;
+        _inventory = Normalize([.. state.Inventory.Select(kvp => (kvp.Key, kvp.Value))]);
     }
 
+    /// <summary>
+    /// Normalizes inventory: filters out zero amounts, sorts by Type.
+    /// This enables simple SequenceEqual for equality comparison.
+    /// </summary>
+    private static ImmutableArray<(string Type, int Amount)> Normalize(
+        ImmutableArray<(string Type, int Amount)> inventory) =>
+        [.. inventory.Where(i => i.Amount != 0).OrderBy(i => i.Type)];
+
     public bool Equals(CommercialSnapshot other) =>
-        MoneyBalance == other.MoneyBalance && InventoryEquals(Inventory, other.Inventory);
+        MoneyBalance == other.MoneyBalance && Inventory.SequenceEqual(other.Inventory);
 
     public override int GetHashCode()
     {
         var hash = new HashCode();
         hash.Add(MoneyBalance);
-        // Only include non-zero inventory values in hash for consistency with equality
-        foreach (var kvp in Inventory.Where(k => k.Value != 0).OrderBy(k => k.Key))
+        foreach (var (type, amount) in Inventory)
         {
-            hash.Add(kvp.Key);
-            hash.Add(kvp.Value);
+            hash.Add(type);
+            hash.Add(amount);
         }
         return hash.ToHashCode();
-    }
-
-    private static bool InventoryEquals(IReadOnlyDictionary<string, int> a, IReadOnlyDictionary<string, int> b)
-    {
-        // Get all keys from both dictionaries
-        var allKeys = a.Keys.Union(b.Keys);
-        foreach (var key in allKeys)
-        {
-            var aValue = a.TryGetValue(key, out var av) ? av : 0;
-            var bValue = b.TryGetValue(key, out var bv) ? bv : 0;
-            if (aValue != bValue) return false;
-        }
-        return true;
     }
 }
