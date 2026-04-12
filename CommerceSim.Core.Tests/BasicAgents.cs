@@ -67,7 +67,7 @@ class AlwaysSellingMaker(int price, int resources) : ICommerceAgent
 /// <summary>
 /// Makes a single sell offer on the first tick, then does nothing on subsequent ticks.
 /// </summary>
-class MakesSellOfferAgent(int price, int resources) : ICommerceAgent
+class MakesSellOfferAgent(int price, int resources, string? resourceType = null) : ICommerceAgent
 {
     public int Id { get; } = EntityId.Next();
     private bool _hasMadeOffer = false;
@@ -79,7 +79,7 @@ class MakesSellOfferAgent(int price, int resources) : ICommerceAgent
         if (_hasMadeOffer)
             return new DoNothingDecision();
         _hasMadeOffer = true;
-        return new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources));
+        return new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources, ResourceType: resourceType));
     }
 }
 
