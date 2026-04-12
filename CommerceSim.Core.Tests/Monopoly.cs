@@ -5,7 +5,7 @@ namespace CommerceSim.Core.Tests;
 /// <summary>
 /// Represents a property on the Monopoly board with its position and price.
 /// </summary>
-public record MonopolyProperty(string Name, int Position, int Price);
+public record MonopolyProperty(string Name, int Price);
 
 /// <summary>
 /// Standard Monopoly board configuration. Array index = board position.
@@ -16,51 +16,51 @@ public static class MonopolyBoard
     public static readonly MonopolyProperty?[] Properties =
     [
         null,                                           // 0: GO
-        new("Mediterranean Avenue", 1, 60),             // 1
+        new("Mediterranean Avenue", 60),                // 1
         null,                                           // 2: Community Chest
-        new("Baltic Avenue", 3, 60),                    // 3
+        new("Baltic Avenue", 60),                       // 3
         null,                                           // 4: Income Tax
-        new("Reading Railroad", 5, 200),                // 5
-        new("Oriental Avenue", 6, 100),                 // 6
+        new("Reading Railroad", 200),                   // 5
+        new("Oriental Avenue", 100),                    // 6
         null,                                           // 7: Chance
-        new("Vermont Avenue", 8, 100),                  // 8
-        new("Connecticut Avenue", 9, 120),              // 9
+        new("Vermont Avenue", 100),                     // 8
+        new("Connecticut Avenue", 120),                 // 9
         null,                                           // 10: Jail
-        new("St. Charles Place", 11, 140),              // 11
-        new("Electric Company", 12, 150),               // 12
-        new("States Avenue", 13, 140),                  // 13
-        new("Virginia Avenue", 14, 160),                // 14
-        new("Pennsylvania Railroad", 15, 200),          // 15
-        new("St. James Place", 16, 180),                // 16
+        new("St. Charles Place", 140),                  // 11
+        new("Electric Company", 150),                   // 12
+        new("States Avenue", 140),                      // 13
+        new("Virginia Avenue", 160),                    // 14
+        new("Pennsylvania Railroad", 200),              // 15
+        new("St. James Place", 180),                    // 16
         null,                                           // 17: Community Chest
-        new("Tennessee Avenue", 18, 180),               // 18
-        new("New York Avenue", 19, 200),                // 19
+        new("Tennessee Avenue", 180),                   // 18
+        new("New York Avenue", 200),                    // 19
         null,                                           // 20: Free Parking
-        new("Kentucky Avenue", 21, 220),                // 21
+        new("Kentucky Avenue", 220),                    // 21
         null,                                           // 22: Chance
-        new("Indiana Avenue", 23, 220),                 // 23
-        new("Illinois Avenue", 24, 240),                // 24
-        new("B&O Railroad", 25, 200),                   // 25
-        new("Atlantic Avenue", 26, 260),                // 26
-        new("Ventnor Avenue", 27, 260),                 // 27
-        new("Water Works", 28, 150),                    // 28
-        new("Marvin Gardens", 29, 280),                 // 29
+        new("Indiana Avenue", 220),                     // 23
+        new("Illinois Avenue", 240),                    // 24
+        new("B&O Railroad", 200),                       // 25
+        new("Atlantic Avenue", 260),                    // 26
+        new("Ventnor Avenue", 260),                     // 27
+        new("Water Works", 150),                        // 28
+        new("Marvin Gardens", 280),                     // 29
         null,                                           // 30: Go To Jail
-        new("Pacific Avenue", 31, 300),                 // 31
-        new("North Carolina Avenue", 32, 300),          // 32
+        new("Pacific Avenue", 300),                     // 31
+        new("North Carolina Avenue", 300),              // 32
         null,                                           // 33: Community Chest
-        new("Pennsylvania Avenue", 34, 320),            // 34
-        new("Short Line", 35, 200),                     // 35 (Railroad)
+        new("Pennsylvania Avenue", 320),                // 34
+        new("Short Line", 200),                         // 35 (Railroad)
         null,                                           // 36: Chance
-        new("Park Place", 37, 350),                     // 37
+        new("Park Place", 350),                         // 37
         null,                                           // 38: Luxury Tax
-        new("Boardwalk", 39, 400),                      // 39
+        new("Boardwalk", 400),                          // 39
     ];
 
     public static MonopolyProperty? GetPropertyAtPosition(int position)
     {
         if (position < 0 || position >= Properties.Length)
-            return null;
+            throw new IndexOutOfRangeException($"Position {position} is out of bounds for Monopoly board.");
         return Properties[position];
     }
 }
@@ -266,7 +266,7 @@ public class RealEstateAgentTests
         // Arrange - array index = board position
         var boardConfig = new MonopolyProperty?[]
         {
-            null, null, null, new("Baltic Avenue", 3, 60)  // Position 3 = Baltic
+            null, null, null, new("Baltic Avenue", 60)  // Position 3 = Baltic
         };
         var agent = new RealEstateAgent(boardConfig);
         var player = new TestPlayer("Player 1");
@@ -309,7 +309,7 @@ public class RealEstateAgentTests
         // Arrange - array index = board position
         var boardConfig = new MonopolyProperty?[]
         {
-            null, null, null, new("Baltic Avenue", 3, 60)  // Position 3 = Baltic
+            null, null, null, new("Baltic Avenue", 60)  // Position 3 = Baltic
         };
         var agent = new RealEstateAgent(boardConfig);
         var player = new TestPlayer("Player 1");
@@ -342,7 +342,7 @@ public class RealEstateAgentTests
         // Arrange - array index = board position, position 0 is null (GO)
         var boardConfig = new MonopolyProperty?[]
         {
-            null, null, null, new("Baltic Avenue", 3, 60)  // Position 0 = null, Position 3 = Baltic
+            null, null, null, new("Baltic Avenue", 60)  // Position 0 = null, Position 3 = Baltic
         };
         var agent = new RealEstateAgent(boardConfig);
         var player = new TestPlayer("Player 1");
