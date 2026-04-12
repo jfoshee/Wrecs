@@ -85,7 +85,11 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
         foreach (var agent in agents)
         {
             var state = _states[agent];
-            var decision = agent.Decide(new(state), _availableOffers);
+            // Filter offers: include general offers + targeted offers for this agent
+            var offersForAgent = _availableOffers
+                .Where(o => o is not TargetedSellOffer targeted || targeted.Buyer == agent)
+                .ToList();
+            var decision = agent.Decide(new(state), offersForAgent);
             decisions.Add((agent, decision));
         }
 
