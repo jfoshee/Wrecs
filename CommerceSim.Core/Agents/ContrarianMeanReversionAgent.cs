@@ -4,7 +4,7 @@ public sealed class ContrarianMeanReversionAgent(
     int lookback = 8,
     int maxInventory = 8,
     int minCashReserve = 2,
-    double zThreshold = 1.25) : ICommerceAgent
+    double zThreshold = 1.25) : ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
     private readonly Queue<double> midPrices = new();

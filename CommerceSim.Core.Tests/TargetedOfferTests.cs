@@ -5,7 +5,7 @@ namespace CommerceSim.Core.Tests;
 /// <summary>
 /// Makes a targeted sell offer to a specific buyer on the first tick.
 /// </summary>
-class MakesTargetedSellOfferAgent(ICommerceAgent target, int price, int resources) : ICommerceAgent
+class MakesTargetedSellOfferAgent(ICommercialAgent target, int price, int resources) : ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
     public string Name => nameof(MakesTargetedSellOfferAgent);
@@ -23,7 +23,7 @@ class MakesTargetedSellOfferAgent(ICommerceAgent target, int price, int resource
 /// <summary>
 /// Tracks all offers seen and takes the first targeted sell offer aimed at it.
 /// </summary>
-class TargetedOfferReceiverAgent : ICommerceAgent
+class TargetedOfferReceiverAgent : ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
     public string Name => nameof(TargetedOfferReceiverAgent);
@@ -44,7 +44,7 @@ class TargetedOfferReceiverAgent : ICommerceAgent
 /// <summary>
 /// Tracks all offers seen but never takes any action.
 /// </summary>
-class OfferObserverAgent : ICommerceAgent
+class OfferObserverAgent : ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
     public string Name { get; init; } = nameof(OfferObserverAgent);
@@ -62,9 +62,9 @@ class OfferObserverAgent : ICommerceAgent
 /// Makes a general sell offer on tick 1, then a targeted sell offer on tick 2.
 /// </summary>
 class MakesGeneralAndTargetedOffersAgent(
-    ICommerceAgent target,
+    ICommercialAgent target,
     int generalPrice, int generalResources,
-    int targetedPrice, int targetedResources) : ICommerceAgent
+    int targetedPrice, int targetedResources) : ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
     public string Name => nameof(MakesGeneralAndTargetedOffersAgent);

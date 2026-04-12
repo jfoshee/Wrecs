@@ -1,6 +1,11 @@
 namespace CommerceSim.Core.Tests;
 
-class GameDice
+public interface IGameDice
+{
+    int Roll();
+}
+
+public class GameDice : IGameDice
 {
     private readonly Random _random = new();
 

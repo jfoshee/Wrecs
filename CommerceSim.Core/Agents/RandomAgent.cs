@@ -1,6 +1,6 @@
 namespace CommerceSim.Core.Agents;
 
-public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommerceAgent
+public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommercialAgent
 {
     private readonly Random _random = random ?? Random.Shared;
     public int Id { get; } = EntityId.Next();

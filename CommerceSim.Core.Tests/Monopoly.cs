@@ -35,7 +35,7 @@ public static class MonopolyBoard
 /// Agent responsible for holding initial property inventory and making
 /// targeted sell offers to players as they land on properties.
 /// </summary>
-public class RealEstateAgent(List<MonopolyProperty> boardConfig) : ICommerceAgent, IRequire<TurnSystem>, IRequire<SpatialSystem>
+public class RealEstateAgent(List<MonopolyProperty> boardConfig) : ICommercialAgent, IRequire<TurnSystem>, IRequire<SpatialSystem>
 {
     private TurnSystem _turnSystem = null!;
     private SpatialSystem _spatialSystem = null!;
@@ -52,7 +52,7 @@ public class RealEstateAgent(List<MonopolyProperty> boardConfig) : ICommerceAgen
     {
         // Get current player and their position
         var currentPlayer = _turnSystem.GetCurrentPlayer();
-        if (currentPlayer is not ICommerceAgent buyer)
+        if (currentPlayer is not ICommercialAgent buyer)
             return new DoNothingDecision();
 
         var playerPosition = _spatialSystem.GetState(currentPlayer).Position;
@@ -81,13 +81,12 @@ public class RealEstateAgent(List<MonopolyProperty> boardConfig) : ICommerceAgen
 }
 
 // HACK: Make this an entity just so turn system is injected
-class MonopolyMovementController(int boardSize) : ISpatialController, IRequire<TurnSystem>, IEntity
+class BoardGameMovementController(IGameDice dice, int boardSize) : ISpatialController, IRequire<TurnSystem>, IEntity
 {
     private TurnSystem _turnSystem = null!;
-    private readonly GameDice _die = new();
 
     public int Id { get; } = EntityId.Next();
-    public string Name => nameof(MonopolyMovementController);
+    public string Name => nameof(BoardGameMovementController);
 
     public IEnumerable<IEntity> GetEntitiesToMove(IEnumerable<IEntity> _)
     {
@@ -98,7 +97,7 @@ class MonopolyMovementController(int boardSize) : ISpatialController, IRequire<T
     {
         if (entity != _turnSystem.GetCurrentPlayer())
             throw new InvalidOperationException("Only the current player can move");
-        int roll = _die.Roll();
+        int roll = dice.Roll();
         return (currentPosition + roll) % boardSize;
     }
 
@@ -110,52 +109,68 @@ class MonopolyMovementController(int boardSize) : ISpatialController, IRequire<T
 
 public interface IMonopolyEntity : ISpatialEntity, ITakeTurns, ICommercialEntity;
 
-public record struct MonopolySnapshot() : IStateSnapshot<MonopolySystem>;
+// public record struct MonopolySnapshot() : IStateSnapshot<MonopolySystem>;
 
-public class MonopolySystem : ISystem<IMonopolyEntity, MonopolySnapshot>
-{
-    const int boardSize = 20;
-    private readonly MonopolyMovementController _movementController = new(boardSize);
+// public class MonopolySystem : ISystem<IMonopolyEntity, MonopolySnapshot>
+// {
+//     public MonopolySnapshot GetState(IEntity entity)
+//     {
+//         return default;
+//     }
 
-    public MonopolySnapshot GetState(IEntity entity)
-    {
-        return default;
-    }
+//     public void InitEntities(params (IEntity entity, MonopolySnapshot? initialState)[] initialEntities)
+//     {
+//     }
 
-    public void InitEntities(params (IEntity entity, MonopolySnapshot? initialState)[] initialEntities)
-    {
-    }
-
-    public void Tick()
-    {
-    }
-}
+//     public void Tick()
+//     {
+//     }
+// }
 
 public record MonopolyPlayer(string Name) : IMonopolyEntity
 {
     public int Id { get; } = EntityId.Next();
 }
 
+public record AlwaysBuyingMonopolyPlayer(string Name) : IMonopolyEntity, ICommercialAgent
+{
+    public int Id { get; } = EntityId.Next();
+
+    public Decision Decide(CommercialSnapshot _, List<Offer> opportunities)
+    {
+        var offer = opportunities.OfType<SellOffer>().FirstOrDefault();
+        if (offer is null)
+            return new DoNothingDecision();
+        // Always accepts offer
+        return new TakeOfferDecision(offer);
+    }
+}
+
 public class MonopolyGame : Sim
 {
     // requires 1 spatial tick = 1 turn = 1 commercial tick
-    public MonopolyPlayer Player1 { get; }
-    public MonopolyPlayer Player2 { get; }
+    public IMonopolyEntity Player1 { get; internal set; }
+    public IMonopolyEntity Player2 { get; }
+    public RealEstateAgent RealEstateAgent { get; } = new();
 
     public MonopolyGame()
     {
         AddSystem(new TurnSystem());
-        AddSystem(new MonopolySystem());
+        // AddSystem(new MonopolySystem());
         Player1 = new MonopolyPlayer("Player 1");
         Player2 = new MonopolyPlayer("Player 2");
     }
 
-    public void Init()
+    public void Init(IGameDice? dice = null)
     {
-        base.InitEntities(
-            (new MonopolyMovementController(boardSize: 20), []),
-            (Player1, []),
-            (Player2, [])
+        dice ??= new GameDice();
+        var startingMoney = new CommercialSnapshot(MoneyBalance: 1500, 0);
+        var allProperties = new CommercialSnapshot(0, MonopolyBoard.Properties.Select(p => (p.Name, 1)));
+        InitEntities(
+            (new BoardGameMovementController(dice, boardSize: 20), []),
+            (RealEstateAgent, [allProperties]),
+            (Player1, [startingMoney]),
+            (Player2, [startingMoney])
         );
     }
 }
@@ -180,12 +195,40 @@ public class MonopolyTest
         game.GetPosition(game.Player1).Should().BeInRange(2, 12);
         game.GetPosition(game.Player2).Should().BeInRange(1, 6);
     }
+
+    [Fact(DisplayName = "Player buys Baltic")]
+    public void PlayerBuysBaltic()
+    {
+        // Setup
+        var game = new MonopolyGame
+        {
+            Player1 = new AlwaysBuyingMonopolyPlayer("Player 1"),
+        };
+        var mockDice = new Mock<IGameDice>();
+        mockDice.Setup(d => d.Roll()).Returns(3); // Always land on Baltic Avenue
+        game.Init(mockDice.Object);
+        // Starting state: Player 1 has $1500 and 0 properties, RealEstateAgent has all properties including Baltic Avenue
+        game.GetCommercialState(game.RealEstateAgent).GetResourceBalance("Baltic Avenue").Should().Be(1);
+        game.GetCommercialState(game.Player1).MoneyBalance.Should().Be(1500);
+        game.GetCommercialState(game.Player1).GetResourceBalance("Baltic Avenue").Should().Be(0);
+
+        game.Tick(); // Player 1 moves to Baltic
+        game.GetPosition(game.Player1).Should().Be(3);
+        game.Tick(); // Agent makes offer to sell Baltic, Player 1 takes it
+
+        // Player should have bought Baltic Avenue from the RealEstateAgent
+        game.GetCommercialState(game.Player1).GetResourceBalance("Baltic Avenue").Should().Be(1);
+        game.GetCommercialState(game.Player1).MoneyBalance.Should().Be(1500 - 60);
+
+        // Real Estate Agent should no longer have Baltic Avenue in inventory
+        game.GetCommercialState(game.RealEstateAgent).GetResourceBalance("Baltic Avenue").Should().Be(0);
+    }
 }
 
 public class RealEstateAgentTests
 {
-    // Simple player for testing (implements ICommerceAgent for targeted offers)
-    private record TestPlayer(string Name) : ICommerceAgent, ISpatialEntity, ITakeTurns
+    // Simple player for testing (implements ICommercialAgent for targeted offers)
+    private record TestPlayer(string Name) : ICommercialAgent, ISpatialEntity, ITakeTurns
     {
         public int Id { get; } = EntityId.Next();
         public Decision Decide(CommercialSnapshot state, List<Offer> offers) => new DoNothingDecision();

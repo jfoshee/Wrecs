@@ -5,7 +5,7 @@ namespace CommerceSim.Core.Tests;
 /// <summary>
 /// Agent that always does nothing.
 /// </summary>
-class DoNothingAgent : ICommerceAgent
+class DoNothingAgent : ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
     public string Name => nameof(DoNothingAgent);
@@ -16,7 +16,7 @@ class DoNothingAgent : ICommerceAgent
 /// <summary>
 /// Always buys the first sell offer it sees, or does nothing if there are no sell offers.
 /// </summary>
-class AlwaysBuyingTaker : ICommerceAgent
+class AlwaysBuyingTaker : ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
 
@@ -34,7 +34,7 @@ class AlwaysBuyingTaker : ICommerceAgent
 /// <summary>
 /// Always sells to the first buy offer it sees, or does nothing if there are no buy offers.
 /// </summary>
-class AlwaysSellingTaker : ICommerceAgent
+class AlwaysSellingTaker : ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
 
@@ -52,7 +52,7 @@ class AlwaysSellingTaker : ICommerceAgent
 /// <summary>
 /// Always makes sell offers at a fixed price and quantity each tick.
 /// </summary>
-class AlwaysSellingMaker(int price, int resources) : ICommerceAgent
+class AlwaysSellingMaker(int price, int resources) : ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
 
@@ -67,7 +67,7 @@ class AlwaysSellingMaker(int price, int resources) : ICommerceAgent
 /// <summary>
 /// Makes a single sell offer on the first tick, then does nothing on subsequent ticks.
 /// </summary>
-class MakesSellOfferAgent(int price, int resources, string? resourceType = null) : ICommerceAgent
+class MakesSellOfferAgent(int price, int resources, string? resourceType = null) : ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
     private bool _hasMadeOffer = false;
@@ -86,7 +86,7 @@ class MakesSellOfferAgent(int price, int resources, string? resourceType = null)
 /// <summary>
 /// Makes a single buy offer on the first tick, then does nothing on subsequent ticks.
 /// </summary>
-class MakesBuyOfferAgent(int price, int resources) : ICommerceAgent
+class MakesBuyOfferAgent(int price, int resources) : ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
     private bool _hasMadeOffer = false;
@@ -105,7 +105,7 @@ class MakesBuyOfferAgent(int price, int resources) : ICommerceAgent
 /// <summary>
 /// Offers to sell all of its resources at a fixed price each tick. If it has no resources, does nothing.
 /// </summary>
-class OffersToSellAllResourcesAgent(int price) : ICommerceAgent
+class OffersToSellAllResourcesAgent(int price) : ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
 

@@ -3,7 +3,7 @@ using Microsoft.Extensions.AI;
 
 namespace CommerceSim.Core.Agents;
 
-public sealed class LlmAgent(IChatClient chatClient, IOutput? output = null) : ICommerceAgent
+public sealed class LlmAgent(IChatClient chatClient, IOutput? output = null) : ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
 

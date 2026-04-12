@@ -38,7 +38,7 @@ public record struct CommercialSnapshot : IStateSnapshot<CommercialSystem>
         _inventory = Normalize([(UnitlessKey, ResourceBalance)]);
     }
 
-    public CommercialSnapshot(int moneyBalance, ImmutableArray<(string Type, int Amount)> inventory)
+    public CommercialSnapshot(int moneyBalance, IEnumerable<(string Type, int Amount)> inventory)
     {
         MoneyBalance = moneyBalance;
         _inventory = Normalize(inventory);
@@ -55,7 +55,7 @@ public record struct CommercialSnapshot : IStateSnapshot<CommercialSystem>
     /// This enables simple SequenceEqual for equality comparison.
     /// </summary>
     private static ImmutableArray<(string Type, int Amount)> Normalize(
-        ImmutableArray<(string Type, int Amount)> inventory) =>
+        IEnumerable<(string Type, int Amount)> inventory) =>
         [.. inventory.Where(i => i.Amount != 0).OrderBy(i => i.Type)];
 
     public bool Equals(CommercialSnapshot other) =>

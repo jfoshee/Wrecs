@@ -2,7 +2,7 @@ using CommerceSim.Core.Spatial;
 
 namespace CommerceSim.Core.Tests;
 
-class BasicComboAgent : ICommerceAgent, ISpatialAgent
+class BasicComboAgent : ICommercialAgent, ISpatialAgent
 {
     public int Id { get; } = EntityId.Next();
 

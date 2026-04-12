@@ -4,7 +4,7 @@ public sealed class InventoryAwareMarketMakerAgent(
     int anchorPrice,
     int targetInventory,
     int inventoryTolerance,
-    int minSpread = 2) : ICommerceAgent
+    int minSpread = 2) : ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
     public string Name => "Inventory-Aware Market-Maker " + Id;

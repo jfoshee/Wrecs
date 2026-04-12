@@ -8,7 +8,7 @@ public class ProximityResourceSource(int resourcesGranted, int intervalTicks, do
 
     public string Name => nameof(ProximityResourceSource);
 
-    private ICommerceAgent? _nearbyAgent = null;
+    private ICommercialAgent? _nearbyAgent = null;
     private int _nearbyTimeTicks = 0;
 
     private SpatialSystem _spatial = null!;
@@ -20,7 +20,7 @@ public class ProximityResourceSource(int resourcesGranted, int intervalTicks, do
     public IEnumerable<Grant> CreateGrants(Context context)
     {
         var spatial = _spatial;
-        var agents = context.Entities.OfType<ICommerceAgent>();
+        var agents = context.Entities.OfType<ICommercialAgent>();
         // If we aren't already tracking a nearby agent, look for one within proximity
         if (_nearbyAgent is null)
         {
@@ -29,7 +29,7 @@ public class ProximityResourceSource(int resourcesGranted, int intervalTicks, do
                 var agentDistance = spatial.GetDistance(this, agent);
                 if (agentDistance <= proximity)
                 {
-                    _nearbyAgent = (ICommerceAgent?)agent;
+                    _nearbyAgent = (ICommercialAgent?)agent;
                     break;
                 }
             }

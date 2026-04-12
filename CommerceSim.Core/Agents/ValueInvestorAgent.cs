@@ -4,7 +4,7 @@ public sealed class ValueInvestorAgent(
     int initialFairPrice,
     int maxPosition,
     int minCashReserve,
-    double adjustmentRate = 0.15) : ICommerceAgent
+    double adjustmentRate = 0.15) : ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
     private double fairPrice = initialFairPrice;

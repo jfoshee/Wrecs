@@ -186,9 +186,9 @@ public class TypedResourceScenarios
         buyerState.ResourceBalance.Should().Be(0); // unitless unchanged
     }
 
-    private static ICommerceAgent MockAgent()
+    private static ICommercialAgent MockAgent()
     {
         var id = EntityId.Next();
-        return Mock.Of<ICommerceAgent>(a => a.Name == Guid.NewGuid().ToString() && a.Id == id);
+        return Mock.Of<ICommercialAgent>(a => a.Name == Guid.NewGuid().ToString() && a.Id == id);
     }
 }

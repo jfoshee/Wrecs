@@ -6,7 +6,7 @@ internal static class OfferMath
         ? int.MaxValue
         : offer.Price / offer.Resources;
 
-    public static MarketSnapshot GetMarketSnapshot(List<Offer> offers, ICommerceAgent self)
+    public static MarketSnapshot GetMarketSnapshot(List<Offer> offers, ICommercialAgent self)
     {
         var bestBid = offers
             .OfType<BuyOffer>()

@@ -17,7 +17,7 @@ public interface ICommercialEntity : IEntity
 public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
 {
     private List<IEntity> _entities = [];
-    private IEnumerable<ICommerceAgent> agents => _entities.OfType<ICommerceAgent>();
+    private IEnumerable<ICommercialAgent> agents => _entities.OfType<ICommercialAgent>();
     private readonly List<ISource> _sources = [];
     private readonly Dictionary<IEntity, CommercialState> _states = [];
     private readonly List<Offer> _availableOffers = [];
@@ -82,7 +82,7 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
         }
 
         // Decision making phase
-        var decisions = new List<(ICommerceAgent Agent, Decision Decision)>();
+        var decisions = new List<(ICommercialAgent Agent, Decision Decision)>();
         foreach (var agent in agents)
         {
             var state = _states[agent];
@@ -118,7 +118,7 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
     /// <summary>
     /// Randomly shuffle the order of decisions to ensure fairness in processing and avoid bias based on agent order.
     /// </summary>
-    private static List<(ICommerceAgent Agent, Decision Decision)> Shuffle(List<(ICommerceAgent Agent, Decision Decision)> decisions)
+    private static List<(ICommercialAgent Agent, Decision Decision)> Shuffle(List<(ICommercialAgent Agent, Decision Decision)> decisions)
     {
         return [.. decisions.OrderBy(_ => _random.Next())];
     }
