@@ -3,6 +3,8 @@ namespace CommerceSim.Core.Spatial;
 using Position = int;
 using Vector = int;
 
+public record struct PositionSnapshot(Position Position) : IStateSnapshot<SpatialSystem>;
+
 /// <summary>
 /// Marker that an entity has a Spatial Position
 /// </summary>
@@ -23,7 +25,7 @@ public interface ISpatialController
     Position GetNewPosition(IEntity entity, Position currentPosition);
 }
 
-public class SpatialSystem : ISystem<ISpatialEntity, Position>
+public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
 {
     private List<IEntity> _entities = [];
     private IEnumerable<ISpatialAgent> Agents => _entities.OfType<ISpatialAgent>();
@@ -31,7 +33,7 @@ public class SpatialSystem : ISystem<ISpatialEntity, Position>
 
     private readonly Dictionary<IEntity, Position> _entityPositions = [];
 
-    public Position GetState(IEntity entity) => _entityPositions[entity];
+    public PositionSnapshot GetState(IEntity entity) => new(_entityPositions[entity]);
 
     public void InitEntities(params (IEntity entity, Position? position)[] initialEntities)
     {

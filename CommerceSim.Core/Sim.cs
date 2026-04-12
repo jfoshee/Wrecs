@@ -5,8 +5,13 @@ namespace CommerceSim.Core;
 
 public class Sim
 {
-    private readonly CommercialSystem _commercialSystem = new();
-    private readonly SpatialSystem _spatialSystem = new();
+    private CommercialSystem CommercialSystem => _systems.OfType<CommercialSystem>().First();
+    private SpatialSystem SpatialSystem => _systems.OfType<SpatialSystem>().First();
+    private readonly List<ISystem> _systems =
+    [
+        new CommercialSystem(),
+        new SpatialSystem()
+    ];
     private readonly List<IEntity> _entities = [];
 
     // TODO: Try union types in initialization so can handle various positions and resource types
@@ -22,40 +27,43 @@ public class Sim
             InitEntity(entity);
             _entities.Add(entity);
         }
+
+        // TODO: loop over systems
         // Init commerce system with entities that have snapshot
         var commercialEntities = entitiesWithState.Where(e => e.entity is ICommercialEntity || e.initialCommercialState is not null)
             .Select(e => (e.entity, e.initialCommercialState))
             .ToArray();
-        _commercialSystem.InitEntities(commercialEntities);
-        // Init commercial sources
-        var sources = entitiesWithState.Select(e => e.entity).OfType<ISource>().ToArray();
-        _commercialSystem.InitSources(sources);
+        CommercialSystem.InitEntities(commercialEntities);
         // Init spatial system with entities that are marked as ISpatialEntity or have initial position
         var spatialEntities = entitiesWithState.Where(e => (e.entity is ISpatialEntity) || e.initialPosition is not null)
             .Select(e => (e.entity, e.initialPosition))
             .ToArray();
-        _spatialSystem.InitEntities(spatialEntities);
+        SpatialSystem.InitEntities(spatialEntities);
+
+        // Init commercial sources
+        var sources = entitiesWithState.Select(e => e.entity).OfType<ISource>().ToArray();
+        CommercialSystem.InitSources(sources);
     }
 
     public void InitControllers(params ISpatialController[] controllers)
     {
-        _spatialSystem.InitControllers(controllers);
+        SpatialSystem.InitControllers(controllers);
     }
 
     public void Tick()
     {
-        _spatialSystem.Tick();
-        _commercialSystem.Tick();
+        SpatialSystem.Tick();
+        CommercialSystem.Tick();
     }
 
-    public CommercialSnapshot GetCommercialState(IEntity entity) => _commercialSystem.GetState(entity);
-    public Position GetPosition(IEntity entity) => _spatialSystem.GetState(entity);
+    public CommercialSnapshot GetCommercialState(IEntity entity) => CommercialSystem.GetState(entity);
+    public Position GetPosition(IEntity entity) => SpatialSystem.GetState(entity).Position;
 
     private void InitEntity(IEntity entity)
     {
         if (entity is IRequire<SpatialSystem> spatialEntity)
-            spatialEntity.Inject(_spatialSystem);
+            spatialEntity.Inject(SpatialSystem);
         if (entity is IRequire<CommercialSystem> commerceEntity)
-            commerceEntity.Inject(_commercialSystem);
+            commerceEntity.Inject(CommercialSystem);
     }
 }

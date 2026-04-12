@@ -12,3 +12,5 @@ public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem
     TStateSnapshot GetState(IEntity entity);
     // IReadOnlyDictionary<int, TStateSnapshot> GetStateSnapshot();
 }
+
+public interface IStateSnapshot<TSystem> { }
