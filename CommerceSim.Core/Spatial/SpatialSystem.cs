@@ -3,7 +3,10 @@ namespace CommerceSim.Core.Spatial;
 using Position = int;
 using Vector = int;
 
-public record struct PositionSnapshot(Position Position) : IStateSnapshot<SpatialSystem>;
+public record struct PositionSnapshot(Position Position) : IStateSnapshot<SpatialSystem>
+{
+    // public static implicit operator int(PositionSnapshot snapshot) => snapshot.Position;
+}
 
 /// <summary>
 /// Marker that an entity has a Spatial Position
