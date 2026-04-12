@@ -35,9 +35,9 @@ public class SimInitTest
         var nonCommercialEntity = new BasicEntity();
 
         sim.InitEntities(
-            (inheritsCommercialEntity, null, null),
-            (nonCommercialEntity, null, null),
-            (hasInitialStateEntity, new CommercialSnapshot(100, 50), null)
+            (inheritsCommercialEntity, []),
+            (nonCommercialEntity, []),
+            (hasInitialStateEntity, [new CommercialSnapshot(100, 50)])
         );
 
         sim.GetCommercialState(inheritsCommercialEntity).Should().Be(new CommercialSnapshot(0, 0));
@@ -54,9 +54,9 @@ public class SimInitTest
         var nonSpatialEntity = new BasicEntity();
 
         sim.InitEntities(
-            (inheritsSpatialEntity, null, null),
-            (nonSpatialEntity, null, null),
-            (hasInitialPositionEntity, null, 5)
+            (inheritsSpatialEntity, []),
+            (nonSpatialEntity, []),
+            (hasInitialPositionEntity, [new PositionSnapshot(5)])
         );
 
         sim.GetPosition(inheritsSpatialEntity).Should().Be(0);
@@ -72,9 +72,9 @@ public class SimInitTest
         var hasInitialPositionEntity = new BasicEntity();
         var nonSpatialEntity = new BasicEntity();
         sim.InitEntities(
-            (inheritsSpatialEntity, null, null),
-            (nonSpatialEntity, null, null),
-            (hasInitialPositionEntity, null, 5)
+            (inheritsSpatialEntity, []),
+            (nonSpatialEntity, []),
+            (hasInitialPositionEntity, [new PositionSnapshot(5)])
         );
         sim.InitControllers(new MoveAllController());
 

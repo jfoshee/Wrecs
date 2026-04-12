@@ -34,8 +34,8 @@ public class BasicCombinedScenarios
         var source = new ProximityResourceSource(10, 1, 0);
         var sim = new Sim();
         sim.InitEntities(
-            (agent, new(0, 0), 0),  // no money, sitting at origin
-            (source, null, 5)  // sitting at position = +5
+            (agent, [new CommercialSnapshot(0, 0), new PositionSnapshot(0)]),  // no money, sitting at origin
+            (source, [new PositionSnapshot(5)])  // sitting at position = +5
         );
 
         sim.Tick();

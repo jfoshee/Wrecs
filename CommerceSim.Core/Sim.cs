@@ -18,11 +18,11 @@ public class Sim
     // Position could be union of int, double, xy, xyz
     // Resource could be union of int, double (unitless), or resource quantities with units
 
-    public void InitEntities(params (IEntity entity, CommercialSnapshot? initialCommercialState, int? initialPosition)[] entitiesWithState)
+    public void InitEntities(params (IEntity entity, IStateSnapshot[] initialStates)[] entitiesWithState)
     {
         _entities.Clear();
         // Inject dependencies into all entities and add to master list
-        foreach (var (entity, initialCommercialState, initialPosition) in entitiesWithState)
+        foreach (var (entity, _) in entitiesWithState)
         {
             InitEntity(entity);
             _entities.Add(entity);
@@ -30,13 +30,15 @@ public class Sim
 
         // TODO: loop over systems
         // Init commerce system with entities that have snapshot
-        var commercialEntities = entitiesWithState.Where(e => e.entity is ICommercialEntity || e.initialCommercialState is not null)
-            .Select(e => (e.entity, e.initialCommercialState))
+        var commercialEntities = entitiesWithState
+            .Where(e => e.entity is ICommercialEntity || e.initialStates.OfType<CommercialSnapshot>().Any())
+            .Select(e => (e.entity, e.initialStates.OfType<CommercialSnapshot>().Cast<CommercialSnapshot?>().FirstOrDefault()))
             .ToArray();
         CommercialSystem.InitEntities(commercialEntities);
         // Init spatial system with entities that are marked as ISpatialEntity or have initial position
-        var spatialEntities = entitiesWithState.Where(e => (e.entity is ISpatialEntity) || e.initialPosition is not null)
-            .Select(e => (e.entity, e.initialPosition))
+        var spatialEntities = entitiesWithState
+            .Where(e => e.entity is ISpatialEntity || e.initialStates.OfType<PositionSnapshot>().Any())
+            .Select(e => (e.entity, e.initialStates.OfType<PositionSnapshot>().Select(p => (int?)p.Position).FirstOrDefault()))
             .ToArray();
         SpatialSystem.InitEntities(spatialEntities);
 

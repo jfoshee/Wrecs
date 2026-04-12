@@ -13,4 +13,8 @@ public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem
     // IReadOnlyDictionary<int, TStateSnapshot> GetStateSnapshot();
 }
 
-public interface IStateSnapshot<TSystem> { }
+public interface IStateSnapshot;
+public interface IStateSnapshot<TSystem> : IStateSnapshot
+    where TSystem : ISystem
+{
+}
