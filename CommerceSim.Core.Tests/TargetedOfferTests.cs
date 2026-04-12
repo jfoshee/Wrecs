@@ -7,8 +7,7 @@ namespace CommerceSim.Core.Tests;
 /// </summary>
 class MakesTargetedSellOfferAgent(ICommerceAgent target, int price, int resources) : ICommerceAgent
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
     public string Name => nameof(MakesTargetedSellOfferAgent);
     private bool _hasMadeOffer = false;
 
@@ -26,8 +25,7 @@ class MakesTargetedSellOfferAgent(ICommerceAgent target, int price, int resource
 /// </summary>
 class TargetedOfferReceiverAgent : ICommerceAgent
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
     public string Name => nameof(TargetedOfferReceiverAgent);
 
     public List<List<Offer>> OffersSeenPerTick { get; } = [];
@@ -48,8 +46,7 @@ class TargetedOfferReceiverAgent : ICommerceAgent
 /// </summary>
 class OfferObserverAgent : ICommerceAgent
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
     public string Name { get; init; } = nameof(OfferObserverAgent);
 
     public List<List<Offer>> OffersSeenPerTick { get; } = [];
@@ -69,8 +66,7 @@ class MakesGeneralAndTargetedOffersAgent(
     int generalPrice, int generalResources,
     int targetedPrice, int targetedResources) : ICommerceAgent
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
     public string Name => nameof(MakesGeneralAndTargetedOffersAgent);
     private int _tickCount = 0;
 

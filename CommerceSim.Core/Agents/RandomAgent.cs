@@ -3,10 +3,9 @@ namespace CommerceSim.Core.Agents;
 public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommerceAgent
 {
     private readonly Random _random = random ?? Random.Shared;
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
 
-    public string Name => "Random " + _id;
+    public string Name => "Random " + Id;
 
     public Decision Decide(CommercialSnapshot state, List<Offer> offers)
     {

@@ -4,8 +4,7 @@ namespace CommerceSim.Core;
 
 public class ProximityResourceSource(int resourcesGranted, int intervalTicks, double proximity) : ISource, ISpatialAgent, IRequire<SpatialSystem>
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
 
     public string Name => nameof(ProximityResourceSource);
 

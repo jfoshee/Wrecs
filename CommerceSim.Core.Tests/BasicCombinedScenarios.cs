@@ -4,8 +4,7 @@ namespace CommerceSim.Core.Tests;
 
 class BasicComboAgent : ICommerceAgent, ISpatialAgent
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
 
     public string Name => nameof(BasicComboAgent);
 

@@ -6,9 +6,8 @@ public sealed class InventoryAwareMarketMakerAgent(
     int inventoryTolerance,
     int minSpread = 2) : ICommerceAgent
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
-    public string Name => "Inventory-Aware Market-Maker " + _id;
+    public int Id { get; } = EntityId.Next();
+    public string Name => "Inventory-Aware Market-Maker " + Id;
 
     public Decision Decide(CommercialSnapshot state, List<Offer> offers)
     {

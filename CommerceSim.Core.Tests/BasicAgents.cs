@@ -7,8 +7,7 @@ namespace CommerceSim.Core.Tests;
 /// </summary>
 class DoNothingAgent : ICommerceAgent
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
     public string Name => nameof(DoNothingAgent);
 
     public Decision Decide(CommercialSnapshot _, List<Offer> opportunities) => new DoNothingDecision();
@@ -19,8 +18,7 @@ class DoNothingAgent : ICommerceAgent
 /// </summary>
 class AlwaysBuyingTaker : ICommerceAgent
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
 
     public string Name => nameof(AlwaysBuyingTaker);
 
@@ -38,8 +36,7 @@ class AlwaysBuyingTaker : ICommerceAgent
 /// </summary>
 class AlwaysSellingTaker : ICommerceAgent
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
 
     public string Name => nameof(AlwaysSellingTaker);
 
@@ -57,8 +54,7 @@ class AlwaysSellingTaker : ICommerceAgent
 /// </summary>
 class AlwaysSellingMaker(int price, int resources) : ICommerceAgent
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
 
     public string Name => nameof(AlwaysSellingMaker);
 
@@ -73,8 +69,7 @@ class AlwaysSellingMaker(int price, int resources) : ICommerceAgent
 /// </summary>
 class MakesSellOfferAgent(int price, int resources) : ICommerceAgent
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
     private bool _hasMadeOffer = false;
 
     public string Name => nameof(MakesSellOfferAgent);
@@ -93,8 +88,7 @@ class MakesSellOfferAgent(int price, int resources) : ICommerceAgent
 /// </summary>
 class MakesBuyOfferAgent(int price, int resources) : ICommerceAgent
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
     private bool _hasMadeOffer = false;
 
     public string Name => nameof(MakesBuyOfferAgent);
@@ -113,8 +107,7 @@ class MakesBuyOfferAgent(int price, int resources) : ICommerceAgent
 /// </summary>
 class OffersToSellAllResourcesAgent(int price) : ICommerceAgent
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
 
     public string Name => nameof(OffersToSellAllResourcesAgent);
 

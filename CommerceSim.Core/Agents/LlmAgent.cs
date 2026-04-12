@@ -5,10 +5,9 @@ namespace CommerceSim.Core.Agents;
 
 public sealed class LlmAgent(IChatClient chatClient, IOutput? output = null) : ICommerceAgent
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
 
-    public string Name => $"LLM-{_id}";
+    public string Name => $"LLM-{Id}";
 
     public Decision Decide(CommercialSnapshot state, List<Offer> offers)
     {

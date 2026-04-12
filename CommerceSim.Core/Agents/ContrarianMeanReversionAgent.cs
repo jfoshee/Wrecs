@@ -6,8 +6,7 @@ public sealed class ContrarianMeanReversionAgent(
     int minCashReserve = 2,
     double zThreshold = 1.25) : ICommerceAgent
 {
-    private readonly int _id = EntityId.Next();
-    public int Id => _id;
+    public int Id { get; } = EntityId.Next();
     private readonly Queue<double> midPrices = new();
 
     public string Name => "ContrarianMeanReversion";
