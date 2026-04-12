@@ -8,34 +8,68 @@ namespace CommerceSim.Core.Tests;
 public record MonopolyProperty(string Name, int Position, int Price);
 
 /// <summary>
-/// Standard Monopoly board configuration mapping positions to properties.
+/// Standard Monopoly board configuration. Array index = board position.
+/// 28 purchasable properties (22 streets + 4 railroads + 2 utilities), 12 nulls.
 /// </summary>
 public static class MonopolyBoard
 {
-    public static readonly List<MonopolyProperty> Properties =
+    public static readonly MonopolyProperty?[] Properties =
     [
-        new("Mediterranean Avenue", 1, 60),
-        new("Baltic Avenue", 3, 60),
-        new("Oriental Avenue", 6, 100),
-        new("Vermont Avenue", 8, 100),
-        new("Connecticut Avenue", 9, 120),
-        new("St. Charles Place", 11, 140),
-        new("States Avenue", 13, 140),
-        new("Virginia Avenue", 14, 160),
-        new("St. James Place", 16, 180),
-        new("Tennessee Avenue", 18, 180),
-        new("New York Avenue", 19, 200),
+        null,                                           // 0: GO
+        new("Mediterranean Avenue", 1, 60),             // 1
+        null,                                           // 2: Community Chest
+        new("Baltic Avenue", 3, 60),                    // 3
+        null,                                           // 4: Income Tax
+        new("Reading Railroad", 5, 200),                // 5
+        new("Oriental Avenue", 6, 100),                 // 6
+        null,                                           // 7: Chance
+        new("Vermont Avenue", 8, 100),                  // 8
+        new("Connecticut Avenue", 9, 120),              // 9
+        null,                                           // 10: Jail
+        new("St. Charles Place", 11, 140),              // 11
+        new("Electric Company", 12, 150),               // 12
+        new("States Avenue", 13, 140),                  // 13
+        new("Virginia Avenue", 14, 160),                // 14
+        new("Pennsylvania Railroad", 15, 200),          // 15
+        new("St. James Place", 16, 180),                // 16
+        null,                                           // 17: Community Chest
+        new("Tennessee Avenue", 18, 180),               // 18
+        new("New York Avenue", 19, 200),                // 19
+        null,                                           // 20: Free Parking
+        new("Kentucky Avenue", 21, 220),                // 21
+        null,                                           // 22: Chance
+        new("Indiana Avenue", 23, 220),                 // 23
+        new("Illinois Avenue", 24, 240),                // 24
+        new("B&O Railroad", 25, 200),                   // 25
+        new("Atlantic Avenue", 26, 260),                // 26
+        new("Ventnor Avenue", 27, 260),                 // 27
+        new("Water Works", 28, 150),                    // 28
+        new("Marvin Gardens", 29, 280),                 // 29
+        null,                                           // 30: Go To Jail
+        new("Pacific Avenue", 31, 300),                 // 31
+        new("North Carolina Avenue", 32, 300),          // 32
+        null,                                           // 33: Community Chest
+        new("Pennsylvania Avenue", 34, 320),            // 34
+        new("Short Line", 35, 200),                     // 35 (Railroad)
+        null,                                           // 36: Chance
+        new("Park Place", 37, 350),                     // 37
+        null,                                           // 38: Luxury Tax
+        new("Boardwalk", 39, 400),                      // 39
     ];
 
     public static MonopolyProperty? GetPropertyAtPosition(int position)
-        => Properties.FirstOrDefault(p => p.Position == position);
+    {
+        if (position < 0 || position >= Properties.Length)
+            return null;
+        return Properties[position];
+    }
 }
 
 /// <summary>
 /// Agent responsible for holding initial property inventory and making
 /// targeted sell offers to players as they land on properties.
 /// </summary>
-public class RealEstateAgent(List<MonopolyProperty> boardConfig) : ICommercialAgent, IRequire<TurnSystem>, IRequire<SpatialSystem>
+public class RealEstateAgent(MonopolyProperty?[] boardConfig) : ICommercialAgent, IRequire<TurnSystem>, IRequire<SpatialSystem>
 {
     private TurnSystem _turnSystem = null!;
     private SpatialSystem _spatialSystem = null!;
@@ -57,8 +91,10 @@ public class RealEstateAgent(List<MonopolyProperty> boardConfig) : ICommercialAg
 
         var playerPosition = _spatialSystem.GetState(currentPlayer).Position;
 
-        // Look up property at that position
-        var property = boardConfig.FirstOrDefault(p => p.Position == playerPosition);
+        // Look up property at that position (array index = position)
+        if (playerPosition < 0 || playerPosition >= boardConfig.Length)
+            return new DoNothingDecision();
+        var property = boardConfig[playerPosition];
         if (property is null)
             return new DoNothingDecision(); // No property at this position
 
@@ -165,9 +201,9 @@ public class MonopolyGame : Sim
     {
         dice ??= new GameDice();
         var startingMoney = new CommercialSnapshot(MoneyBalance: 1500, 0);
-        var allProperties = new CommercialSnapshot(0, MonopolyBoard.Properties.Select(p => (p.Name, 1)));
+        var allProperties = new CommercialSnapshot(0, MonopolyBoard.Properties.OfType<MonopolyProperty>().Select(p => (p.Name, 1)));
         InitEntities(
-            (new BoardGameMovementController(dice, boardSize: 20), []),
+            (new BoardGameMovementController(dice, boardSize: 40), []),
             (RealEstateAgent, [allProperties]),
             (Player1, [startingMoney]),
             (Player2, [startingMoney])
@@ -237,10 +273,10 @@ public class RealEstateAgentTests
     [Fact(DisplayName = "Agent makes targeted offer when player lands on owned property")]
     public void MakesTargetedOffer_WhenPlayerOnOwnedProperty()
     {
-        // Arrange
-        var boardConfig = new List<MonopolyProperty>
+        // Arrange - array index = board position
+        var boardConfig = new MonopolyProperty?[]
         {
-            new("Baltic Avenue", 3, 60)
+            null, null, null, new("Baltic Avenue", 3, 60)  // Position 3 = Baltic
         };
         var agent = new RealEstateAgent(boardConfig);
         var player = new TestPlayer("Player 1");
@@ -280,10 +316,10 @@ public class RealEstateAgentTests
     [Fact(DisplayName = "Agent does not make offer when it doesn't own the property")]
     public void NoOffer_WhenPropertyNotOwned()
     {
-        // Arrange
-        var boardConfig = new List<MonopolyProperty>
+        // Arrange - array index = board position
+        var boardConfig = new MonopolyProperty?[]
         {
-            new("Baltic Avenue", 3, 60)
+            null, null, null, new("Baltic Avenue", 3, 60)  // Position 3 = Baltic
         };
         var agent = new RealEstateAgent(boardConfig);
         var player = new TestPlayer("Player 1");
@@ -313,10 +349,10 @@ public class RealEstateAgentTests
     [Fact(DisplayName = "Agent does not make offer when player is not on a property")]
     public void NoOffer_WhenNoPropertyAtPosition()
     {
-        // Arrange
-        var boardConfig = new List<MonopolyProperty>
+        // Arrange - array index = board position, position 0 is null (GO)
+        var boardConfig = new MonopolyProperty?[]
         {
-            new("Baltic Avenue", 3, 60)
+            null, null, null, new("Baltic Avenue", 3, 60)  // Position 0 = null, Position 3 = Baltic
         };
         var agent = new RealEstateAgent(boardConfig);
         var player = new TestPlayer("Player 1");
