@@ -10,6 +10,8 @@ public class CommercialSnapshotTests
         snapshot.MoneyBalance.Should().Be(0);
         snapshot.ResourceBalance.Should().Be(0);
         snapshot.Inventory.Should().BeEmpty();
+        snapshot.Should().Be(new CommercialSnapshot());
+        snapshot.Should().Be((CommercialSnapshot)default);
     }
 
     [Fact]
