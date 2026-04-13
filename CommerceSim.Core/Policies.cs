@@ -26,6 +26,14 @@ public interface IGrantPolicy
     bool CanExecute(Grant grant);
 }
 
+public interface IChargePolicy
+{
+    /// <summary>
+    /// Called before a charge is executed to determine if it can proceed.
+    /// </summary>
+    bool CanExecute(Charge charge);
+}
+
 public class OfferSingleUsePolicy : ITradePolicy
 {
     public bool CanExecute(Trade trade) =>
@@ -57,4 +65,10 @@ public class NoNegativeGrantsPolicy : IGrantPolicy
 {
     public bool CanExecute(Grant grant) =>
         grant.Money >= 0 && grant.Resources >= 0;
+}
+
+public class NoNegativeChargesPolicy : IChargePolicy
+{
+    public bool CanExecute(Charge charge) =>
+        charge.Money >= 0 && charge.Resources >= 0;
 }

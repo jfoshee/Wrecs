@@ -180,4 +180,45 @@ public class PolicyTests
         // State should be unchanged because the grant cannot take away money
         sim.GetState(agent).Should().Be(agentState0);
     }
+
+    class FixedSink(ICommercialAgent recipient, int money, int resources) : ISink
+    {
+        public IEnumerable<Charge> CreateCharges(Context _)
+        {
+            yield return new Charge(recipient, money, resources);
+        }
+    }
+
+    [Fact(DisplayName = "Sink cannot add money or resources (negative charge)")]
+    public void SinkCannotAddMoneyOrResources()
+    {
+        var sim = new CommercialSystem();
+        var agent = new DoNothingAgent();
+        var sink1 = new FixedSink(agent, money: -10, resources: 0);
+        var sink2 = new FixedSink(agent, money: 0, resources: -10);
+        CommercialSnapshot agentState0 = new(MoneyBalance: 100, ResourceBalance: 0);
+        sim.InitEntities((agent, agentState0));
+        sim.InitSinks(sink1, sink2);
+
+        sim.Tick();
+
+        // State should be unchanged because the sink cannot add money or resources
+        sim.GetState(agent).Should().Be(agentState0);
+    }
+
+    [Fact(DisplayName = "Sink cannot force negative on both balances")]
+    public void SinkCannotForceNegativeOnBothBalances()
+    {
+        var sim = new CommercialSystem();
+        var agent = new DoNothingAgent();
+        var sink = new FixedSink(agent, money: 150, resources: 150);
+        CommercialSnapshot agentState0 = new(MoneyBalance: 100, ResourceBalance: 100);
+        sim.InitEntities((agent, agentState0));
+        sim.InitSinks(sink);
+
+        sim.Tick();
+
+        // State should be unchanged because sink cannot force negative balances
+        sim.GetState(agent).Should().Be(agentState0);
+    }
 }
