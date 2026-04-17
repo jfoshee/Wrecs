@@ -32,7 +32,8 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
         new NoNegativeGrantsPolicy()
     ];
     private readonly List<IChargePolicy> _chargePolicies = [
-        new NoNegativeChargesPolicy()
+        new NoNegativeChargesPolicy(),
+        new NoForcingNegativeBalanceChargePolicy()
     ];
 
     public CommercialSnapshot GetState(IEntity entity) => new(_states[entity]);
@@ -128,9 +129,9 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
         foreach (var charge in charges)
         {
             // Skip charges that violate policies
-            if (_chargePolicies.Any(p => !p.CanExecute(charge)))
-                continue;
             var state = _states[charge.Payor];
+            if (_chargePolicies.Any(p => !p.CanExecute(charge, new(state))))
+                continue;
             state.MoneyBalance -= charge.Money;
             state.AddResources(charge.ResourceType, -charge.Resources);
         }

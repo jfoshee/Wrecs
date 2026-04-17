@@ -31,7 +31,7 @@ public interface IChargePolicy
     /// <summary>
     /// Called before a charge is executed to determine if it can proceed.
     /// </summary>
-    bool CanExecute(Charge charge);
+    bool CanExecute(Charge charge, CommercialSnapshot entityState);
 }
 
 public class OfferSingleUsePolicy : ITradePolicy
@@ -69,6 +69,13 @@ public class NoNegativeGrantsPolicy : IGrantPolicy
 
 public class NoNegativeChargesPolicy : IChargePolicy
 {
-    public bool CanExecute(Charge charge) =>
+    public bool CanExecute(Charge charge, CommercialSnapshot _) =>
         charge.Money >= 0 && charge.Resources >= 0;
+}
+
+public class NoForcingNegativeBalanceChargePolicy : IChargePolicy
+{
+    public bool CanExecute(Charge charge, CommercialSnapshot entityState) =>
+        charge.Money <= entityState.MoneyBalance
+        && charge.Resources <= entityState.GetResourceBalance(charge.ResourceType);
 }
