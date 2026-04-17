@@ -24,8 +24,8 @@ public interface ISpatialAgent : ISpatialEntity
 
 public interface ISpatialController
 {
-    IEnumerable<IEntity> GetEntitiesToMove(IEnumerable<IEntity> allEntities);
-    Position GetNewPosition(IEntity entity, Position currentPosition);
+    IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities);
+    Position GetNewState(IEntity entity, Position currentPosition);
 }
 
 public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
@@ -67,10 +67,10 @@ public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
         // Apply controllers to modify entity positions
         foreach (var controller in _controllers)
         {
-            foreach (var entity in controller.GetEntitiesToMove(_entities))
+            foreach (var entity in controller.GetEntitiesToUpdate(_entities))
             {
                 var currentPosition = _entityPositions[entity];
-                var newPosition = controller.GetNewPosition(entity, currentPosition);
+                var newPosition = controller.GetNewState(entity, currentPosition);
                 _entityPositions[entity] = newPosition;
             }
         }

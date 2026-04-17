@@ -10,12 +10,12 @@ class BoardGameMovementController(IGameDice dice, int boardSize) : ISpatialContr
     public int Id { get; } = EntityId.Next();
     public string Name => nameof(BoardGameMovementController);
 
-    public IEnumerable<IEntity> GetEntitiesToMove(IEnumerable<IEntity> _)
+    public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> _)
     {
         return [_turnSystem.GetCurrentPlayer()];
     }
 
-    public int GetNewPosition(IEntity entity, int currentPosition)
+    public int GetNewState(IEntity entity, int currentPosition)
     {
         if (entity != _turnSystem.GetCurrentPlayer())
             throw new InvalidOperationException("Only the current player can move");
