@@ -135,6 +135,87 @@ public class RealEstateAgent(MonopolyProperty?[] boardConfig) : ICommercialAgent
 
 public interface IMonopolyEntity : ISpatialEntity, ITakeTurns, ICommercialEntity;
 
+/// <summary>
+/// Responsible for charging rent by taking money from players who land on properties owned by other players
+/// and giving the money to the owning player.
+/// </summary>
+public class MonopolyRentController(MonopolyProperty?[] boardConfig)
+    : ICommercialController, IRequire<TurnSystem>, IRequire<SpatialSystem>, IRequire<CommercialSystem>
+{
+    private TurnSystem _turnSystem = null!;
+    private SpatialSystem _spatialSystem = null!;
+    private CommercialSystem _commercialSystem = null!;
+
+    // Calculated per-tick rent adjustments (positive = receiving rent, negative = paying rent)
+    private readonly Dictionary<IEntity, int> _rentAdjustments = [];
+
+    public int Id { get; } = EntityId.Next();
+    public string Name => "Monopoly Rent Controller";
+
+    public MonopolyRentController() : this(MonopolyBoard.Properties) { }
+
+    public void Inject(TurnSystem dependency) => _turnSystem = dependency;
+    public void Inject(SpatialSystem dependency) => _spatialSystem = dependency;
+    public void Inject(CommercialSystem dependency) => _commercialSystem = dependency;
+
+    public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities)
+    {
+        _rentAdjustments.Clear();
+
+        // Get current player and their position
+        var currentPlayer = _turnSystem.GetCurrentPlayer();
+        var playerPosition = _spatialSystem.GetState(currentPlayer).Position;
+
+        // Look up property at that position
+        if (playerPosition < 0 || playerPosition >= boardConfig.Length)
+            return [];
+        var property = boardConfig[playerPosition];
+        if (property is null)
+            return []; // No property at this position (GO, Jail, etc.)
+
+        // Find who owns this property (search all entities for who has it in inventory)
+        IEntity? owner = null;
+        foreach (var entity in allEntities)
+        {
+            var state = _commercialSystem.GetState(entity);
+            if (state.GetResourceBalance(property.Name) > 0)
+            {
+                owner = entity;
+                break;
+            }
+        }
+
+        if (owner is null || owner == currentPlayer)
+            return []; // Unowned or player owns it themselves
+
+        // Calculate rent (simplified: 10% of property price)
+        var rent = property.Price / 10;
+
+        // Check if tenant can afford rent
+        var tenantState = _commercialSystem.GetState(currentPlayer);
+        if (tenantState.MoneyBalance < rent)
+            rent = tenantState.MoneyBalance; // Pay what they can
+
+        if (rent <= 0)
+            return [];
+
+        // Record adjustments
+        _rentAdjustments[currentPlayer] = -rent;  // Tenant pays
+        _rentAdjustments[owner] = rent;            // Landlord receives
+
+        return [currentPlayer, owner];
+    }
+
+    public CommercialSnapshot GetNewState(IEntity entity, CommercialSnapshot currentState)
+    {
+        if (_rentAdjustments.TryGetValue(entity, out var adjustment))
+        {
+            return currentState with { MoneyBalance = currentState.MoneyBalance + adjustment };
+        }
+        return currentState;
+    }
+}
+
 // public record struct MonopolySnapshot() : IStateSnapshot<MonopolySystem>;
 
 // public class MonopolySystem : ISystem<IMonopolyEntity, MonopolySnapshot>
@@ -178,6 +259,7 @@ public class MonopolyGame : Sim
     public IMonopolyEntity Player1 { get; internal set; }
     public IMonopolyEntity Player2 { get; }
     public RealEstateAgent RealEstateAgent { get; } = new();
+    public MonopolyRentController RentController { get; } = new();
 
     public MonopolyGame()
     {
@@ -195,6 +277,7 @@ public class MonopolyGame : Sim
         InitEntities(
             (new BoardGameMovementController(dice, boardSize: 40), []),
             (RealEstateAgent, [allProperties]),
+            (RentController, []),
             (Player1, [startingMoney]),
             (Player2, [startingMoney])
         );
@@ -367,5 +450,64 @@ public class RealEstateAgentTests
 
         // Assert
         decision.Should().BeOfType<DoNothingDecision>();
+    }
+}
+
+public class MonopolyRentControllerTests
+{
+    private record TestPlayer(string Name) : ICommercialAgent, ISpatialEntity, ITakeTurns
+    {
+        public int Id { get; } = EntityId.Next();
+        public Decision Decide(CommercialSnapshot state, List<Offer> offers) => new DoNothingDecision();
+    }
+
+    [Fact(DisplayName = "Player pays rent when landing on property owned by another player")]
+    public void PlayerPaysRent_WhenLandingOnOwnedProperty()
+    {
+        // Arrange - array index = board position
+        var boardConfig = new MonopolyProperty?[]
+        {
+            null, null, null, new("Baltic Avenue", 60)  // Position 3 = Baltic, rent = 6 (10% of price)
+        };
+
+        var tenant = new TestPlayer("Tenant");
+        var landlord = new TestPlayer("Landlord");
+
+        var turnSystem = new TurnSystem();
+        turnSystem.InitEntities(
+            (tenant, new TurnSnapshot(IsMyTurn: true)),
+            (landlord, null)
+        );
+
+        var spatialSystem = new SpatialSystem();
+        spatialSystem.InitEntities(
+            (tenant, new PositionSnapshot(3)),   // Tenant on Baltic Avenue
+            (landlord, new PositionSnapshot(0))
+        );
+
+        var commercialSystem = new CommercialSystem();
+        commercialSystem.InitEntities(
+            (tenant, new CommercialSnapshot(MoneyBalance: 100)),           // Tenant has $100
+            (landlord, new CommercialSnapshot(50, [("Baltic Avenue", 1)])) // Landlord owns Baltic, has $50
+        );
+
+        var controller = new MonopolyRentController(boardConfig);
+        controller.Inject(turnSystem);
+        controller.Inject(spatialSystem);
+        controller.Inject(commercialSystem);
+
+        // Act
+        var entitiesToUpdate = controller.GetEntitiesToUpdate([tenant, landlord]).ToList();
+
+        var tenantNewState = controller.GetNewState(tenant, commercialSystem.GetState(tenant));
+        var landlordNewState = controller.GetNewState(landlord, commercialSystem.GetState(landlord));
+
+        // Assert
+        entitiesToUpdate.Should().Contain(tenant);
+        entitiesToUpdate.Should().Contain(landlord);
+
+        // Rent is 10% of $60 = $6
+        tenantNewState.MoneyBalance.Should().Be(100 - 6);   // Tenant paid $6
+        landlordNewState.MoneyBalance.Should().Be(50 + 6);  // Landlord received $6
     }
 }
