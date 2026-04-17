@@ -14,15 +14,13 @@ public interface ICommercialEntity : IEntity
 {
 }
 
-public interface ICommercialController
+public interface ICommercialController : IController<CommercialSnapshot>
 {
-    IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities);
-    CommercialSnapshot GetNewState(IEntity entity, CommercialSnapshot currentState);
 }
 
 public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
 {
-    private List<IEntity> _entities = [];
+    private readonly List<IEntity> _entities = [];
     private IEnumerable<ICommercialAgent> Agents => _entities.OfType<ICommercialAgent>();
     private readonly List<ICommercialController> _controllers = [];
     private readonly List<ISource> _sources = [];

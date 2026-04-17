@@ -22,10 +22,8 @@ public interface ISpatialAgent : ISpatialEntity
     Vector GetStep(Position currentPosition);
 }
 
-public interface ISpatialController
+public interface ISpatialController : IController<Position>
 {
-    IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities);
-    Position GetNewState(IEntity entity, Position currentPosition);
 }
 
 public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
