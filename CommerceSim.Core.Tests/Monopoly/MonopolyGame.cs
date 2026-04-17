@@ -1,0 +1,36 @@
+using CommerceSim.Core.Spatial;
+
+namespace CommerceSim.Core.Tests.Monopoly;
+
+public interface IMonopolyEntity : ISpatialEntity, ITakeTurns, ICommercialEntity;
+
+public class MonopolyGame : Sim
+{
+    // requires 1 spatial tick = 1 turn = 1 commercial tick
+    public IMonopolyEntity Player1 { get; internal set; }
+    public IMonopolyEntity Player2 { get; }
+    public RealEstateAgent RealEstateAgent { get; } = new();
+    public MonopolyRentController RentController { get; } = new();
+
+    public MonopolyGame()
+    {
+        AddSystem(new TurnSystem());
+        // AddSystem(new MonopolySystem());
+        Player1 = new MonopolyPlayer("Player 1");
+        Player2 = new MonopolyPlayer("Player 2");
+    }
+
+    public void Init(IGameDice? dice = null)
+    {
+        dice ??= new GameDice();
+        var startingMoney = new CommercialSnapshot(MoneyBalance: 1500, 0);
+        var allProperties = new CommercialSnapshot(0, MonopolyBoard.Properties.OfType<MonopolyProperty>().Select(p => (p.Name, 1)));
+        InitEntities(
+            (new BoardGameMovementController(dice, boardSize: 40), []),
+            (RealEstateAgent, [allProperties]),
+            (RentController, []),
+            (Player1, [startingMoney]),
+            (Player2, [startingMoney])
+        );
+    }
+}
