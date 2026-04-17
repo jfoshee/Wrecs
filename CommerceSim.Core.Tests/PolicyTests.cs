@@ -221,4 +221,36 @@ public class PolicyTests
         // State should be unchanged because sink cannot force negative balances
         sim.GetState(agent).Should().Be(agentState0);
     }
+
+    [Fact(DisplayName = "Sink can take all money")]
+    public void SinkCanTakeAllMoney()
+    {
+        var sim = new CommercialSystem();
+        var agent = new DoNothingAgent();
+        var sink = new FixedSink(agent, money: 100, resources: 0);
+        CommercialSnapshot agentState0 = new(MoneyBalance: 100, ResourceBalance: 42);
+        sim.InitEntities((agent, agentState0));
+        sim.InitSinks(sink);
+
+        sim.Tick();
+
+        // Money balance should be zero but resource balance should be unchanged
+        sim.GetState(agent).Should().Be(new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 42));
+    }
+
+    [Fact(DisplayName = "Sink can take all resources")]
+    public void SinkCanTakeAllResources()
+    {
+        var sim = new CommercialSystem();
+        var agent = new DoNothingAgent();
+        var sink = new FixedSink(agent, money: 0, resources: 100);
+        CommercialSnapshot agentState0 = new(MoneyBalance: 42, ResourceBalance: 100);
+        sim.InitEntities((agent, agentState0));
+        sim.InitSinks(sink);
+
+        sim.Tick();
+
+        // Resource balance should be zero but money balance should be unchanged
+        sim.GetState(agent).Should().Be(new CommercialSnapshot(MoneyBalance: 42, ResourceBalance: 0));
+    }
 }

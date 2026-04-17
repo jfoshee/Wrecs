@@ -14,10 +14,17 @@ public interface ICommercialEntity : IEntity
 {
 }
 
+public interface ICommercialController
+{
+    IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities);
+    CommercialSnapshot GetNewState(IEntity entity, CommercialSnapshot currentState);
+}
+
 public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
 {
     private List<IEntity> _entities = [];
-    private IEnumerable<ICommercialAgent> agents => _entities.OfType<ICommercialAgent>();
+    private IEnumerable<ICommercialAgent> Agents => _entities.OfType<ICommercialAgent>();
+    private readonly List<ICommercialController> _controllers = [];
     private readonly List<ISource> _sources = [];
     private readonly List<ISink> _sinks = [];
     private readonly Dictionary<IEntity, CommercialState> _states = [];
@@ -42,7 +49,7 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
         _states.ToDictionary(kvp => kvp.Key.Id, kvp => new CommercialSnapshot(kvp.Value));
 
     public IReadOnlyDictionary<int, string> GetAgentNames() =>
-        agents.ToDictionary(a => a.Id, a => a.Name);
+        Agents.ToDictionary(a => a.Id, a => a.Name);
 
     public void InitEntities(params (IEntity entity, CommercialSnapshot? initialState)[] initialEntities)
     {
@@ -53,6 +60,12 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
             _entities.Add(entity);
             _states[entity] = new(initialState ?? default);
         }
+    }
+
+    public void InitControllers(params ICommercialController[] controllers)
+    {
+        _controllers.Clear();
+        _controllers.AddRange(controllers);
     }
 
     public void InitSources(params ISource[] sources)
@@ -94,7 +107,7 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
 
         // Decision making phase
         var decisions = new List<(ICommercialAgent Agent, Decision Decision)>();
-        foreach (var agent in agents)
+        foreach (var agent in Agents)
         {
             var state = _states[agent];
             // Filter offers: include general offers + targeted offers for this agent
@@ -120,6 +133,16 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
                     var newOffer = makeOfferDecision.Offer;
                     _availableOffers.Add(newOffer);
                     break;
+            }
+        }
+        // Controller phase
+        foreach (var controller in _controllers)
+        {
+            foreach (var entity in controller.GetEntitiesToUpdate(_entities))
+            {
+                var currentState = _states[entity];
+                var newState = controller.GetNewState(entity, new(currentState));
+                _states[entity] = new CommercialState(newState);
             }
         }
 

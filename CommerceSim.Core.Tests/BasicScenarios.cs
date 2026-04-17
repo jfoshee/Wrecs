@@ -246,6 +246,53 @@ public class BasicScenarios
         snapshot2.ResourceBalance.Should().Be(11);
     }
 
+    [Fact(DisplayName = "Controller adds interest to all agents each tick")]
+    public void ControllerAddsInterestToAllAgentsEachTick()
+    {
+        var sim = new CommercialSystem();
+        var agent1 = MockAgent();
+        var agent2 = MockAgent();
+        var interestController = new InterestController(interestRate: 0.10);
+        sim.InitEntities((agent1, new(MoneyBalance: 100, ResourceBalance: 0)),
+                         (agent2, new(MoneyBalance: 200, ResourceBalance: 0)));
+        sim.InitControllers(interestController);
+
+        sim.Tick();
+
+        // 10% interest added to each agent
+        sim.GetState(agent1).MoneyBalance.Should().Be(110);
+        sim.GetState(agent2).MoneyBalance.Should().Be(220);
+
+        sim.Tick();
+
+        // Compound interest: 10% of new balance
+        sim.GetState(agent1).MoneyBalance.Should().Be(121);
+        sim.GetState(agent2).MoneyBalance.Should().Be(242);
+    }
+
+    [Fact(DisplayName = "Controller grants resources to specific entity")]
+    public void ControllerGrantsResourcesToSpecificEntity()
+    {
+        var sim = new CommercialSystem();
+        var miner = new DoNothingAgent();
+        var trader = MockAgent();
+        var miningController = new MiningController(miner, resourcesPerTick: 5);
+        sim.InitEntities((miner, new(MoneyBalance: 0, ResourceBalance: 10)),
+                         (trader, new(MoneyBalance: 50, ResourceBalance: 0)));
+        sim.InitControllers(miningController);
+
+        sim.Tick();
+
+        // Only the miner should receive resources
+        sim.GetState(miner).ResourceBalance.Should().Be(15);
+        sim.GetState(trader).ResourceBalance.Should().Be(0);
+
+        sim.Tick();
+
+        sim.GetState(miner).ResourceBalance.Should().Be(20);
+        sim.GetState(trader).ResourceBalance.Should().Be(0);
+    }
+
     private static ICommercialAgent MockAgent()
     {
         var id = EntityId.Next();
