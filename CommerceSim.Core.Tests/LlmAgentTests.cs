@@ -1,14 +1,8 @@
 using CommerceSim.Core.Agents;
 using Microsoft.Extensions.AI;
 using OllamaSharp;
-using Xunit.Abstractions;
 
 namespace CommerceSim.Core.Tests;
-
-public class XUnitOutput(ITestOutputHelper output) : IOutput
-{
-    public void WriteLine(string message) => output.WriteLine(message);
-}
 
 public class LlmAgentTests(ITestOutputHelper output)
 {

@@ -30,7 +30,7 @@ public class Sim
         }
 
         // Initialize each system with matching entities
-        foreach (var system in _systems)
+        foreach (var system in _systems.Where(ImplementsGeneric))
         {
             var (markerInterface, snapshotType) = GetSystemTypeInfo(system);
             // Identify entities that either implement the marker interface
@@ -79,6 +79,12 @@ public class Sim
     }
 
     #region Ugly Reflection for generic initialization
+    /// <summary>
+    /// Checks if the system implements ISystem<,> and thus requires generic initialization.
+    /// </summary>
+    static bool ImplementsGeneric(ISystem system) =>
+        system.GetType().GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISystem<,>));
+
     private static void InjectSystemIfRequired(IEntity entity, ISystem system)
     {
         var requireInterface = typeof(IRequire<>).MakeGenericType(system.GetType());
@@ -95,6 +101,9 @@ public class Sim
                 && i.GetGenericTypeDefinition() == typeof(IStateSnapshot<>)
                 && i.GetGenericArguments()[0].IsAssignableFrom(systemType));
 
+    /// <summary>
+    /// Returns type arguments for ISystem<TMarker, TSnapshot>.
+    /// </summary>
     private static (Type markerInterface, Type snapshotType) GetSystemTypeInfo(ISystem system) =>
         system.GetType().GetInterfaces()
             .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISystem<,>))

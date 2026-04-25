@@ -1,13 +1,14 @@
-using CommerceSim.Core.Spatial;
 
 namespace CommerceSim.Core.Tests.Monopoly;
 
-public class MonopolyTest
+public class MonopolyTest(ITestOutputHelper output)
 {
+    private readonly IOutput _output = new XUnitOutput(output);
+
     [Fact(DisplayName = "Monopoly Game")]
     public void MonopolyGameTest()
     {
-        var game = new MonopolyGame();
+        var game = new MonopolyGame(_output);
         game.Init();
 
         game.Tick(); // Player 1 moves
@@ -27,7 +28,7 @@ public class MonopolyTest
     public void PlayerBuysBaltic()
     {
         // Setup
-        var game = new MonopolyGame
+        var game = new MonopolyGame(_output)
         {
             Player1 = new AlwaysBuyingMonopolyPlayer("Player 1"),
         };
@@ -55,7 +56,7 @@ public class MonopolyTest
     public void PlayerBuysBaltic_NextPlayerPaysRent()
     {
         // Setup
-        var game = new MonopolyGame
+        var game = new MonopolyGame(_output)
         {
             Player1 = new AlwaysBuyingMonopolyPlayer("Player 1"),
         };

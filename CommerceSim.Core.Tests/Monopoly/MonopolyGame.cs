@@ -6,16 +6,25 @@ public interface IMonopolyEntity : ISpatialEntity, ITakeTurns, ICommercialEntity
 
 public class MonopolyGame : Sim
 {
+    private IOutput output;
+
     // requires 1 spatial tick = 1 turn = 1 commercial tick
     public IMonopolyEntity Player1 { get; internal set; }
     public IMonopolyEntity Player2 { get; }
     public RealEstateAgent RealEstateAgent { get; } = new();
     public MonopolyRentController RentController { get; } = new();
 
-    public MonopolyGame()
+    public MonopolyGame() : this(null)
     {
+    }
+
+    public MonopolyGame(IOutput? output)
+    {
+        this.output = output ?? new NullOutput();
+
         AddSystem(new TurnSystem());
-        // AddSystem(new MonopolySystem());
+        AddSystem(new LogTickSystem(this.output));
+
         Player1 = new MonopolyPlayer("Player 1");
         Player2 = new MonopolyPlayer("Player 2");
     }
