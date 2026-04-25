@@ -178,11 +178,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
         public int MoneyBalance { get; set; }
         public Dictionary<string, int> Inventory { get; } = [];
 
-        /// <summary>
-        /// Gets the balance for unitless resources (backward compatibility).
-        /// </summary>
-        public int ResourceBalance => GetResourceBalance(null);
-
         public int GetResourceBalance(string? resourceType) =>
             Inventory.TryGetValue(resourceType ?? UnitlessKey, out var balance) ? balance : 0;
 
@@ -192,13 +187,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
             if (!Inventory.TryGetValue(key, out var current))
                 current = 0;
             Inventory[key] = current + amount;
-        }
-
-        public CommercialState(int moneyBalance = 0, int resourceBalance = 0)
-        {
-            MoneyBalance = moneyBalance;
-            if (resourceBalance != 0)
-                Inventory[UnitlessKey] = resourceBalance;
         }
 
         public CommercialState(CommercialSnapshot snapshot)
