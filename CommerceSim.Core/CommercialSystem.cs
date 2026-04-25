@@ -23,7 +23,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
     private readonly List<IEntity> _entities = [];
     private IEnumerable<ICommercialAgent> Agents => _entities.OfType<ICommercialAgent>();
     private readonly List<ICommercialController> _controllers = [];
-    private readonly List<ISource> _sources = [];
     private readonly Dictionary<IEntity, CommercialState> _states = [];
     private readonly List<Offer> _availableOffers = [];
 
@@ -31,9 +30,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
         new OfferSingleUsePolicy(),
         new CannotCreateResourcesPolicy(),
         new CannotCreateMoneyPolicy()
-    ];
-    private readonly List<IGrantPolicy> _grantPolicies = [
-        new NoNegativeGrantsPolicy()
     ];
 
     public CommercialSnapshot GetState(IEntity entity) => new(_states[entity]);
@@ -61,12 +57,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
         _controllers.AddRange(controllers);
     }
 
-    public void InitSources(params ISource[] sources)
-    {
-        _sources.Clear();
-        _sources.AddRange(sources);
-    }
-
     public void InitOffers(params Offer[] initialOffers)
     {
         _availableOffers.Clear();
@@ -76,22 +66,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
     // Advance simulation by one tick
     public void Tick()
     {
-        // Hack context
-        var context = new Context(_states.Keys);
-
-        // Grant phase
-        // (Run first so that on first tick grants can be used for seeding agents)
-        var grants = _sources.SelectMany(s => s.CreateGrants(context));
-        foreach (var grant in grants)
-        {
-            // Skip grants that violate policies
-            if (_grantPolicies.Any(p => !p.CanExecute(grant)))
-                continue;
-            var state = _states[grant.Recipient];
-            state.MoneyBalance += grant.Money;
-            state.AddResources(grant.ResourceType, grant.Resources);
-        }
-
         // Decision making phase
         var decisions = new List<(ICommercialAgent Agent, Decision Decision)>();
         foreach (var agent in Agents)

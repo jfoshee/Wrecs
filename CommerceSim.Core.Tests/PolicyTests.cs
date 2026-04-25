@@ -157,7 +157,7 @@ public class PolicyTests
         var source = new FixedGrantSource(agent, money: 0, resources: -10);
         CommercialSnapshot agentState0 = new(MoneyBalance: 0, ResourceBalance: 100);
         sim.InitEntities((agent, agentState0));
-        sim.InitSources(source);
+        sim.InitControllers(new SourcesController(source));
 
         sim.Tick();
 
@@ -173,7 +173,7 @@ public class PolicyTests
         var source = new FixedGrantSource(agent, money: -10, resources: 0);
         CommercialSnapshot agentState0 = new(MoneyBalance: 100, ResourceBalance: 0);
         sim.InitEntities((agent, agentState0));
-        sim.InitSources(source);
+        sim.InitControllers(new SourcesController(source));
 
         sim.Tick();
 

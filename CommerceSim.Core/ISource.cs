@@ -1,6 +1,6 @@
 namespace CommerceSim.Core;
 
-public record struct Grant(ICommercialAgent Recipient, int Money, int Resources, string? ResourceType = null);
+public record struct Grant(IEntity Recipient, int Money, int Resources, string? ResourceType = null);
 
 /// <summary>
 /// Creates money or resources and grants them to agents.

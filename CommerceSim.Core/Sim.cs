@@ -27,8 +27,8 @@ public class Sim
         _controllers.Clear();
         _controllers.AddRange(controllers);
         _dependenciesInjected = false;
-        SpatialSystem.InitControllers([.. controllers.OfType<ISpatialController>().Concat(_entities.OfType<ISpatialController>())]);
-        CommercialSystem.InitControllers([.. controllers.OfType<ICommercialController>().Concat(_entities.OfType<ICommercialController>())]);
+        SpatialSystem.InitControllers([.. controllers.OfType<ISpatialController>()]);
+        CommercialSystem.InitControllers([.. controllers.OfType<ICommercialController>()]);
         // TODO: Init controllers for all systems
     }
 
@@ -54,11 +54,6 @@ public class Sim
                 .ToArray();
             InvokeInitEntities(system, snapshotType, matchingEntities);
         }
-
-        // TODO: Should Sources just be Controllers?
-        // Init commercial sources
-        var sources = entitiesWithState.Select(e => e.entity).OfType<ISource>().ToArray();
-        CommercialSystem.InitSources(sources);
     }
 
     public void Tick()
