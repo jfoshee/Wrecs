@@ -13,19 +13,31 @@ public class Sim
         new CommercialSystem(),
     ];
     private readonly List<IEntity> _entities = [];
+    private readonly List<IController> _controllers = [];
+    private bool _dependenciesInjected = false;
 
     public void AddSystem(ISystem system)
     {
         _systems.Add(system);
+        _dependenciesInjected = false;
+    }
+
+    public void InitControllers(params IController[] controllers)
+    {
+        _controllers.Clear();
+        _controllers.AddRange(controllers);
+        _dependenciesInjected = false;
+        SpatialSystem.InitControllers([.. controllers.OfType<ISpatialController>().Concat(_entities.OfType<ISpatialController>())]);
+        CommercialSystem.InitControllers([.. controllers.OfType<ICommercialController>().Concat(_entities.OfType<ICommercialController>())]);
+        // TODO: Init controllers for all systems
     }
 
     public void InitEntities(params (IEntity entity, IStateSnapshot[] initialStates)[] entitiesWithState)
     {
         _entities.Clear();
-        // Inject dependencies into all entities and add to master list
+        _dependenciesInjected = false;
         foreach (var (entity, _) in entitiesWithState)
         {
-            InitEntity(entity);
             _entities.Add(entity);
         }
 
@@ -43,24 +55,15 @@ public class Sim
             InvokeInitEntities(system, snapshotType, matchingEntities);
         }
 
+        // TODO: Should Sources just be Controllers?
         // Init commercial sources
         var sources = entitiesWithState.Select(e => e.entity).OfType<ISource>().ToArray();
         CommercialSystem.InitSources(sources);
-
-        // Init spatial controllers
-        var controllers = entitiesWithState.Select(e => e.entity).OfType<ISpatialController>().ToArray();
-        SpatialSystem.InitControllers(controllers);
-    }
-
-    public void InitControllers(params IController[] controllers)
-    {
-        SpatialSystem.InitControllers([.. controllers.OfType<ISpatialController>()]);
-        CommercialSystem.InitControllers([.. controllers.OfType<ICommercialController>()]);
-        // TODO: For all systems
     }
 
     public void Tick()
     {
+        EnsureDependenciesInjected();
         foreach (var system in _systems)
         {
             system.Tick();
@@ -70,11 +73,20 @@ public class Sim
     public CommercialSnapshot GetCommercialState(IEntity entity) => CommercialSystem.GetState(entity);
     public Position GetPosition(IEntity entity) => SpatialSystem.GetState(entity).Position;
 
-    private void InitEntity(IEntity entity)
+    private void EnsureDependenciesInjected()
     {
-        foreach (var system in _systems)
+        if (_dependenciesInjected)
+            return;
+        _dependenciesInjected = true;
+
+        var targets = _systems.OfType<IRequire>()
+                              .Concat(_entities.OfType<IRequire>())
+                              .Concat(_controllers.OfType<IRequire>());
+
+        foreach (var target in targets)
         {
-            InjectSystemIfRequired(entity, system);
+            foreach (var system in _systems)
+                InjectSystemIfRequired(target, system);
         }
     }
 
@@ -85,7 +97,7 @@ public class Sim
     static bool ImplementsGeneric(ISystem system) =>
         system.GetType().GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISystem<,>));
 
-    private static void InjectSystemIfRequired(IEntity entity, ISystem system)
+    private static void InjectSystemIfRequired(IRequire entity, ISystem system)
     {
         var requireInterface = typeof(IRequire<>).MakeGenericType(system.GetType());
         if (requireInterface.IsInstanceOfType(entity))

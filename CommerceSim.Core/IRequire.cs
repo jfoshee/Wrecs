@@ -1,6 +1,8 @@
 namespace CommerceSim.Core;
 
-public interface IRequire<T> : IEntity
+public interface IRequire;
+
+public interface IRequire<T> : IRequire where T : ISystem
 {
     void Inject(T dependency);
 }

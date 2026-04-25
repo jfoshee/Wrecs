@@ -2,13 +2,9 @@ using CommerceSim.Core.Spatial;
 
 namespace CommerceSim.Core.Tests;
 
-// HACK: Make this an entity just so turn system is injected
-class BoardGameMovementController(IGameDice dice, int boardSize) : ISpatialController, IRequire<TurnSystem>, IEntity
+class BoardGameMovementController(IGameDice dice, int boardSize) : ISpatialController, IRequire<TurnSystem>
 {
     private TurnSystem _turnSystem = null!;
-
-    public int Id { get; } = EntityId.Next();
-    public string Name => nameof(BoardGameMovementController);
 
     public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> _)
     {

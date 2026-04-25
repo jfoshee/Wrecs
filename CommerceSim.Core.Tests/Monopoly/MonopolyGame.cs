@@ -34,11 +34,9 @@ public class MonopolyGame : Sim
         dice ??= new GameDice();
         var startingMoney = new CommercialSnapshot(MoneyBalance: 1500, 0);
         var allProperties = new CommercialSnapshot(0, MonopolyBoard.Properties.OfType<MonopolyProperty>().Select(p => (p.Name, 1)));
-        InitControllers(RentController);
+        InitControllers(new BoardGameMovementController(dice, boardSize: 40), RentController);
         InitEntities(
-            (new BoardGameMovementController(dice, boardSize: 40), []),
             (RealEstateAgent, [allProperties]),
-            (RentController, []),
             (Player1, [startingMoney]),
             (Player2, [startingMoney])
         );
