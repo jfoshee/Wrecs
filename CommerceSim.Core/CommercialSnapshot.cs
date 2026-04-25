@@ -50,6 +50,11 @@ public record struct CommercialSnapshot : IStateSnapshot<CommercialSystem>
         _inventory = Normalize([.. state.Inventory.Select(kvp => (kvp.Key, kvp.Value))]);
     }
 
+    internal CommercialSnapshot(int money, Dictionary<string, int> inventory)
+        : this(money, inventory.Select(kvp => (kvp.Key, kvp.Value)))
+    {
+    }
+
     /// <summary>
     /// Normalizes inventory: filters out zero amounts, sorts by Type.
     /// This enables simple SequenceEqual for equality comparison.

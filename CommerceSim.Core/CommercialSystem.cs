@@ -24,7 +24,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
     private IEnumerable<ICommercialAgent> Agents => _entities.OfType<ICommercialAgent>();
     private readonly List<ICommercialController> _controllers = [];
     private readonly List<ISource> _sources = [];
-    private readonly List<ISink> _sinks = [];
     private readonly Dictionary<IEntity, CommercialState> _states = [];
     private readonly List<Offer> _availableOffers = [];
 
@@ -35,10 +34,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
     ];
     private readonly List<IGrantPolicy> _grantPolicies = [
         new NoNegativeGrantsPolicy()
-    ];
-    private readonly List<IChargePolicy> _chargePolicies = [
-        new NoNegativeChargesPolicy(),
-        new NoForcingNegativeBalanceChargePolicy()
     ];
 
     public CommercialSnapshot GetState(IEntity entity) => new(_states[entity]);
@@ -70,12 +65,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
     {
         _sources.Clear();
         _sources.AddRange(sources);
-    }
-
-    public void InitSinks(params ISink[] sinks)
-    {
-        _sinks.Clear();
-        _sinks.AddRange(sinks);
     }
 
     public void InitOffers(params Offer[] initialOffers)
@@ -144,18 +133,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
             }
         }
 
-        // Charge phase
-        // Process any sinks last so any chance to accumulate money/resources before charges
-        var charges = _sinks.SelectMany(s => s.CreateCharges(context));
-        foreach (var charge in charges)
-        {
-            // Skip charges that violate policies
-            var state = _states[charge.Payor];
-            if (_chargePolicies.Any(p => !p.CanExecute(charge, new(state))))
-                continue;
-            state.MoneyBalance -= charge.Money;
-            state.AddResources(charge.ResourceType, -charge.Resources);
-        }
     }
 
     private static readonly Random _random = new();
