@@ -183,9 +183,9 @@ public class PolicyTests
 
     class FixedSink(ICommercialAgent recipient, int money, int resources) : ISink
     {
-        public IEnumerable<Charge> CreateCharges(Context _)
+        public IEnumerable<Flow> CreateFlows(Context _)
         {
-            yield return new Charge(recipient, money, resources);
+            yield return Flow.Debit(recipient, money, resources);
         }
     }
 

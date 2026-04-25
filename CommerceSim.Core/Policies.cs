@@ -18,20 +18,12 @@ public interface ITradePolicy
     void OnExecuted(Trade trade);
 }
 
-public interface IGrantPolicy
+public interface IFlowPolicy
 {
     /// <summary>
-    /// Called before a grant is executed to determine if it can proceed.
+    /// Called before a flow is executed to determine if it can proceed.
     /// </summary>
-    bool CanExecute(Grant grant);
-}
-
-public interface IChargePolicy
-{
-    /// <summary>
-    /// Called before a charge is executed to determine if it can proceed.
-    /// </summary>
-    bool CanExecute(Charge charge, CommercialSnapshot entityState);
+    bool CanExecute(Flow flow, CommercialSnapshot entityState);
 }
 
 public class OfferSingleUsePolicy : ITradePolicy
@@ -61,21 +53,16 @@ public class CannotCreateMoneyPolicy : ITradePolicy
     public void OnExecuted(Trade trade) { }
 }
 
-public class NoNegativeGrantsPolicy : IGrantPolicy
+public class NoNegativeFlowAmountsPolicy : IFlowPolicy
 {
-    public bool CanExecute(Grant grant) =>
-        grant.Money >= 0 && grant.Resources >= 0;
+    public bool CanExecute(Flow flow, CommercialSnapshot _) =>
+        flow.Money >= 0 && flow.Resources >= 0;
 }
 
-public class NoNegativeChargesPolicy : IChargePolicy
+public class NoForcingNegativeBalanceFlowPolicy : IFlowPolicy
 {
-    public bool CanExecute(Charge charge, CommercialSnapshot _) =>
-        charge.Money >= 0 && charge.Resources >= 0;
-}
-
-public class NoForcingNegativeBalanceChargePolicy : IChargePolicy
-{
-    public bool CanExecute(Charge charge, CommercialSnapshot entityState) =>
-        charge.Money <= entityState.MoneyBalance
-        && charge.Resources <= entityState.GetResourceBalance(charge.ResourceType);
+    public bool CanExecute(Flow flow, CommercialSnapshot entityState) =>
+        flow.Direction != FlowDirection.Debit
+        || (flow.Money <= entityState.MoneyBalance
+            && flow.Resources <= entityState.GetResourceBalance(flow.ResourceType));
 }

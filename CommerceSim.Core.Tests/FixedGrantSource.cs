@@ -5,8 +5,8 @@ namespace CommerceSim.Core.Tests;
 /// </summary>
 class FixedGrantSource(ICommercialAgent recipient, int money, int resources, string? resourceType = null) : ISource
 {
-    public IEnumerable<Grant> CreateGrants(Context _)
+    public IEnumerable<Flow> CreateFlows(Context _)
     {
-        yield return new Grant(recipient, money, resources, resourceType);
+        yield return Flow.Credit(recipient, money, resources, resourceType);
     }
 }

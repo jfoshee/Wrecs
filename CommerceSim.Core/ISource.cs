@@ -1,11 +1,9 @@
 namespace CommerceSim.Core;
 
-public record struct Grant(IEntity Recipient, int Money, int Resources, string? ResourceType = null);
-
 /// <summary>
-/// Creates money or resources and grants them to agents.
+/// Creates credit flows that add money or resources to entities.
 /// </summary>
-public interface ISource
+public interface ISource : IFlowOrigin
 {
-    IEnumerable<Grant> CreateGrants(Context context);
+    // TODO: Can/should we enforce that only creates Credits
 }

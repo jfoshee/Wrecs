@@ -17,7 +17,7 @@ public class ProximityResourceSource(int resourcesGranted, int intervalTicks, do
         _spatial = dependency;
     }
 
-    public IEnumerable<Grant> CreateGrants(Context context)
+    public IEnumerable<Flow> CreateFlows(Context context)
     {
         var spatial = _spatial;
         var agents = context.Entities.OfType<ICommercialAgent>();
@@ -42,7 +42,7 @@ public class ProximityResourceSource(int resourcesGranted, int intervalTicks, do
         // If they've been nearby long enough, grant them resources and reset
         if (_nearbyTimeTicks >= intervalTicks)
         {
-            yield return new Grant(Recipient: _nearbyAgent, Money: 0, Resources: resourcesGranted);
+            yield return Flow.Credit(recipient: _nearbyAgent, money: 0, resources: resourcesGranted);
             // Reset tracking
             _nearbyTimeTicks = 0;
             _nearbyAgent = null;

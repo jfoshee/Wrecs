@@ -1,8 +1,9 @@
 namespace CommerceSim.Core;
 
-public record struct Charge(IEntity Payor, int Money, int Resources, string? ResourceType = null);
-
-public interface ISink
+/// <summary>
+/// Creates debit flows that remove money or resources from entities.
+/// </summary>
+public interface ISink : IFlowOrigin
 {
-    IEnumerable<Charge> CreateCharges(Context context);
+    // TODO: Can/should we enforce that only creates Debits
 }
