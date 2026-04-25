@@ -52,9 +52,11 @@ public class Sim
         SpatialSystem.InitControllers(controllers);
     }
 
-    public void InitControllers(params ISpatialController[] controllers)
+    public void InitControllers(params IController[] controllers)
     {
-        SpatialSystem.InitControllers(controllers);
+        SpatialSystem.InitControllers([.. controllers.OfType<ISpatialController>()]);
+        CommercialSystem.InitControllers([.. controllers.OfType<ICommercialController>()]);
+        // TODO: For all systems
     }
 
     public void Tick()

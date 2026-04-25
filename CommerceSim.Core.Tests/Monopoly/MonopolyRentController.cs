@@ -52,6 +52,9 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
             }
         }
 
+        if (owner is RealEstateAgent)
+            return []; // Owned by bank, no rent
+
         if (owner is null || owner == currentPlayer)
             return []; // Unowned or player owns it themselves
 
@@ -67,8 +70,8 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
             return [];
 
         // Record adjustments
-        _rentAdjustments[currentPlayer] = -rent;  // Tenant pays
-        _rentAdjustments[owner] = rent;            // Landlord receives
+        _rentAdjustments[currentPlayer] = -rent;    // Tenant pays
+        _rentAdjustments[owner] = rent;             // Landlord receives
 
         return [currentPlayer, owner];
     }
