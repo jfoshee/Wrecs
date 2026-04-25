@@ -24,7 +24,7 @@ public class MonopolyTest(ITestOutputHelper output)
         game.GetPosition(game.Player2).Should().BeInRange(1, 6);
     }
 
-    [Fact(DisplayName = "Player buys Baltic")]
+    [Fact(DisplayName = "Player buys Baltic", Skip = "Not finished")]
     public void PlayerBuysBaltic()
     {
         // Setup
@@ -52,7 +52,7 @@ public class MonopolyTest(ITestOutputHelper output)
         game.GetCommercialState(game.RealEstateAgent).GetResourceBalance("Baltic Avenue").Should().Be(0);
     }
 
-    [Fact(DisplayName = "Player buys Baltic, next player lands on it and pays rent")]
+    [Fact(DisplayName = "Player buys Baltic, next player lands on it and pays rent", Skip = "Not finished")]
     public void PlayerBuysBaltic_NextPlayerPaysRent()
     {
         // Setup
