@@ -5,7 +5,7 @@ public class MonopolyTest(ITestOutputHelper output)
 {
     private readonly IOutput _output = new XUnitOutput(output);
 
-    [Fact(DisplayName = "Monopoly Game")]
+    [Fact(DisplayName = "Turns and Movement")]
     public void MonopolyGameTest()
     {
         var game = new MonopolyGame(_output);
@@ -14,17 +14,19 @@ public class MonopolyTest(ITestOutputHelper output)
         game.Tick(); // Player 1 moves
         game.GetPosition(game.Player1).Should().BeInRange(1, 6);
         game.GetPosition(game.Player2).Should().Be(0);
+        game.Tick(); // Resolution phase
 
         game.Tick(); // Player 2 moves
         game.GetPosition(game.Player1).Should().BeInRange(1, 6);
         game.GetPosition(game.Player2).Should().BeInRange(1, 6);
+        game.Tick(); // Resolution phase
 
         game.Tick(); // Player 1 moves again
         game.GetPosition(game.Player1).Should().BeInRange(2, 12);
         game.GetPosition(game.Player2).Should().BeInRange(1, 6);
     }
 
-    [Fact(DisplayName = "Player buys Baltic")]
+    [Fact(DisplayName = "Player buys Baltic from Real Estate Agent")]
     public void PlayerBuysBaltic()
     {
         // Setup
@@ -52,7 +54,7 @@ public class MonopolyTest(ITestOutputHelper output)
         game.GetCommercialState(game.RealEstateAgent).GetResourceBalance("Baltic Avenue").Should().Be(0);
     }
 
-    [Fact(DisplayName = "Player buys Baltic, next player lands on it and pays rent", Skip = "Not finished")]
+    [Fact(DisplayName = "Player 1 buys Baltic, Player 2 lands on it and pays rent")]
     public void PlayerBuysBaltic_NextPlayerPaysRent()
     {
         // Setup
@@ -66,13 +68,17 @@ public class MonopolyTest(ITestOutputHelper output)
 
         // Player 1 moves to Baltic and buys it
         game.Tick(); // Player 1 moves to Baltic
+        game.GetPosition(game.Player1).Should().Be(3);
+
         game.Tick(); // Agent makes offer, Player 1 buys Baltic
         game.GetCommercialState(game.Player1).GetResourceBalance("Baltic Avenue").Should().Be(1);
         game.GetCommercialState(game.Player1).MoneyBalance.Should().Be(1500 - 60);
+        game.GetPosition(game.Player2).Should().Be(0);
 
         // Player 2 moves to Baltic and pays rent
         game.Tick(); // Player 2 moves to Baltic (position 3)
         game.GetPosition(game.Player2).Should().Be(3);
+        game.GetPosition(game.Player1).Should().Be(3);
 
         // Rent is 10% of property price: 60 / 10 = 6
         game.GetCommercialState(game.Player2).MoneyBalance.Should().Be(1500 - 6);

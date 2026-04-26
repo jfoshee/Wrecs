@@ -14,6 +14,7 @@ public class TurnSystemTests
         var state = system.GetState(entity);
 
         state.IsMyTurn.Should().BeTrue();
+        state.Phase.Should().Be(0);
         system.GetCurrentPlayer().Should().Be(entity);
     }
 
@@ -27,6 +28,7 @@ public class TurnSystemTests
 
         system.GetState(entity1).IsMyTurn.Should().BeTrue();
         system.GetState(entity2).IsMyTurn.Should().BeFalse();
+        system.GetState(entity1).Phase.Should().Be(0);
         system.GetCurrentPlayer().Should().Be(entity1);
     }
 
@@ -36,10 +38,11 @@ public class TurnSystemTests
         var system = new TurnSystem();
         var entity1 = new TestTurnEntity(1, "Entity1");
         var entity2 = new TestTurnEntity(2, "Entity2");
-        system.InitEntities((entity1, new TurnSnapshot(false)), (entity2, new TurnSnapshot(true)));
+        system.InitEntities((entity1, new TurnSnapshot(false)), (entity2, new TurnSnapshot(true, Phase: 0)));
 
         system.GetState(entity1).IsMyTurn.Should().BeFalse();
         system.GetState(entity2).IsMyTurn.Should().BeTrue();
+        system.GetState(entity2).Phase.Should().Be(0);
         system.GetCurrentPlayer().Should().Be(entity2);
     }
 
@@ -55,6 +58,7 @@ public class TurnSystemTests
 
         system.GetState(entity1).IsMyTurn.Should().BeFalse();
         system.GetState(entity2).IsMyTurn.Should().BeTrue();
+        system.GetState(entity2).Phase.Should().Be(0);
         system.GetCurrentPlayer().Should().Be(entity2);
     }
 
@@ -71,6 +75,7 @@ public class TurnSystemTests
 
         system.GetState(entity1).IsMyTurn.Should().BeTrue();
         system.GetState(entity2).IsMyTurn.Should().BeFalse();
+        system.GetState(entity1).Phase.Should().Be(0);
         system.GetCurrentPlayer().Should().Be(entity1);
     }
 
@@ -88,12 +93,15 @@ public class TurnSystemTests
 
         system.Tick(); // entity2's turn
         system.GetState(entity2).IsMyTurn.Should().BeTrue();
+        system.GetState(entity2).Phase.Should().Be(0);
 
         system.Tick(); // entity3's turn
         system.GetState(entity3).IsMyTurn.Should().BeTrue();
+        system.GetState(entity3).Phase.Should().Be(0);
 
         system.Tick(); // wrap back to entity1
         system.GetState(entity1).IsMyTurn.Should().BeTrue();
+        system.GetState(entity1).Phase.Should().Be(0);
     }
 
     [Fact(DisplayName = "Only one entity has turn at a time")]
@@ -123,5 +131,37 @@ public class TurnSystemTests
         system.Tick();
 
         system.GetState(entity).IsMyTurn.Should().BeTrue();
+        system.GetState(entity).Phase.Should().Be(0);
+    }
+
+    [Fact(DisplayName = "Current player persists until ticks per turn are consumed")]
+    public void CurrentPlayerPersistsUntilTicksPerTurnAreConsumed()
+    {
+        var system = new TurnSystem(phasesPerTurn: 2);
+        var entity1 = new TestTurnEntity(1, "Entity1");
+        var entity2 = new TestTurnEntity(2, "Entity2");
+        system.InitEntities((entity1, null), (entity2, null));
+
+        system.Tick();
+
+        system.GetState(entity1).IsMyTurn.Should().BeTrue();
+        system.GetState(entity1).Phase.Should().Be(1);
+        system.GetState(entity2).IsMyTurn.Should().BeFalse();
+        system.GetCurrentPlayer().Should().Be(entity1);
+
+        system.Tick();
+
+        system.GetState(entity1).IsMyTurn.Should().BeFalse();
+        system.GetState(entity2).IsMyTurn.Should().BeTrue();
+        system.GetState(entity2).Phase.Should().Be(0);
+        system.GetCurrentPlayer().Should().Be(entity2);
+    }
+
+    [Fact(DisplayName = "Ticks per turn must be positive")]
+    public void TicksPerTurnMustBePositive()
+    {
+        Action act = () => new TurnSystem(phasesPerTurn: 0);
+
+        act.Should().Throw<ArgumentOutOfRangeException>();
     }
 }

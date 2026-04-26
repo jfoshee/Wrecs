@@ -21,7 +21,7 @@ public class MonopolyGame : Sim
     {
         this.output = output ?? new NullOutput();
 
-        AddSystem(new TurnSystem());
+        AddSystem(new TurnSystem(phasesPerTurn: 2));
         AddSystem(new LogTickSystem(this.output));
         AddSystem(new SystemLogger<TurnSystem>(this.output));
         AddSystem(new SystemLogger<CommercialSystem>(this.output));

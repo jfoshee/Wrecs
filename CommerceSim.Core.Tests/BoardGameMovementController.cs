@@ -8,7 +8,10 @@ class BoardGameMovementController(IGameDice dice, int boardSize) : ISpatialContr
 
     public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> _)
     {
-        return [_turnSystem.GetCurrentPlayer()];
+        // Only move on the first phase of the turn (making no assumptions about how many phases per turn)
+        if (_turnSystem.CurrentPhase == 0)
+            return [_turnSystem.GetCurrentPlayer()];
+        return [];
     }
 
     public int GetNewState(IEntity entity, int currentPosition)

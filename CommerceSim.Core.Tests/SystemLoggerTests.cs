@@ -28,8 +28,8 @@ public class SystemLoggerTests
 
         output.Lines.Should().Equal(
             "TurnSystem Tick 0",
-            "Entity1 (1): TurnSnapshot { IsMyTurn = False }",
-            "Entity2 (2): TurnSnapshot { IsMyTurn = True }");
+            "Entity1 (1): TurnSnapshot { IsMyTurn = False, Phase = 0 }",
+            "Entity2 (2): TurnSnapshot { IsMyTurn = True, Phase = 0 }");
     }
 
     [Fact(DisplayName = "System logger piggy-backs on Sim tick order")]
@@ -50,7 +50,7 @@ public class SystemLoggerTests
 
         output.Lines.Should().Equal(
             "TurnSystem Tick 0",
-            "Entity1 (1): TurnSnapshot { IsMyTurn = False }",
-            "Entity2 (2): TurnSnapshot { IsMyTurn = True }");
+            "Entity1 (1): TurnSnapshot { IsMyTurn = False, Phase = 0 }",
+            "Entity2 (2): TurnSnapshot { IsMyTurn = True, Phase = 0 }");
     }
 }
