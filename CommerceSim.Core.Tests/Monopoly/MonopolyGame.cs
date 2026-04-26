@@ -6,13 +6,12 @@ public interface IMonopolyEntity : ISpatialEntity, ITakeTurns, ICommercialEntity
 
 public class MonopolyGame : Sim
 {
-    private IOutput output;
+    private readonly IOutput output;
 
     // requires 1 spatial tick = 1 turn = 1 commercial tick
     public IMonopolyEntity Player1 { get; internal set; }
     public IMonopolyEntity Player2 { get; }
     public RealEstateAgent RealEstateAgent { get; } = new();
-    public MonopolyRentController RentController { get; } = new();
 
     public MonopolyGame() : this(null)
     {
@@ -37,7 +36,10 @@ public class MonopolyGame : Sim
         dice ??= new GameDice();
         var startingMoney = new CommercialSnapshot(MoneyBalance: 1500, 0);
         var allProperties = new CommercialSnapshot(0, MonopolyBoard.Properties.OfType<MonopolyProperty>().Select(p => (p.Name, 1)));
-        InitControllers(new BoardGameMovementController(dice, boardSize: 40), RentController);
+        InitControllers(
+            new MonopolyRentController(),
+            new BoardGameMovementController(dice, boardSize: 40)
+        );
         InitEntities(
             (RealEstateAgent, [allProperties]),
             (Player1, [startingMoney]),

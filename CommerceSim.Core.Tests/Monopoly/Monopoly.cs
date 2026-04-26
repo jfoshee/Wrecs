@@ -24,7 +24,7 @@ public class MonopolyTest(ITestOutputHelper output)
         game.GetPosition(game.Player2).Should().BeInRange(1, 6);
     }
 
-    [Fact(DisplayName = "Player buys Baltic", Skip = "Not finished")]
+    [Fact(DisplayName = "Player buys Baltic")]
     public void PlayerBuysBaltic()
     {
         // Setup
