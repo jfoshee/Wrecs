@@ -6,7 +6,7 @@ public class LogTickSystem(IOutput output) : ISystem
 
     public void Tick()
     {
-        output.WriteLine($"Tick {_tickCount}");
+        output.WriteLine($"=== Tick {_tickCount} ===");
         _tickCount++;
     }
 }

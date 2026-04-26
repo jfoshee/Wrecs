@@ -24,6 +24,9 @@ public class MonopolyGame : Sim
 
         AddSystem(new TurnSystem());
         AddSystem(new LogTickSystem(this.output));
+        AddSystem(new SystemLogger<TurnSystem>(this.output));
+        AddSystem(new SystemLogger<CommercialSystem>(this.output));
+        AddSystem(new SystemLogger<SpatialSystem>(this.output));
 
         Player1 = new MonopolyPlayer("Player 1");
         Player2 = new MonopolyPlayer("Player 2");

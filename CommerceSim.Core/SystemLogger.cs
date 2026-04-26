@@ -23,7 +23,7 @@ public class SystemLogger<TSystem>(IOutput output) : ISystem, IRequire<TSystem>
 
         foreach (var entity in _getEntities(system))
         {
-            output.WriteLine($"Entity {entity.Id}: {_getState(system, entity)}");
+            output.WriteLine($"{entity.Name} ({entity.Id}): {_getState(system, entity)}");
         }
 
         _tickCount++;

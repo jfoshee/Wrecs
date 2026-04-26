@@ -77,4 +77,10 @@ public record struct CommercialSnapshot : IStateSnapshot<CommercialSystem>
         }
         return hash.ToHashCode();
     }
+
+    public override string ToString()
+    {
+        var inventoryStr = string.Join(", ", Inventory.Select(i => $"{i.Type}: {i.Amount}"));
+        return $"Money: {MoneyBalance}, Inventory: [{inventoryStr}]";
+    }
 }
