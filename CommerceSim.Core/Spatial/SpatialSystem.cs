@@ -47,6 +47,14 @@ public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
         }
     }
 
+    public void SetStates(IEnumerable<(IEntity entity, PositionSnapshot state)> stateUpdates)
+    {
+        foreach (var (entity, state) in stateUpdates)
+        {
+            _entityPositions[entity] = state;
+        }
+    }
+
     public void InitControllers(params IController<PositionSnapshot>[] controllers)
     {
         _controllers.Clear();
@@ -67,12 +75,13 @@ public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
         // Apply controllers to modify entity positions
         foreach (var controller in _controllers)
         {
-            foreach (var entity in controller.GetEntitiesToUpdate(_entities))
-            {
-                var currentPosition = _entityPositions[entity];
-                var newPosition = controller.GetNewState(entity, currentPosition);
-                _entityPositions[entity] = newPosition;
-            }
+            SetStates(controller.GetEntitiesToUpdate(_entities)
+                .Select(entity =>
+                {
+                    var currentPosition = _entityPositions[entity];
+                    var newPosition = controller.GetNewState(entity, currentPosition);
+                    return (entity, newPosition);
+                }));
         }
     }
 

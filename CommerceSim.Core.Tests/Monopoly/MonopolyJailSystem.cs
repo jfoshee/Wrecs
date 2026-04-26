@@ -30,6 +30,21 @@ class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>
         return new MonopolyJailSnapshot(true, value);
     }
 
+    public void SetStates(IEnumerable<(IEntity entity, MonopolyJailSnapshot state)> stateUpdates)
+    {
+        foreach (var (entity, state) in stateUpdates)
+        {
+            if (state.IsInJail)
+            {
+                _turnsRemaining[entity] = state.TurnsRemaining;
+            }
+            else
+            {
+                _turnsRemaining.Remove(entity);
+            }
+        }
+    }
+
     public void Tick()
     {
         foreach (var entity in _turnsRemaining.Keys.ToList())

@@ -65,6 +65,14 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
         _availableOffers.AddRange(initialOffers);
     }
 
+    public void SetStates(IEnumerable<(IEntity entity, CommercialSnapshot state)> stateUpdates)
+    {
+        foreach (var (entity, state) in stateUpdates)
+        {
+            _states[entity] = new CommercialState(state);
+        }
+    }
+
     // Advance simulation by one tick
     public void Tick()
     {
@@ -101,14 +109,14 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
         // Controller phase
         foreach (var controller in _controllers)
         {
-            foreach (var entity in controller.GetEntitiesToUpdate(_entities))
-            {
-                var currentState = _states[entity];
-                var newState = controller.GetNewState(entity, new(currentState));
-                _states[entity] = new CommercialState(newState);
-            }
+            SetStates(controller.GetEntitiesToUpdate(_entities)
+                .Select(entity =>
+                {
+                    var currentState = _states[entity];
+                    var newState = controller.GetNewState(entity, new(currentState));
+                    return (entity, newState);
+                }));
         }
-
     }
 
     private static readonly Random _random = new();
