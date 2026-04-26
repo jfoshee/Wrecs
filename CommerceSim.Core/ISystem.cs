@@ -4,11 +4,10 @@ public interface ISystem
 {
     void Tick();
 
-    // Helper methods to avoid reflection in Sim.cs
-    void ApplyController(IController controller, IEnumerable<ISystem> matchingSystems);
-    bool MatchesController(IController controller);
-    void ApplyStateUpdates(IController controller, IEntity[] entities);
     void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState);
+    bool MatchesController(IController controller);
+    void ApplyController(IController controller, IEnumerable<ISystem> matchingSystems);
+    void ApplyStateUpdates(IController controller, IEntity[] entities);
 }
 
 public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem
@@ -20,9 +19,10 @@ public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem
     TStateSnapshot GetState(IEntity entity);
     void SetStates(IEnumerable<(IEntity entity, TStateSnapshot state)> stateUpdates);
 
-    // Default implementations to avoid reflection in Sim.cs
+    // Default interface methods to apply generic types
     void ISystem.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
     {
+        // An entity is relevant to this system if it implements the marker interface or has an initial state for this system
         var matchingEntities = entitiesWithState
             .Select(e => (e.entity, initialState:
                 e.initialStates.OfType<TStateSnapshot>().Select(s => (TStateSnapshot?)s).FirstOrDefault()))
@@ -57,10 +57,4 @@ public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem
                 (entity, typedController.GetNewState(entity, GetState(entity)))));
         }
     }
-}
-
-public interface IStateSnapshot;
-public interface IStateSnapshot<TSystem> : IStateSnapshot
-    where TSystem : ISystem
-{
 }

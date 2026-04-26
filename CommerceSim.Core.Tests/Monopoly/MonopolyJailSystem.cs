@@ -55,12 +55,10 @@ class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>
     }
 }
 
-class MonopolyJailController
-    : IController<MonopolyJailSnapshot>, IRequire<MonopolyJailSystem>,
-     IController<PositionSnapshot>, IRequire<SpatialSystem>
-
+class MonopolyJailController :
+    IController<MonopolyJailSnapshot>,
+    IController<PositionSnapshot>, IRequire<SpatialSystem>
 {
-    private MonopolyJailSystem? _jailSystem;
     private SpatialSystem? _spatialSystem;
 
     public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities)
@@ -81,6 +79,5 @@ class MonopolyJailController
         return new PositionSnapshot(10);
     }
 
-    public void Inject(MonopolyJailSystem dependency) => _jailSystem = dependency;
     public void Inject(SpatialSystem dependency) => _spatialSystem = dependency;
 }

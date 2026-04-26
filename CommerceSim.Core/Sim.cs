@@ -78,6 +78,8 @@ public class Sim
 
     private void ApplyControllers(ISystem system)
     {
+        // We grab each controller only once to make sure we do not call GetEntitiesToUpdate more than once,
+        // and we loop over matching systems for each controller. This could be made less awkward.
         var matchingControllers = _controllers
             .Where(controller => IsPrimaryControllerSystem(controller, system))
             .ToArray();
