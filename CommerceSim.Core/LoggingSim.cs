@@ -7,6 +7,11 @@ public class LoggingSim(CommercialSystem sim) : ISystem
 {
     private readonly List<IReadOnlyDictionary<int, CommercialSnapshot>> _snapshots = [];
 
+    public void ApplyController(IController controller, IEnumerable<ISystem> matchingSystems) { }
+    public bool MatchesController(IController controller) => false;
+    public void ApplyStateUpdates(IController controller, IEntity[] entities) { }
+    public void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState) { }
+
     public IReadOnlyList<IReadOnlyDictionary<int, CommercialSnapshot>> GetSnapshots() => _snapshots;
 
     public void Tick()

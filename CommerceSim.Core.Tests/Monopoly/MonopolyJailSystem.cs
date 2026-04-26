@@ -1,4 +1,3 @@
-using System.Drawing;
 using CommerceSim.Core.Spatial;
 
 namespace CommerceSim.Core.Tests.Monopoly;
