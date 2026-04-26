@@ -22,7 +22,7 @@ public interface ISpatialAgent : ISpatialEntity
     Vector GetStep(Position currentPosition);
 }
 
-public interface ISpatialController : IController<Position>
+public interface ISpatialController : IController<PositionSnapshot>
 {
 }
 
@@ -30,7 +30,7 @@ public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
 {
     private List<IEntity> _entities = [];
     private IEnumerable<ISpatialAgent> Agents => _entities.OfType<ISpatialAgent>();
-    private readonly List<ISpatialController> _controllers = [];
+    private readonly List<IController<PositionSnapshot>> _controllers = [];
 
     private readonly Dictionary<IEntity, Position> _entityPositions = [];
 
@@ -47,7 +47,7 @@ public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
         }
     }
 
-    public void InitControllers(params ISpatialController[] controllers)
+    public void InitControllers(params IController<PositionSnapshot>[] controllers)
     {
         _controllers.Clear();
         _controllers.AddRange(controllers);

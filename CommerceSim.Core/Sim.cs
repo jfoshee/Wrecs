@@ -27,8 +27,8 @@ public class Sim
         _controllers.Clear();
         _controllers.AddRange(controllers);
         _dependenciesInjected = false;
-        SpatialSystem.InitControllers([.. controllers.OfType<ISpatialController>()]);
-        CommercialSystem.InitControllers([.. controllers.OfType<ICommercialController>()]);
+        SpatialSystem.InitControllers([.. controllers.OfType<IController<PositionSnapshot>>()]);
+        CommercialSystem.InitControllers([.. controllers.OfType<IController<CommercialSnapshot>>()]);
         // TODO: Init controllers for all systems
     }
 

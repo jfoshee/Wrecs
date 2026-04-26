@@ -84,4 +84,29 @@ public class MonopolyTest(ITestOutputHelper output)
         game.GetCommercialState(game.Player2).MoneyBalance.Should().Be(1500 - 6);
         game.GetCommercialState(game.Player1).MoneyBalance.Should().Be(1500 - 60 + 6);
     }
+
+    [Fact(DisplayName = "Player 1 lands on Go To Jail after five rolls of 6")]
+    public void Player1_LandsOnGoToJail_AfterFiveRollsOfSix()
+    {
+        var game = new MonopolyGame(_output);
+        var mockDice = new Mock<IGameDice>();
+        // mockDice.SetupSequence(d => d.Roll())
+        mockDice.Setup(d => d.Roll())
+            .Returns(6); // Always roll a 6 to ensure we land on Go To Jail after 5 turns
+        game.Init(mockDice.Object);
+
+        for (var round = 0; round < 4; round++)
+        {
+            game.Tick(); // Player 1 moves
+            game.Tick(); // Player 1 resolution
+            game.Tick(); // Player 2 move, ignored in this scenario
+            game.Tick(); // Player 2 resolution
+        }
+        game.GetPosition(game.Player1).Should().Be(24); // After 4 rounds of rolling 6, Player 1 should be on position 24
+
+        game.Tick(); // Player 1 lands on Go To Jail
+
+        game.GetPosition(game.Player1).Should().Be(10);
+        game.GetJailState(game.Player1).IsInJail.Should().BeTrue();
+    }
 }

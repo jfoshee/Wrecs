@@ -19,7 +19,7 @@ public class SimInitTest
     class MoveAllController : ISpatialController
     {
         public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> entities) => entities;
-        public Position GetNewState(IEntity _, Position currentPosition) => currentPosition + 1;
+        public PositionSnapshot GetNewState(IEntity _, PositionSnapshot currentPosition) => new(currentPosition.Position + 1);
     }
 
     class InheritsCommercialEntity : BasicEntity, ICommercialEntity

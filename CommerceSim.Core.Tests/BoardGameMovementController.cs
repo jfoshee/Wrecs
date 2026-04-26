@@ -14,12 +14,13 @@ class BoardGameMovementController(IGameDice dice, int boardSize) : ISpatialContr
         return [];
     }
 
-    public int GetNewState(IEntity entity, int currentPosition)
+    public PositionSnapshot GetNewState(IEntity entity, PositionSnapshot currentPosition)
     {
         if (entity != _turnSystem.GetCurrentPlayer())
             throw new InvalidOperationException("Only the current player can move");
         int roll = dice.Roll();
-        return (currentPosition + roll) % boardSize;
+        var newPosition = (currentPosition + roll) % boardSize;
+        return new(newPosition);
     }
 
     public void Inject(TurnSystem dependency)

@@ -22,7 +22,7 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
 {
     private readonly List<IEntity> _entities = [];
     private IEnumerable<ICommercialAgent> Agents => _entities.OfType<ICommercialAgent>();
-    private readonly List<ICommercialController> _controllers = [];
+    private readonly List<IController<CommercialSnapshot>> _controllers = [];
     private readonly Dictionary<IEntity, CommercialState> _states = [];
     private readonly List<Offer> _availableOffers = [];
 
@@ -53,7 +53,7 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
         }
     }
 
-    public void InitControllers(params ICommercialController[] controllers)
+    public void InitControllers(params IController<CommercialSnapshot>[] controllers)
     {
         _controllers.Clear();
         _controllers.AddRange(controllers);
