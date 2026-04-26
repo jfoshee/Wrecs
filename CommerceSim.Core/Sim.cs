@@ -1,3 +1,4 @@
+using System.Reflection;
 using CommerceSim.Core.Spatial;
 using Position = int;
 
@@ -27,9 +28,6 @@ public class Sim
         _controllers.Clear();
         _controllers.AddRange(controllers);
         _dependenciesInjected = false;
-        SpatialSystem.InitControllers([.. controllers.OfType<IController<PositionSnapshot>>()]);
-        CommercialSystem.InitControllers([.. controllers.OfType<IController<CommercialSnapshot>>()]);
-        // TODO: Init controllers for all systems
     }
 
     public void InitEntities(params (IEntity entity, IStateSnapshot[] initialStates)[] entitiesWithState)
@@ -62,6 +60,7 @@ public class Sim
         foreach (var system in _systems)
         {
             system.Tick();
+            ApplyControllers(system);
         }
     }
 
@@ -85,6 +84,36 @@ public class Sim
         }
     }
 
+    private void ApplyControllers(ISystem system)
+    {
+        if (!ImplementsGeneric(system))
+            return;
+
+        var matchingControllers = _controllers
+            .Where(controller => IsPrimaryControllerSystem(controller, system))
+            .ToArray();
+
+        if (matchingControllers.Length == 0)
+            return;
+
+        foreach (var controller in matchingControllers)
+        {
+            ApplyController(system, controller);
+        }
+    }
+
+    private void ApplyController(ISystem system, IController controller)
+    {
+        var (markerInterface, snapshotType) = GetSystemTypeInfo(system);
+        var entities = InvokeGetControllerEntities(system, controller, markerInterface, snapshotType);
+
+        foreach (var targetSystem in GetMatchingSystems(controller))
+        {
+            var (targetMarkerInterface, targetSnapshotType) = GetSystemTypeInfo(targetSystem);
+            InvokeApplyController(targetSystem, controller, entities, targetMarkerInterface, targetSnapshotType);
+        }
+    }
+
     #region Ugly Reflection for generic initialization
     /// <summary>
     /// Checks if the system implements ISystem<,> and thus requires generic initialization.
@@ -101,6 +130,19 @@ public class Sim
             injectMethod.Invoke(entity, [system]);
         }
     }
+
+    private static bool ImplementsController(IController controller, Type snapshotType) =>
+        controller.GetType().GetInterfaces()
+            .Any(i => i.IsGenericType
+                && i.GetGenericTypeDefinition() == typeof(IController<>)
+                && i.GetGenericArguments()[0] == snapshotType);
+
+    private bool IsPrimaryControllerSystem(IController controller, ISystem system) =>
+        ReferenceEquals(GetMatchingSystems(controller).FirstOrDefault(), system);
+
+    private ISystem[] GetMatchingSystems(IController controller) =>
+        [.. _systems.Where(system => ImplementsGeneric(system)
+            && ImplementsController(controller, GetSystemTypeInfo(system).snapshotType))];
 
     private static bool IsSnapshotForSystem(IStateSnapshot snapshot, Type systemType) =>
         snapshot.GetType().GetInterfaces()
@@ -133,6 +175,38 @@ public class Sim
 
         var method = system.GetType().GetMethod("InitEntities")!;
         method.Invoke(system, [typedArray]);
+    }
+
+    private static IEntity[] InvokeGetControllerEntities(ISystem system, IController controller, Type markerInterface, Type snapshotType)
+    {
+        var method = typeof(Sim).GetMethod(nameof(GetControllerEntitiesCore), BindingFlags.NonPublic | BindingFlags.Static)!;
+        var genericMethod = method.MakeGenericMethod(markerInterface, snapshotType);
+        return (IEntity[])genericMethod.Invoke(null, [system, controller])!;
+    }
+
+    private static void InvokeApplyController(ISystem system, IController controller, IEntity[] entities, Type markerInterface, Type snapshotType)
+    {
+        var method = typeof(Sim).GetMethod(nameof(ApplyControllerCore), BindingFlags.NonPublic | BindingFlags.Static)!;
+        var genericMethod = method.MakeGenericMethod(markerInterface, snapshotType);
+        genericMethod.Invoke(null, [system, controller, entities]);
+    }
+
+    private static IEntity[] GetControllerEntitiesCore<TMarkerInterface, TStateSnapshot>(ISystem system, IController controller)
+        where TMarkerInterface : IEntity
+        where TStateSnapshot : struct
+    {
+        var typedSystem = (ISystem<TMarkerInterface, TStateSnapshot>)system;
+        var typedController = (IController<TStateSnapshot>)controller;
+        return [.. typedController.GetEntitiesToUpdate(typedSystem.GetEntities())];
+    }
+
+    private static void ApplyControllerCore<TMarkerInterface, TStateSnapshot>(ISystem system, IController controller, IEntity[] entities)
+        where TMarkerInterface : IEntity
+        where TStateSnapshot : struct
+    {
+        var typedSystem = (ISystem<TMarkerInterface, TStateSnapshot>)system;
+        var typedController = (IController<TStateSnapshot>)controller;
+        typedSystem.SetStates(entities.Select(entity => (entity, typedController.GetNewState(entity, typedSystem.GetState(entity)))));
     }
     #endregion
 }

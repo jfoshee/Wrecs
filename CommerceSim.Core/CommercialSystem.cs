@@ -22,7 +22,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
 {
     private readonly List<IEntity> _entities = [];
     private IEnumerable<ICommercialAgent> Agents => _entities.OfType<ICommercialAgent>();
-    private readonly List<IController<CommercialSnapshot>> _controllers = [];
     private readonly Dictionary<IEntity, CommercialState> _states = [];
     private readonly List<Offer> _availableOffers = [];
 
@@ -51,12 +50,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
             _entities.Add(entity);
             _states[entity] = new(initialState ?? default);
         }
-    }
-
-    public void InitControllers(params IController<CommercialSnapshot>[] controllers)
-    {
-        _controllers.Clear();
-        _controllers.AddRange(controllers);
     }
 
     public void InitOffers(params Offer[] initialOffers)
@@ -105,17 +98,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
                     _availableOffers.Add(newOffer);
                     break;
             }
-        }
-        // Controller phase
-        foreach (var controller in _controllers)
-        {
-            SetStates(controller.GetEntitiesToUpdate(_entities)
-                .Select(entity =>
-                {
-                    var currentState = _states[entity];
-                    var newState = controller.GetNewState(entity, new(currentState));
-                    return (entity, newState);
-                }));
         }
     }
 

@@ -30,7 +30,6 @@ public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
 {
     private List<IEntity> _entities = [];
     private IEnumerable<ISpatialAgent> Agents => _entities.OfType<ISpatialAgent>();
-    private readonly List<IController<PositionSnapshot>> _controllers = [];
 
     private readonly Dictionary<IEntity, Position> _entityPositions = [];
 
@@ -55,12 +54,6 @@ public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
         }
     }
 
-    public void InitControllers(params IController<PositionSnapshot>[] controllers)
-    {
-        _controllers.Clear();
-        _controllers.AddRange(controllers);
-    }
-
     public void Tick()
     {
         // Get steps that all agents want to take
@@ -70,18 +63,6 @@ public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
         foreach (var (agent, step) in agentSteps)
         {
             _entityPositions[agent] += step;
-        }
-
-        // Apply controllers to modify entity positions
-        foreach (var controller in _controllers)
-        {
-            SetStates(controller.GetEntitiesToUpdate(_entities)
-                .Select(entity =>
-                {
-                    var currentPosition = _entityPositions[entity];
-                    var newPosition = controller.GetNewState(entity, currentPosition);
-                    return (entity, newPosition);
-                }));
         }
     }
 

@@ -142,7 +142,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Agent Makes Sell Offer, Other Agent Takes It")]
     public void AgentMakesSellOfferOtherAgentTakesIt()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var seller = new MakesSellOfferAgent(price: 8, resources: 3);
         var buyer = new AlwaysBuyingTaker();
         CommercialSnapshot initialSellerState = new(MoneyBalance: 0, ResourceBalance: 100);
@@ -176,7 +176,7 @@ public class BasicScenarios
     [Fact(DisplayName = "One Source, One Do-Nothing Agent")]
     public void OneSourceOneDoNothingAgent()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: 16, resources: 42);
         sim.InitEntities((agent, default));
@@ -192,7 +192,7 @@ public class BasicScenarios
     [Fact(DisplayName = "One Source, One Do-Nothing Agent, 2 Grants")]
     public void OneSourceOneDoNothingAgentTwoGrants()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: 10, resources: 300);
         sim.InitEntities((agent, default));
@@ -209,7 +209,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Sources, One Agent: Grants Add Up")]
     public void TwoSourcesOneAgentGrantsAddUp()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var agent = new DoNothingAgent();
         var source1 = new FixedGrantSource(agent, money: 10, resources: 300);
         var source2 = new FixedGrantSource(agent, money: 5, resources: 20);
@@ -226,7 +226,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Sources, Two Agents: Grants assigned to correct agent")]
     public void TwoSourcesTwoAgentsGrantsAssignedToCorrectAgent()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var agent1 = MockAgent();
         var agent2 = MockAgent();
         var source1 = new FixedGrantSource(agent1, money: 3, resources: 5);
@@ -249,7 +249,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Controller adds interest to all agents each tick")]
     public void ControllerAddsInterestToAllAgentsEachTick()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var agent1 = MockAgent();
         var agent2 = MockAgent();
         var interestController = new InterestController(interestRate: 0.10);
@@ -273,7 +273,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Controller grants resources to specific entity")]
     public void ControllerGrantsResourcesToSpecificEntity()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var miner = new DoNothingAgent();
         var trader = MockAgent();
         var miningController = new MiningController(miner, resourcesPerTick: 5);

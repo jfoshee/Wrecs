@@ -5,7 +5,7 @@ public class PolicyTests
     [Fact(DisplayName = "Two buyers cannot consume the same offer")]
     public void TwoBuyersCannotConsumeTheSameOffer()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var buyer1 = new AlwaysBuyingTaker();
         var buyer2 = new AlwaysBuyingTaker();
         var seller = new MakesSellOfferAgent(price: 8, resources: 3);
@@ -48,7 +48,7 @@ public class PolicyTests
     public void AgentCannotSellMoreResourcesThanItHas()
     {
         // Setup a seller that wants to sell 20 resources, but only has 19
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var seller = new MakesSellOfferAgent(price: 10, resources: 20);
         var buyer = new AlwaysBuyingTaker();
         CommercialSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 19);
@@ -68,7 +68,7 @@ public class PolicyTests
     public void AgentCannotBuyMoreResourcesThanSellerHas()
     {
         // Setup a buyer that wants to buy 6 resources from a seller that only has 5
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var buyer = new MakesBuyOfferAgent(price: 50, resources: 6);
         var seller = new AlwaysSellingTaker();
         CommercialSnapshot buyerState0 = new(MoneyBalance: 100, ResourceBalance: 0);
@@ -88,7 +88,7 @@ public class PolicyTests
     public void BuyerCannotSpendMoreMoneyThanItHas()
     {
         // Setup a buyer that wants to buy resources for 50, but only has 49
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var seller = new MakesSellOfferAgent(price: 50, resources: 5);
         var buyer = new AlwaysBuyingTaker();
         CommercialSnapshot sellerState0 = new(MoneyBalance: 0, ResourceBalance: 100);
@@ -108,7 +108,7 @@ public class PolicyTests
     public void BuyerMakerCannotSpendMoreMoneyThanItHas()
     {
         // Setup a buyer that makes an offer to buy resources for 50, but only has 49
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var buyer = new MakesBuyOfferAgent(price: 50, resources: 5);
         var seller = new AlwaysSellingTaker();
         CommercialSnapshot buyerState0 = new(MoneyBalance: 49, ResourceBalance: 0);
@@ -128,7 +128,7 @@ public class PolicyTests
     public void TwoBuyersShouldHaveRoughlyEqualOutcomes()
     {
         // Setup: one seller continuously making offers, two competing buyers
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var seller = new AlwaysSellingMaker(price: 10, resources: 1);
         var buyer1 = new AlwaysBuyingTaker();
         var buyer2 = new AlwaysBuyingTaker();
@@ -152,7 +152,7 @@ public class PolicyTests
     [Fact(DisplayName = "Source cannot take away resources")]
     public void SourceCannotTakeAwayResources()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: 0, resources: -10);
         CommercialSnapshot agentState0 = new(MoneyBalance: 0, ResourceBalance: 100);
@@ -168,7 +168,7 @@ public class PolicyTests
     [Fact(DisplayName = "Source cannot take away money")]
     public void SourceCannotTakeAwayMoney()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: -10, resources: 0);
         CommercialSnapshot agentState0 = new(MoneyBalance: 100, ResourceBalance: 0);
@@ -192,7 +192,7 @@ public class PolicyTests
     [Fact(DisplayName = "Sink cannot add money or resources (negative charge)")]
     public void SinkCannotAddMoneyOrResources()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var agent = new DoNothingAgent();
         var sink1 = new FixedSink(agent, money: -10, resources: 0);
         var sink2 = new FixedSink(agent, money: 0, resources: -10);
@@ -209,7 +209,7 @@ public class PolicyTests
     [Fact(DisplayName = "Sink cannot force negative on both balances")]
     public void SinkCannotForceNegativeOnBothBalances()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var agent = new DoNothingAgent();
         var sink = new FixedSink(agent, money: 150, resources: 150);
         CommercialSnapshot agentState0 = new(MoneyBalance: 100, ResourceBalance: 100);
@@ -225,7 +225,7 @@ public class PolicyTests
     [Fact(DisplayName = "Sink can take all money")]
     public void SinkCanTakeAllMoney()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var agent = new DoNothingAgent();
         var sink = new FixedSink(agent, money: 100, resources: 0);
         CommercialSnapshot agentState0 = new(MoneyBalance: 100, ResourceBalance: 42);
@@ -241,7 +241,7 @@ public class PolicyTests
     [Fact(DisplayName = "Sink can take all resources")]
     public void SinkCanTakeAllResources()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var agent = new DoNothingAgent();
         var sink = new FixedSink(agent, money: 0, resources: 100);
         CommercialSnapshot agentState0 = new(MoneyBalance: 42, ResourceBalance: 100);

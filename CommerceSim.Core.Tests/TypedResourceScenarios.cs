@@ -86,7 +86,7 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Source grants typed resources")]
     public void SourceGrants_TypedResources()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var miner = new DoNothingAgent();
         var goldMine = new FixedGrantSource(miner, money: 0, resources: 10, resourceType: "gold");
         sim.InitEntities((miner, default));
@@ -103,7 +103,7 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Multiple typed grants accumulate correctly")]
     public void MultipleTypedGrants_AccumulateCorrectly()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var miner = new DoNothingAgent();
         var goldMine = new FixedGrantSource(miner, money: 0, resources: 10, resourceType: "gold");
         var silverMine = new FixedGrantSource(miner, money: 0, resources: 25, resourceType: "silver");
