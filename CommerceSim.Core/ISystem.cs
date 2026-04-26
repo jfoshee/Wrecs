@@ -10,6 +10,7 @@ public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem
     where TStateSnapshot : struct
 {
     void InitEntities(params (IEntity entity, TStateSnapshot? initialState)[] initialEntities);
+    IReadOnlyList<IEntity> GetEntities();
     TStateSnapshot GetState(IEntity entity);
     // IReadOnlyDictionary<int, TStateSnapshot> GetStateSnapshot();
 }

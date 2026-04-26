@@ -23,6 +23,8 @@ public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>
         }
     }
 
+    public IReadOnlyList<IEntity> GetEntities() => _entities;
+
     public TurnSnapshot GetState(IEntity entity)
     {
         var index = _entities.IndexOf(entity);

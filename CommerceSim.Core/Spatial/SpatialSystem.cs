@@ -36,6 +36,8 @@ public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
 
     public PositionSnapshot GetState(IEntity entity) => new(_entityPositions[entity]);
 
+    public IReadOnlyList<IEntity> GetEntities() => _entities;
+
     public void InitEntities(params (IEntity entity, PositionSnapshot? initialState)[] initialEntities)
     {
         _entities = [.. initialEntities.Select(e => e.entity)];

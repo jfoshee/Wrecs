@@ -34,6 +34,8 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
 
     public CommercialSnapshot GetState(IEntity entity) => new(_states[entity]);
 
+    public IReadOnlyList<IEntity> GetEntities() => _entities;
+
     public IReadOnlyDictionary<int, CommercialSnapshot> GetStateSnapshot() =>
         _states.ToDictionary(kvp => kvp.Key.Id, kvp => new CommercialSnapshot(kvp.Value));
 
