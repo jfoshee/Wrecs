@@ -36,7 +36,7 @@ public class MonopolyGame : Sim
 
     public void Init(IGameDice? dice = null)
     {
-        dice ??= new GameDice();
+        dice ??= new GameDice(Count: 2);
         var startingMoney = new CommercialSnapshot(MoneyBalance: 1500, 0);
         var allProperties = new CommercialSnapshot(0, MonopolyBoard.Properties.OfType<MonopolyProperty>().Select(p => (p.Name, 1)));
         InitControllers(

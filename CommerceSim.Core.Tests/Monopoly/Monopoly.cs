@@ -12,18 +12,20 @@ public class MonopolyTest(ITestOutputHelper output)
         game.Init();
 
         game.Tick(); // Player 1 moves
-        game.GetPosition(game.Player1).Should().BeInRange(1, 6);
+        var p1Position = game.GetPosition(game.Player1);
+        p1Position.Should().BeInRange(2, 12); // 2 six-sided dice can yield a result between 2 and 12
         game.GetPosition(game.Player2).Should().Be(0);
         game.Tick(); // Resolution phase
 
         game.Tick(); // Player 2 moves
-        game.GetPosition(game.Player1).Should().BeInRange(1, 6);
-        game.GetPosition(game.Player2).Should().BeInRange(1, 6);
+        game.GetPosition(game.Player1).Should().Be(p1Position); // Player 1 should not have moved
+        var p2Position = game.GetPosition(game.Player2);
+        p2Position.Should().BeInRange(2, 12);
         game.Tick(); // Resolution phase
 
         game.Tick(); // Player 1 moves again
-        game.GetPosition(game.Player1).Should().BeInRange(2, 12);
-        game.GetPosition(game.Player2).Should().BeInRange(1, 6);
+        game.GetPosition(game.Player1).Should().BeInRange(p1Position + 2, p1Position + 12); // Player 1 should have moved forward by 2-12 spaces
+        game.GetPosition(game.Player2).Should().Be(p2Position); // Player 2 should not have moved
     }
 
     [Fact(DisplayName = "Player buys Baltic from Real Estate Agent")]
