@@ -46,6 +46,7 @@ public class MonopolyGame : Sim
         );
         InitEntities(
             (RealEstateAgent, [allProperties]),
+            (new JailerAgent(), [new CommercialSnapshot(0, [(MonopolyJailSystem.PayFineResource, int.MaxValue)])]), // Jailer seeded with infinite "Pay Fine" resource to sell to inmates
             (Player1, [startingMoney]),
             (Player2, [startingMoney])
         );

@@ -6,6 +6,7 @@ record struct MonopolyJailSnapshot(bool IsInJail, int TurnsRemaining) : IStateSn
 
 class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>
 {
+    public const string PayFineResource = "Pay Fine : Get out of Jail";
     private readonly List<IEntity> _entities = [];
     public IReadOnlyList<IEntity> GetEntities() => _entities;
 
@@ -53,6 +54,8 @@ class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>
                 _turnsRemaining.Remove(entity);
         }
     }
+
+    internal IEnumerable<IEntity> GetInmates() => _turnsRemaining.Keys;
 }
 
 class MonopolyJailController :
@@ -80,4 +83,29 @@ class MonopolyJailController :
     }
 
     public void Inject(SpatialSystem dependency) => _spatialSystem = dependency;
+}
+
+// Jailer is an agent that makes an offer to allow an inmate to pay $50 to get out of jail.
+class JailerAgent : ICommercialAgent, IRequire<MonopolyJailSystem>
+{
+    public int Id { get; } = EntityId.Next();
+    public string Name => nameof(JailerAgent);
+
+    private MonopolyJailSystem? _jailSystem;
+    public void Inject(MonopolyJailSystem dependency) => _jailSystem = dependency;
+
+    public Decision Decide(CommercialSnapshot state, List<Offer> offers) => new DoNothingDecision();
+
+    public IEnumerable<Offer> GetOffers(IEntity entity, CommercialSnapshot commercialState)
+    {
+        // TODO: Only make the offer on the inmate's turn (which phase?)
+        // Make offers to all inmates to pay $50 to get out of jail
+        var inmates = _jailSystem?.GetInmates() ?? [];
+        foreach (var inmate in inmates)
+        {
+            var inmateAgent = (ICommercialAgent)inmate;  // HACK: Do we require that all monopoly players are commercial agents? Maybe we should?
+            var offer = new TargetedSellOffer(this, inmateAgent, 50, 1, MonopolyJailSystem.PayFineResource);
+            yield return offer;
+        }
+    }
 }

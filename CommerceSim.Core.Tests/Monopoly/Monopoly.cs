@@ -111,4 +111,54 @@ public class MonopolyTest(ITestOutputHelper output)
         game.GetPosition(game.Player1).Should().Be(10);
         game.GetJailState(game.Player1).IsInJail.Should().BeTrue();
     }
+
+    // TODO: [Fact(DisplayName = "Player 1 rolls doubles three times and goes to jail")]
+
+    // An agent that immediately accepts an offer to buy the right to get out of jail for $50.
+    class AlwaysPayingJailFineMonopolyPlayer : IMonopolyEntity, ICommercialAgent
+    {
+        public int Id { get; } = EntityId.Next();
+
+        public string Name => nameof(AlwaysPayingJailFineMonopolyPlayer);
+
+        public Decision Decide(CommercialSnapshot state, List<Offer> offers)
+        {
+            var getOutOfJailOffer = offers.FirstOrDefault(offer => offer.ResourceType == MonopolyJailSystem.PayFineResource);
+            if (getOutOfJailOffer is not null)
+                return new TakeOfferDecision(getOutOfJailOffer);
+            return new DoNothingDecision();
+        }
+    }
+
+    [Fact(DisplayName = "Player 1 gets out of jail by paying $50", Skip = "WIP")]
+    public void Player1_GetsOutOfJail_ByPaying50Dollars()
+    {
+        var game = new MonopolyGame(_output)
+        {
+            Player1 = new AlwaysPayingJailFineMonopolyPlayer()
+        };
+        var mockDice = new Mock<IGameDice>();
+        mockDice.Setup(d => d.Roll())
+            .Returns(6); // Always roll a 6 to ensure we land on Go To Jail after 5 turns
+        game.Init(mockDice.Object);
+
+        for (var round = 0; round < 4; round++)
+        {
+            game.Tick(); // Player 1 moves
+            game.Tick(); // Player 1 resolution
+            game.Tick(); // Player 2 move, ignored in this scenario
+            game.Tick(); // Player 2 resolution
+        }
+        game.GetPosition(game.Player1).Should().Be(24); // After 4 rounds of rolling 6, Player 1 should be on position 24
+
+        game.Tick(); // Player 1 lands on Go To Jail
+
+        game.GetPosition(game.Player1).Should().Be(10);
+        game.GetJailState(game.Player1).IsInJail.Should().BeTrue();
+
+        game.Tick(); // Player 1 pays $50 to get out of jail
+
+        game.GetJailState(game.Player1).IsInJail.Should().BeFalse();
+        game.GetCommercialState(game.Player1).MoneyBalance.Should().Be(1500 - 50);
+    }
 }
