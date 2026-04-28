@@ -56,6 +56,8 @@ public class MonopolyTest(ITestOutputHelper output)
         game.GetCommercialState(game.RealEstateAgent).GetResourceBalance("Baltic Avenue").Should().Be(0);
     }
 
+    // TODO: Player cannot buy property after he moves off of it. (Offers must "expire" after one turn)
+
     [Fact(DisplayName = "Player 1 buys Baltic, Player 2 lands on it and pays rent")]
     public void PlayerBuysBaltic_NextPlayerPaysRent()
     {

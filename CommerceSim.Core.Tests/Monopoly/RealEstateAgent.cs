@@ -48,6 +48,7 @@ public class RealEstateAgent(MonopolyProperty?[] boardConfig) : ICommercialAgent
             Resources: 1,
             ResourceType: property.Name
         );
+        // TODO: Offer must "expire" as soon as the next turn.
 
         return new MakeOfferDecision(offer);
     }
