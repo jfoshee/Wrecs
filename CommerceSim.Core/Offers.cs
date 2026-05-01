@@ -16,3 +16,5 @@ public record class SellOffer(ICommercialAgent Seller, int Price, int Resources,
 /// </summary>
 public record class TargetedSellOffer(ICommercialAgent Seller, ICommercialAgent Buyer, int Price, int Resources, string? ResourceType = null) :
     SellOffer(Seller, Price, Resources, ResourceType);
+
+public record struct OfferSnapshot(ICommercialAgent? Seller, ICommercialAgent? Buyer, int Price, int Resources, string? ResourceType);
