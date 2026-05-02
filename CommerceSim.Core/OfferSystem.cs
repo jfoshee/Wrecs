@@ -10,6 +10,12 @@ public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequir
     private readonly Dictionary<IEntity, List<Offer>> _stateMap = [];
     private CommercialSystem? _commercialSystem;
 
+    private readonly List<ITradePolicy> _tradePolicies = [
+        new OfferSingleUsePolicy(),
+        new CannotCreateResourcesPolicy(),
+        new CannotCreateMoneyPolicy()
+    ];
+
     public void Inject(CommercialSystem dependency) => _commercialSystem = dependency;
 
     public void InitEntities(params (IEntity entity, OfferListSnapshot? initialState)[] initialEntities)
@@ -83,10 +89,18 @@ public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequir
         _stateMap[agent].Add(offer);
     }
 
+    public void InitOffers(params Offer[] offers)
+    {
+        foreach (var offer in offers)
+            AddOffer(offer.Author, offer);
+    }
+
     private void RemoveOffer(ICommercialAgent author, Offer offer)
     {
-        _stateMap[author].Remove(offer);
-        if (_stateMap[author].Count == 0)
+        if (!_stateMap.TryGetValue(author, out var offers))
+            return;
+        offers.Remove(offer);
+        if (offers.Count == 0)
             _stateMap.Remove(author);
     }
 
@@ -104,18 +118,18 @@ public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequir
                               Resources: offer.Resources,
                               ResourceType: offer.ResourceType);
         // Check policies before executing the trade
-        // foreach (var policy in _tradePolicies)
-        // {
-        //     if (!policy.CanExecute(trade))
-        //         return;
-        // }
+        foreach (var policy in _tradePolicies)
+        {
+            if (!policy.CanExecute(trade))
+                return;
+        }
         // Execute the trade
         Execute(offer, taker, authorState, counterpartyState);
         // Update policy state
-        // foreach (var policy in _tradePolicies)
-        // {
-        //     policy.OnExecuted(trade);
-        // }
+        foreach (var policy in _tradePolicies)
+        {
+            policy.OnExecuted(trade);
+        }
 
         RemoveOffer(author, offer);
     }
@@ -143,8 +157,8 @@ public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequir
         var buyerResourceBalance = buyer.GetResourceBalance(offer.ResourceType) + offer.Resources;
         var sellerResourceBalance = seller.GetResourceBalance(offer.ResourceType) - offer.Resources;
         // Update states
-        var updatedBuyerState = UpdatedInventory(buyer, buyerResourceBalance, offer.ResourceType);
-        var updatedSellerState = UpdatedInventory(seller, sellerResourceBalance, offer.ResourceType);
+        var updatedBuyerState = UpdatedInventory(buyer, buyerMoneyBalance, buyerResourceBalance, offer.ResourceType);
+        var updatedSellerState = UpdatedInventory(seller, sellerMoneyBalance, sellerResourceBalance, offer.ResourceType);
         switch (offer)
         {
             case BuyOffer:
@@ -158,13 +172,13 @@ public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequir
         }
     }
 
-    private static CommercialSnapshot UpdatedInventory(CommercialSnapshot state, int newResourceBalance, string? resourceType)
+    private static CommercialSnapshot UpdatedInventory(CommercialSnapshot state, int newMoneyBalance, int newResourceBalance, string? resourceType)
     {
         var newInventory = state.Inventory
             .Except([(resourceType ?? "", state.GetResourceBalance(resourceType))])
             .ToList();
         newInventory.Add((resourceType ?? "", newResourceBalance));
-        return new CommercialSnapshot(state.MoneyBalance, newInventory);
+        return new CommercialSnapshot(newMoneyBalance, newInventory);
     }
 
     private static List<Offer> State(OfferListSnapshot snapshot)

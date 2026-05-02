@@ -7,10 +7,12 @@ public class Sim
 {
     private SpatialSystem SpatialSystem => _systems.OfType<SpatialSystem>().First();
     private CommercialSystem CommercialSystem => _systems.OfType<CommercialSystem>().First();
+    private OfferSystem OfferSystem => _systems.OfType<OfferSystem>().First();
     private readonly List<ISystem> _systems =
     [
         new SpatialSystem(),
         new CommercialSystem(),
+        new OfferSystem(),
     ];
     private readonly List<IEntity> _entities = [];
     private readonly List<IController> _controllers = [];
@@ -57,6 +59,9 @@ public class Sim
 
     public CommercialSnapshot GetCommercialState(IEntity entity) => CommercialSystem.GetState(entity);
     public Position GetPosition(IEntity entity) => SpatialSystem.GetState(entity).Position;
+    public IReadOnlyDictionary<int, CommercialSnapshot> GetStateSnapshot() => CommercialSystem.GetStateSnapshot();
+    public IReadOnlyDictionary<int, string> GetAgentNames() => CommercialSystem.GetAgentNames();
+    public void InitOffers(params Offer[] offers) => OfferSystem.InitOffers(offers);
 
     private void EnsureDependenciesInjected()
     {
