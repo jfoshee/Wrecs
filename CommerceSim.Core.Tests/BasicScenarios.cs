@@ -5,17 +5,17 @@ public class BasicScenarios
     [Fact(DisplayName = "No Agents, No Offers")]
     public void NoAgentsNoOffers()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         sim.Tick();
     }
 
     [Fact(DisplayName = "One Agent, No Offers")]
     public void OneAgentNoOffers()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var agent = MockAgent();
         sim.InitEntities((agent, default));
-        sim.InitOffers();
+        // sim.InitOffers();
 
         sim.Tick();
 
@@ -27,12 +27,12 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Agents With State, No Offers")]
     public void TwoAgentsWithStateNoOffers()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var agent1 = MockAgent();
         var agent2 = MockAgent();
         sim.InitEntities((agent1, new(MoneyBalance: 4, ResourceBalance: 8)),
                        (agent2, new(MoneyBalance: 3, ResourceBalance: 7)));
-        sim.InitOffers();
+        // sim.InitOffers();
 
         sim.Tick();
 

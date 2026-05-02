@@ -66,7 +66,7 @@ public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequir
                 case TakeOfferDecision takeOfferDecision:
                     var offer = takeOfferDecision.Offer;
                     // allOffers.Remove(offer);
-                    ProcessOffer(takeOfferDecision, _states[offer.Author], _states[agent]);
+                    ProcessOffer(agent, offer);
                     break;
                 case MakeOfferDecision makeOfferDecision:
                     var newOffer = makeOfferDecision.Offer;
@@ -81,6 +81,90 @@ public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequir
         if (!_stateMap.ContainsKey(agent))
             _stateMap[agent] = [];
         _stateMap[agent].Add(offer);
+    }
+
+    private void RemoveOffer(ICommercialAgent author, Offer offer)
+    {
+        _stateMap[author].Remove(offer);
+        if (_stateMap[author].Count == 0)
+            _stateMap.Remove(author);
+    }
+
+    private void ProcessOffer(ICommercialAgent taker, Offer offer)
+    {
+        var author = offer.Author;
+        var authorState = _commercialSystem!.GetState(author);
+        var counterpartyState = _commercialSystem!.GetState(taker);
+
+        // Construct a trade based on the offer
+        var trade = new Trade(Offer: offer,
+                              SellerState: offer is SellOffer ? authorState : counterpartyState,
+                              BuyerState: offer is BuyOffer ? authorState : counterpartyState,
+                              Price: offer.Price,
+                              Resources: offer.Resources,
+                              ResourceType: offer.ResourceType);
+        // Check policies before executing the trade
+        // foreach (var policy in _tradePolicies)
+        // {
+        //     if (!policy.CanExecute(trade))
+        //         return;
+        // }
+        // Execute the trade
+        Execute(offer, taker, authorState, counterpartyState);
+        // Update policy state
+        // foreach (var policy in _tradePolicies)
+        // {
+        //     policy.OnExecuted(trade);
+        // }
+
+        RemoveOffer(author, offer);
+    }
+
+    private void Execute(Offer offer, ICommercialAgent counterparty, CommercialSnapshot authorState, CommercialSnapshot counterpartyState)
+    {
+        CommercialSnapshot buyer, seller;
+        switch (offer)
+        {
+            case BuyOffer buyOffer:
+                buyer = authorState;
+                seller = counterpartyState;
+                break;
+            case SellOffer sellOffer:
+                buyer = counterpartyState;
+                seller = authorState;
+                break;
+            default:
+                throw new InvalidOperationException("Unknown offer type");
+        }
+        // Transfer money from buyer to seller
+        var buyerMoneyBalance = buyer.MoneyBalance - offer.Price;
+        var sellerMoneyBalance = seller.MoneyBalance + offer.Price;
+        // Transfer resources from seller to buyer
+        var buyerResourceBalance = buyer.GetResourceBalance(offer.ResourceType) + offer.Resources;
+        var sellerResourceBalance = seller.GetResourceBalance(offer.ResourceType) - offer.Resources;
+        // Update states
+        var updatedBuyerState = UpdatedInventory(buyer, buyerResourceBalance, offer.ResourceType);
+        var updatedSellerState = UpdatedInventory(seller, sellerResourceBalance, offer.ResourceType);
+        switch (offer)
+        {
+            case BuyOffer:
+                _commercialSystem!.SetStates([
+                    (offer.Author, updatedBuyerState), (counterparty, updatedSellerState)]);
+                break;
+            case SellOffer:
+                _commercialSystem!.SetStates([
+                    (offer.Author, updatedSellerState), (counterparty, updatedBuyerState)]);
+                break;
+        }
+    }
+
+    private static CommercialSnapshot UpdatedInventory(CommercialSnapshot state, int newResourceBalance, string? resourceType)
+    {
+        var newInventory = state.Inventory
+            .Except([(resourceType ?? "", state.GetResourceBalance(resourceType))])
+            .ToList();
+        newInventory.Add((resourceType ?? "", newResourceBalance));
+        return new CommercialSnapshot(state.MoneyBalance, newInventory);
     }
 
     private static List<Offer> State(OfferListSnapshot snapshot)

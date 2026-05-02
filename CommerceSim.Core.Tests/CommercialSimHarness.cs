@@ -4,6 +4,11 @@ class CommercialSimHarness
 {
     private readonly Sim _sim = new();
 
+    public CommercialSimHarness()
+    {
+        _sim.AddSystem(new OfferSystem());
+    }
+
     public void InitEntities(params (IEntity entity, CommercialSnapshot? initialState)[] initialEntities)
     {
         _sim.InitEntities([.. initialEntities.Select(initialEntity =>
