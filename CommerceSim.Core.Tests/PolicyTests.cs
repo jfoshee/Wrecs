@@ -19,18 +19,18 @@ public class PolicyTests
         sim.Tick();
 
         // State should be unchanged because the offer has been made but not taken yet
-        sim.GetState(seller).Should().Be(sellerState0);
-        sim.GetState(buyer1).Should().Be(buyer1State0);
-        sim.GetState(buyer2).Should().Be(buyer2State0);
+        sim.GetCommercialState(seller).Should().Be(sellerState0);
+        sim.GetCommercialState(buyer1).Should().Be(buyer1State0);
+        sim.GetCommercialState(buyer2).Should().Be(buyer2State0);
 
         sim.Tick();
 
         // Verify the offer was taken by only one buyer and state updated accordingly
-        var sellerState = sim.GetState(seller);
+        var sellerState = sim.GetCommercialState(seller);
         sellerState.Should()
             .Be(new CommercialSnapshot(MoneyBalance: 8, ResourceBalance: 97));
-        var buyer1State = sim.GetState(buyer1);
-        var buyer2State = sim.GetState(buyer2);
+        var buyer1State = sim.GetCommercialState(buyer1);
+        var buyer2State = sim.GetCommercialState(buyer2);
         ((buyer1State.MoneyBalance == 32 - 8 && buyer1State.ResourceBalance == 3) ||
          (buyer2State.MoneyBalance == 64 - 8 && buyer2State.ResourceBalance == 3))
             .Should().BeTrue();
@@ -39,9 +39,9 @@ public class PolicyTests
         sim.Tick();
 
         // Verify no further changes (offer was consumed)
-        sim.GetState(seller).Should().Be(sellerState);
-        sim.GetState(buyer1).Should().Be(buyer1State);
-        sim.GetState(buyer2).Should().Be(buyer2State);
+        sim.GetCommercialState(seller).Should().Be(sellerState);
+        sim.GetCommercialState(buyer1).Should().Be(buyer1State);
+        sim.GetCommercialState(buyer2).Should().Be(buyer2State);
     }
 
     [Fact(DisplayName = "Agent cannot sell more resources than it has")]
@@ -60,8 +60,8 @@ public class PolicyTests
         sim.Tick(); // Buyer attempts to take the offer
 
         // Trade should be rejected because seller only has 19 resources
-        sim.GetState(seller).Should().Be(sellerState0);
-        sim.GetState(buyer).Should().Be(buyerState0);
+        sim.GetCommercialState(seller).Should().Be(sellerState0);
+        sim.GetCommercialState(buyer).Should().Be(buyerState0);
     }
 
     [Fact(DisplayName = "Agent cannot buy more resources than seller has")]
@@ -80,8 +80,8 @@ public class PolicyTests
         sim.Tick(); // Seller attempts to take the offer
 
         // Trade should be rejected because seller only has 5 resources
-        sim.GetState(buyer).Should().Be(buyerState0);
-        sim.GetState(seller).Should().Be(sellerState0);
+        sim.GetCommercialState(buyer).Should().Be(buyerState0);
+        sim.GetCommercialState(seller).Should().Be(sellerState0);
     }
 
     [Fact(DisplayName = "Buyer taker cannot spend more money than it has")]
@@ -100,8 +100,8 @@ public class PolicyTests
         sim.Tick(); // Buyer attempts to take the offer
 
         // Trade should be rejected because buyer only has 49 money
-        sim.GetState(seller).Should().Be(sellerState0);
-        sim.GetState(buyer).Should().Be(buyerState0);
+        sim.GetCommercialState(seller).Should().Be(sellerState0);
+        sim.GetCommercialState(buyer).Should().Be(buyerState0);
     }
 
     [Fact(DisplayName = "Buyer maker cannot spend more money than it has")]
@@ -120,8 +120,8 @@ public class PolicyTests
         sim.Tick(); // Seller attempts to take the offer
 
         // Trade should be rejected because buyer only has 49 money
-        sim.GetState(buyer).Should().Be(buyerState0);
-        sim.GetState(seller).Should().Be(sellerState0);
+        sim.GetCommercialState(buyer).Should().Be(buyerState0);
+        sim.GetCommercialState(seller).Should().Be(sellerState0);
     }
 
     [Fact(DisplayName = "Two buyers should have roughly equal outcomes")]
@@ -144,8 +144,8 @@ public class PolicyTests
         }
 
         // Both buyers should have roughly the same ending balance and resources
-        var buyer1State = sim.GetState(buyer1);
-        var buyer2State = sim.GetState(buyer2);
+        var buyer1State = sim.GetCommercialState(buyer1);
+        var buyer2State = sim.GetCommercialState(buyer2);
         buyer1State.ResourceBalance.Should().BeCloseTo(buyer2State.ResourceBalance, delta: 10);
     }
 
@@ -162,7 +162,7 @@ public class PolicyTests
         sim.Tick();
 
         // State should be unchanged because the grant cannot take away resources
-        sim.GetState(agent).Should().Be(agentState0);
+        sim.GetCommercialState(agent).Should().Be(agentState0);
     }
 
     [Fact(DisplayName = "Source cannot take away money")]
@@ -178,7 +178,7 @@ public class PolicyTests
         sim.Tick();
 
         // State should be unchanged because the grant cannot take away money
-        sim.GetState(agent).Should().Be(agentState0);
+        sim.GetCommercialState(agent).Should().Be(agentState0);
     }
 
     class FixedSink(ICommercialAgent recipient, int money, int resources) : ISink
@@ -203,7 +203,7 @@ public class PolicyTests
         sim.Tick();
 
         // State should be unchanged because the sink cannot add money or resources
-        sim.GetState(agent).Should().Be(agentState0);
+        sim.GetCommercialState(agent).Should().Be(agentState0);
     }
 
     [Fact(DisplayName = "Sink cannot force negative on both balances")]
@@ -219,7 +219,7 @@ public class PolicyTests
         sim.Tick();
 
         // State should be unchanged because sink cannot force negative balances
-        sim.GetState(agent).Should().Be(agentState0);
+        sim.GetCommercialState(agent).Should().Be(agentState0);
     }
 
     [Fact(DisplayName = "Sink can take all money")]
@@ -235,7 +235,7 @@ public class PolicyTests
         sim.Tick();
 
         // Money balance should be zero but resource balance should be unchanged
-        sim.GetState(agent).Should().Be(new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 42));
+        sim.GetCommercialState(agent).Should().Be(new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 42));
     }
 
     [Fact(DisplayName = "Sink can take all resources")]
@@ -251,6 +251,6 @@ public class PolicyTests
         sim.Tick();
 
         // Resource balance should be zero but money balance should be unchanged
-        sim.GetState(agent).Should().Be(new CommercialSnapshot(MoneyBalance: 42, ResourceBalance: 0));
+        sim.GetCommercialState(agent).Should().Be(new CommercialSnapshot(MoneyBalance: 42, ResourceBalance: 0));
     }
 }

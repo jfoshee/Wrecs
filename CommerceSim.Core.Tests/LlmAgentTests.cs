@@ -27,10 +27,10 @@ public class LlmAgentTests(ITestOutputHelper output)
         sim.Tick();
 
         // Verify LLM took the offer
-        var llmState = sim.GetState(llmAgent);
+        var llmState = sim.GetCommercialState(llmAgent);
         llmState.MoneyBalance.Should().Be(99);
         llmState.ResourceBalance.Should().Be(10);
-        var sellerState = sim.GetState(seller);
+        var sellerState = sim.GetCommercialState(seller);
         sellerState.MoneyBalance.Should().Be(1);
         sellerState.ResourceBalance.Should().Be(40);
     }
@@ -50,10 +50,10 @@ public class LlmAgentTests(ITestOutputHelper output)
         sim.Tick();
 
         // Verify LLM took the offer
-        var llmState = sim.GetState(llmAgent);
+        var llmState = sim.GetCommercialState(llmAgent);
         llmState.MoneyBalance.Should().Be(100);
         llmState.ResourceBalance.Should().Be(99);
-        var buyerState = sim.GetState(buyer);
+        var buyerState = sim.GetCommercialState(buyer);
         buyerState.MoneyBalance.Should().Be(400);
         buyerState.ResourceBalance.Should().Be(1);
     }
@@ -73,8 +73,8 @@ public class LlmAgentTests(ITestOutputHelper output)
         sim.Tick(); // Buyer takes it
 
         // Verify state changed - LLM sold something
-        var llmState = sim.GetState(llmAgent);
-        var buyerState = sim.GetState(buyer);
+        var llmState = sim.GetCommercialState(llmAgent);
+        var buyerState = sim.GetCommercialState(buyer);
 
         // LLM should have gained money and lost resources
         llmState.MoneyBalance.Should().BeGreaterThan(0);
@@ -99,8 +99,8 @@ public class LlmAgentTests(ITestOutputHelper output)
         sim.Tick(); // Seller takes it
 
         // Verify state changed - LLM bought something
-        var llmState = sim.GetState(llmAgent);
-        var sellerState = sim.GetState(seller);
+        var llmState = sim.GetCommercialState(llmAgent);
+        var sellerState = sim.GetCommercialState(seller);
 
         // LLM should have lost money and gained resources
         llmState.MoneyBalance.Should().BeLessThan(1000);
@@ -126,8 +126,8 @@ public class LlmAgentTests(ITestOutputHelper output)
             sim.Tick();
 
         // At least one trade should have happened
-        var state1 = sim.GetState(agent1);
-        var state2 = sim.GetState(agent2);
+        var state1 = sim.GetCommercialState(agent1);
+        var state2 = sim.GetCommercialState(agent2);
 
         // Combined totals should remain the same (conservation)
         (state1.MoneyBalance + state2.MoneyBalance).Should().Be(150);

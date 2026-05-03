@@ -103,8 +103,8 @@ public class TargetedOfferTests
         sim.Tick();
 
         // Assert - receiver should have seen the offer on tick 2 and taken it
-        var receiverState = sim.GetState(receiver);
-        var sellerState = sim.GetState(seller);
+        var receiverState = sim.GetCommercialState(receiver);
+        var sellerState = sim.GetCommercialState(seller);
 
         Assert.Equal(5, receiverState.ResourceBalance); // Received 5 resources
         Assert.Equal(90, receiverState.MoneyBalance);   // Paid 10 for resources

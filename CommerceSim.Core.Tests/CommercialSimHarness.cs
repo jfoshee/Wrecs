@@ -22,7 +22,7 @@ class CommercialSimHarness
         _sim.InitControllers(controllers);
     }
 
-    public CommercialSnapshot GetState(IEntity entity) => _sim.GetCommercialState(entity);
+    public CommercialSnapshot GetCommercialState(IEntity entity) => _sim.GetCommercialState(entity);
 
     public void Tick() => _sim.Tick();
 }

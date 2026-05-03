@@ -15,11 +15,10 @@ public class BasicScenarios
         var sim = new CommercialSimHarness();
         var agent = MockAgent();
         sim.InitEntities((agent, default));
-        // sim.InitOffers();
 
         sim.Tick();
 
-        var agentState = sim.GetState(agent);
+        var agentState = sim.GetCommercialState(agent);
         agentState.MoneyBalance.Should().Be(0);
         agentState.ResourceBalance.Should().Be(0);
     }
@@ -32,14 +31,13 @@ public class BasicScenarios
         var agent2 = MockAgent();
         sim.InitEntities((agent1, new(MoneyBalance: 4, ResourceBalance: 8)),
                        (agent2, new(MoneyBalance: 3, ResourceBalance: 7)));
-        // sim.InitOffers();
 
         sim.Tick();
 
-        var state1 = sim.GetState(agent1);
+        var state1 = sim.GetCommercialState(agent1);
         state1.MoneyBalance.Should().Be(4);
         state1.ResourceBalance.Should().Be(8);
-        var state2 = sim.GetState(agent2);
+        var state2 = sim.GetCommercialState(agent2);
         state2.MoneyBalance.Should().Be(3);
         state2.ResourceBalance.Should().Be(7);
     }
@@ -47,19 +45,25 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Agents, One Sell Offer, One Buyer")]
     public void TwoAgentsOneSellOfferOneBuyer()
     {
-        var sim = new CommercialSimHarness();
+        var sim = new Sim();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
-        sim.InitEntities((buyer, new(MoneyBalance: 32, ResourceBalance: 9)),
-                       (seller, new(MoneyBalance: 64, ResourceBalance: 27)));
-        sim.InitOffers(new SellOffer(Seller: seller, Price: 7, Resources: 5));
+        IStateSnapshot[] initSellerState =
+        [
+            new CommercialSnapshot(MoneyBalance: 64, ResourceBalance: 27),
+            new OfferListSnapshot([new(seller, null, Price: 7, Resources: 5)])
+        ];
+        sim.InitEntities(
+            (buyer, [new CommercialSnapshot(MoneyBalance: 32, ResourceBalance: 9)]),
+            (seller, initSellerState)
+        );
 
         sim.Tick();
 
-        var buyerState = sim.GetState(buyer);
+        var buyerState = sim.GetCommercialState(buyer);
         buyerState.MoneyBalance.Should().Be(32 - 7);
         buyerState.ResourceBalance.Should().Be(9 + 5);
-        var sellerState = sim.GetState(seller);
+        var sellerState = sim.GetCommercialState(seller);
         sellerState.MoneyBalance.Should().Be(64 + 7);
         sellerState.ResourceBalance.Should().Be(27 - 5);
     }
@@ -67,19 +71,23 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Agents, One Buy Offer, One Seller")]
     public void TwoAgentsOneBuyOfferOneSeller()
     {
-        var sim = new CommercialSimHarness();
+        var sim = new Sim();
         var seller = new AlwaysSellingTaker();
         var buyer = MockAgent();
-        sim.InitEntities((seller, new(MoneyBalance: 32, ResourceBalance: 9)),
-                       (buyer, new(MoneyBalance: 64, ResourceBalance: 27)));
-        sim.InitOffers(new BuyOffer(Buyer: buyer, Price: 7, Resources: 5));
+        IStateSnapshot[] initBuyerState =
+        [
+            new CommercialSnapshot(MoneyBalance: 64, ResourceBalance: 27),
+            new OfferListSnapshot([new(null, Buyer: buyer, Price: 7, Resources: 5)])
+        ];
+        sim.InitEntities((seller, [new CommercialSnapshot(MoneyBalance: 32, ResourceBalance: 9)]),
+                       (buyer, initBuyerState));
 
         sim.Tick();
 
-        var sellerState = sim.GetState(seller);
+        var sellerState = sim.GetCommercialState(seller);
         sellerState.MoneyBalance.Should().Be(32 + 7);
         sellerState.ResourceBalance.Should().Be(9 - 5);
-        var buyerState = sim.GetState(buyer);
+        var buyerState = sim.GetCommercialState(buyer);
         buyerState.MoneyBalance.Should().Be(64 - 7);
         buyerState.ResourceBalance.Should().Be(27 + 5);
     }
@@ -87,20 +95,31 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Agents, Two Offers, No Takers")]
     public void TwoOffersNoTakers()
     {
-        var sim = new CommercialSimHarness();
+        var sim = new Sim();
         var buyer = MockAgent();
+        IStateSnapshot[] initBuyerState =
+        [
+            new CommercialSnapshot(MoneyBalance: 32, ResourceBalance: 9),
+            new OfferListSnapshot([new(Seller: null, Buyer: buyer, Price: 7, Resources: 5)])
+        ];
         var seller = MockAgent();
-        sim.InitEntities((buyer, new(MoneyBalance: 32, ResourceBalance: 9)),
-                       (seller, new(MoneyBalance: 64, ResourceBalance: 27)));
-        sim.InitOffers(new SellOffer(Seller: seller, Price: 7, Resources: 5),
-                       new BuyOffer(Buyer: buyer, Price: 7, Resources: 5));
+        IStateSnapshot[] initSellerState =
+        [
+            new CommercialSnapshot(MoneyBalance: 64, ResourceBalance: 27),
+            new OfferListSnapshot([new(Seller: seller, null, Price: 7, Resources: 5)])
+        ];
+        sim.InitEntities(
+        [
+            (buyer, initBuyerState),
+            (seller, initSellerState)
+        ]);
 
         sim.Tick();
 
-        var buyerState = sim.GetState(buyer);
+        var buyerState = sim.GetCommercialState(buyer);
         buyerState.MoneyBalance.Should().Be(32);
         buyerState.ResourceBalance.Should().Be(9);
-        var sellerState = sim.GetState(seller);
+        var sellerState = sim.GetCommercialState(seller);
         sellerState.MoneyBalance.Should().Be(64);
         sellerState.ResourceBalance.Should().Be(27);
 
@@ -108,35 +127,38 @@ public class BasicScenarios
         sim.Tick();
 
         // Verify unchanged (value based equality)
-        sim.GetState(buyer).Should().Be(buyerState);
-        sim.GetState(seller).Should().Be(sellerState);
+        sim.GetCommercialState(buyer).Should().Be(buyerState);
+        sim.GetCommercialState(seller).Should().Be(sellerState);
     }
 
     [Fact(DisplayName = "Consumed offer has no effect on next tick")]
     public void ConsumedOfferHasNoEffectOnNextTick()
     {
-        var sim = new CommercialSimHarness();
+        var sim = new Sim();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
-        sim.InitEntities((buyer, new(MoneyBalance: 100, ResourceBalance: 0)),
-                       (seller, new(MoneyBalance: 0, ResourceBalance: 50)));
-        sim.InitOffers(new SellOffer(Seller: seller, Price: 10, Resources: 5));
+        IStateSnapshot[] initSellerState = [
+            new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 50),
+            new OfferListSnapshot([new(Seller: seller, Buyer: null, Price: 10, Resources: 5)])
+        ];
+        sim.InitEntities((buyer, [new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)]),
+                         (seller, initSellerState));
 
         // First tick: buyer consumes the offer
         sim.Tick();
 
-        var buyerStateAfterTick1 = sim.GetState(buyer);
+        var buyerStateAfterTick1 = sim.GetCommercialState(buyer);
         buyerStateAfterTick1.MoneyBalance.Should().Be(100 - 10);
         buyerStateAfterTick1.ResourceBalance.Should().Be(0 + 5);
-        var sellerStateAfterTick1 = sim.GetState(seller);
+        var sellerStateAfterTick1 = sim.GetCommercialState(seller);
         sellerStateAfterTick1.MoneyBalance.Should().Be(0 + 10);
         sellerStateAfterTick1.ResourceBalance.Should().Be(50 - 5);
 
         // Second tick: offer is gone, no change
         sim.Tick();
 
-        sim.GetState(buyer).Should().Be(buyerStateAfterTick1);
-        sim.GetState(seller).Should().Be(sellerStateAfterTick1);
+        sim.GetCommercialState(buyer).Should().Be(buyerStateAfterTick1);
+        sim.GetCommercialState(seller).Should().Be(sellerStateAfterTick1);
     }
 
     [Fact(DisplayName = "Agent Makes Sell Offer, Other Agent Takes It")]
@@ -153,24 +175,24 @@ public class BasicScenarios
         sim.Tick();
 
         // State should be unchanged because the offer has been made but not taken yet
-        sim.GetState(seller).Should().Be(initialSellerState);
-        sim.GetState(buyer).Should().Be(initialBuyerState);
+        sim.GetCommercialState(seller).Should().Be(initialSellerState);
+        sim.GetCommercialState(buyer).Should().Be(initialBuyerState);
 
         sim.Tick();
 
         // Verify the offer was taken and state updated accordingly
-        var sellerState = sim.GetState(seller);
+        var sellerState = sim.GetCommercialState(seller);
         sellerState.Should()
             .Be(new CommercialSnapshot(MoneyBalance: 8, ResourceBalance: 97));
-        var buyerState = sim.GetState(buyer);
+        var buyerState = sim.GetCommercialState(buyer);
         buyerState.Should()
             .Be(new CommercialSnapshot(MoneyBalance: 64 - 8, ResourceBalance: 3));
 
         sim.Tick();
 
         // Verify no further changes (offer was consumed)
-        sim.GetState(seller).Should().Be(sellerState);
-        sim.GetState(buyer).Should().Be(buyerState);
+        sim.GetCommercialState(seller).Should().Be(sellerState);
+        sim.GetCommercialState(buyer).Should().Be(buyerState);
     }
 
     [Fact(DisplayName = "One Source, One Do-Nothing Agent")]
@@ -184,7 +206,7 @@ public class BasicScenarios
 
         sim.Tick();
 
-        var snapshot = sim.GetState(agent);
+        var snapshot = sim.GetCommercialState(agent);
         snapshot.MoneyBalance.Should().Be(16);
         snapshot.ResourceBalance.Should().Be(42);
     }
@@ -201,7 +223,7 @@ public class BasicScenarios
         sim.Tick();
         sim.Tick();
 
-        var snapshot = sim.GetState(agent);
+        var snapshot = sim.GetCommercialState(agent);
         snapshot.MoneyBalance.Should().Be(20);
         snapshot.ResourceBalance.Should().Be(600);
     }
@@ -218,7 +240,7 @@ public class BasicScenarios
 
         sim.Tick();
 
-        var snapshot = sim.GetState(agent);
+        var snapshot = sim.GetCommercialState(agent);
         snapshot.MoneyBalance.Should().Be(15);
         snapshot.ResourceBalance.Should().Be(320);
     }
@@ -238,10 +260,10 @@ public class BasicScenarios
         sim.Tick();
 
         // Verify each agent received the correct grant
-        var snapshot1 = sim.GetState(agent1);
+        var snapshot1 = sim.GetCommercialState(agent1);
         snapshot1.MoneyBalance.Should().Be(3);
         snapshot1.ResourceBalance.Should().Be(5);
-        var snapshot2 = sim.GetState(agent2);
+        var snapshot2 = sim.GetCommercialState(agent2);
         snapshot2.MoneyBalance.Should().Be(7);
         snapshot2.ResourceBalance.Should().Be(11);
     }
@@ -260,14 +282,14 @@ public class BasicScenarios
         sim.Tick();
 
         // 10% interest added to each agent
-        sim.GetState(agent1).MoneyBalance.Should().Be(110);
-        sim.GetState(agent2).MoneyBalance.Should().Be(220);
+        sim.GetCommercialState(agent1).MoneyBalance.Should().Be(110);
+        sim.GetCommercialState(agent2).MoneyBalance.Should().Be(220);
 
         sim.Tick();
 
         // Compound interest: 10% of new balance
-        sim.GetState(agent1).MoneyBalance.Should().Be(121);
-        sim.GetState(agent2).MoneyBalance.Should().Be(242);
+        sim.GetCommercialState(agent1).MoneyBalance.Should().Be(121);
+        sim.GetCommercialState(agent2).MoneyBalance.Should().Be(242);
     }
 
     [Fact(DisplayName = "Controller grants resources to specific entity")]
@@ -284,13 +306,13 @@ public class BasicScenarios
         sim.Tick();
 
         // Only the miner should receive resources
-        sim.GetState(miner).ResourceBalance.Should().Be(15);
-        sim.GetState(trader).ResourceBalance.Should().Be(0);
+        sim.GetCommercialState(miner).ResourceBalance.Should().Be(15);
+        sim.GetCommercialState(trader).ResourceBalance.Should().Be(0);
 
         sim.Tick();
 
-        sim.GetState(miner).ResourceBalance.Should().Be(20);
-        sim.GetState(trader).ResourceBalance.Should().Be(0);
+        sim.GetCommercialState(miner).ResourceBalance.Should().Be(20);
+        sim.GetCommercialState(trader).ResourceBalance.Should().Be(0);
     }
 
     private static ICommercialAgent MockAgent()

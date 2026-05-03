@@ -1,8 +1,8 @@
 namespace CommerceSim.Core;
 
-public record struct OfferSnapshot(ICommercialAgent? Seller, ICommercialAgent? Buyer, int Price, int Resources, string? ResourceType);
+public record struct OfferSnapshot(ICommercialAgent? Seller, ICommercialAgent? Buyer, int Price, int Resources, string? ResourceType = null);
 
-public record struct OfferListSnapshot(List<OfferSnapshot> OfferSnapshots);
+public record struct OfferListSnapshot(List<OfferSnapshot> OfferSnapshots) : IStateSnapshot<OfferSystem>;
 
 public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequire<CommercialSystem>
 {

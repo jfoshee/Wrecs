@@ -15,11 +15,11 @@ public class TypedResourceScenarios
 
         sim.Tick();
 
-        var buyerState = sim.GetState(buyer);
+        var buyerState = sim.GetCommercialState(buyer);
         buyerState.MoneyBalance.Should().Be(80);
         buyerState.GetResourceBalance("gold").Should().Be(10);
 
-        var sellerState = sim.GetState(seller);
+        var sellerState = sim.GetCommercialState(seller);
         sellerState.MoneyBalance.Should().Be(120);
         sellerState.GetResourceBalance("gold").Should().Be(40);
     }
@@ -31,7 +31,7 @@ public class TypedResourceScenarios
         var trader = MockAgent();
         sim.InitEntities((trader, new(0, [("gold", 100), ("silver", 200)])));
 
-        var state = sim.GetState(trader);
+        var state = sim.GetCommercialState(trader);
         state.GetResourceBalance("gold").Should().Be(100);
         state.GetResourceBalance("silver").Should().Be(200);
         state.GetResourceBalance("bronze").Should().Be(0);
@@ -54,11 +54,11 @@ public class TypedResourceScenarios
         sim.Tick();
 
         // Trade should not execute - seller doesn't have silver
-        var buyerState = sim.GetState(buyer);
+        var buyerState = sim.GetCommercialState(buyer);
         buyerState.MoneyBalance.Should().Be(100);
         buyerState.GetResourceBalance("silver").Should().Be(0);
 
-        var sellerState = sim.GetState(seller);
+        var sellerState = sim.GetCommercialState(seller);
         sellerState.MoneyBalance.Should().Be(0);
         sellerState.GetResourceBalance("gold").Should().Be(50);
     }
@@ -79,8 +79,8 @@ public class TypedResourceScenarios
         sim.Tick();
 
         // Trade should not execute - seller doesn't have gold
-        sim.GetState(buyer).MoneyBalance.Should().Be(100);
-        sim.GetState(seller).MoneyBalance.Should().Be(0);
+        sim.GetCommercialState(buyer).MoneyBalance.Should().Be(100);
+        sim.GetCommercialState(seller).MoneyBalance.Should().Be(0);
     }
 
     [Fact(DisplayName = "Source grants typed resources")]
@@ -95,7 +95,7 @@ public class TypedResourceScenarios
         sim.Tick();
         sim.Tick();
 
-        var state = sim.GetState(miner);
+        var state = sim.GetCommercialState(miner);
         state.GetResourceBalance("gold").Should().Be(20);
         state.ResourceBalance.Should().Be(0); // unitless unchanged
     }
@@ -112,7 +112,7 @@ public class TypedResourceScenarios
 
         sim.Tick();
 
-        var state = sim.GetState(miner);
+        var state = sim.GetCommercialState(miner);
         state.GetResourceBalance("gold").Should().Be(10);
         state.GetResourceBalance("silver").Should().Be(25);
     }
@@ -130,11 +130,11 @@ public class TypedResourceScenarios
 
         sim.Tick();
 
-        var sellerState = sim.GetState(seller);
+        var sellerState = sim.GetCommercialState(seller);
         sellerState.MoneyBalance.Should().Be(50);
         sellerState.GetResourceBalance("gold").Should().Be(75);
 
-        var buyerState = sim.GetState(buyer);
+        var buyerState = sim.GetCommercialState(buyer);
         buyerState.MoneyBalance.Should().Be(150);
         buyerState.GetResourceBalance("gold").Should().Be(25);
     }
@@ -152,11 +152,11 @@ public class TypedResourceScenarios
         sim.Tick(); // Offer made
         sim.Tick(); // Offer taken
 
-        var sellerState = sim.GetState(seller);
+        var sellerState = sim.GetCommercialState(seller);
         sellerState.MoneyBalance.Should().Be(15);
         sellerState.GetResourceBalance("silver").Should().Be(95);
 
-        var buyerState = sim.GetState(buyer);
+        var buyerState = sim.GetCommercialState(buyer);
         buyerState.MoneyBalance.Should().Be(85);
         buyerState.GetResourceBalance("silver").Should().Be(5);
     }
@@ -175,12 +175,12 @@ public class TypedResourceScenarios
         sim.Tick();
 
         // Gold trade executes
-        var sellerState = sim.GetState(seller);
+        var sellerState = sim.GetCommercialState(seller);
         sellerState.MoneyBalance.Should().Be(20);
         sellerState.ResourceBalance.Should().Be(50); // unitless unchanged
         sellerState.GetResourceBalance("gold").Should().Be(40);
 
-        var buyerState = sim.GetState(buyer);
+        var buyerState = sim.GetCommercialState(buyer);
         buyerState.MoneyBalance.Should().Be(80);
         buyerState.GetResourceBalance("gold").Should().Be(10);
         buyerState.ResourceBalance.Should().Be(0); // unitless unchanged
