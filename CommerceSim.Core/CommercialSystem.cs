@@ -1,27 +1,15 @@
 namespace CommerceSim.Core;
 
-public record struct Trade(Offer Offer,
-                           CommercialSnapshot SellerState,
-                           CommercialSnapshot BuyerState,
-                           int Price,
-                           int Resources,
-                           string? ResourceType = null);
-
 /// <summary>
 /// Marker interface for entities in the commercial system (agents, sources, etc.)
 /// </summary>
-public interface ICommercialEntity : IEntity
-{
-}
+public interface ICommercialEntity : IEntity;
 
-public interface ICommercialController : IController<CommercialSnapshot>
-{
-}
+public interface ICommercialController : IController<CommercialSnapshot>;
 
 public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
 {
     private readonly List<IEntity> _entities = [];
-    private IEnumerable<ICommercialAgent> Agents => _entities.OfType<ICommercialAgent>();
     private readonly Dictionary<IEntity, CommercialState> _states = [];
 
     public CommercialSnapshot GetState(IEntity entity) => new(_states[entity]);
@@ -30,9 +18,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
 
     public IReadOnlyDictionary<int, CommercialSnapshot> GetStateSnapshot() =>
         _states.ToDictionary(kvp => kvp.Key.Id, kvp => new CommercialSnapshot(kvp.Value));
-
-    public IReadOnlyDictionary<int, string> GetAgentNames() =>
-        Agents.ToDictionary(a => a.Id, a => a.Name);
 
     public void InitEntities(params (IEntity entity, CommercialSnapshot? initialState)[] initialEntities)
     {
@@ -55,7 +40,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
 
     public void Tick()
     {
-        // Offer processing has moved to OfferSystem
     }
 
     internal class CommercialState

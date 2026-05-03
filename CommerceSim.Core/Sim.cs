@@ -60,7 +60,7 @@ public class Sim
     public CommercialSnapshot GetCommercialState(IEntity entity) => CommercialSystem.GetState(entity);
     public Position GetPosition(IEntity entity) => SpatialSystem.GetState(entity).Position;
     public IReadOnlyDictionary<int, CommercialSnapshot> GetStateSnapshot() => CommercialSystem.GetStateSnapshot();
-    public IReadOnlyDictionary<int, string> GetAgentNames() => CommercialSystem.GetAgentNames();
+    public IReadOnlyDictionary<int, string> GetAgentNames() => _entities.OfType<ICommercialAgent>().ToDictionary(a => a.Id, a => a.Name);
     public void InitOffers(params Offer[] offers) => OfferSystem.InitOffers(offers);
 
     private void EnsureDependenciesInjected()
