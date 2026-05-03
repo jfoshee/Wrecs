@@ -4,11 +4,6 @@ class CommercialSimHarness
 {
     private readonly Sim _sim = new();
 
-    public CommercialSimHarness()
-    {
-        _sim.AddSystem(new OfferSystem());
-    }
-
     public void InitEntities(params (IEntity entity, CommercialSnapshot? initialState)[] initialEntities)
     {
         _sim.InitEntities([.. initialEntities.Select(initialEntity =>
@@ -19,6 +14,8 @@ class CommercialSimHarness
             return (initialEntity.entity, snapshots);
         })]);
     }
+
+    public void InitOffers(params Offer[] offers) => _sim.InitOffers(offers);
 
     public void InitControllers(params IController[] controllers)
     {

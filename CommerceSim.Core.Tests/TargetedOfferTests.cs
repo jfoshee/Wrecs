@@ -92,7 +92,7 @@ public class TargetedOfferTests
         // Arrange
         var receiver = new TargetedOfferReceiverAgent();
         var seller = new MakesTargetedSellOfferAgent(receiver, price: 10, resources: 5);
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         sim.InitEntities(
             (seller, new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 100)),
             (receiver, new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)));
@@ -119,7 +119,7 @@ public class TargetedOfferTests
         var target = new OfferObserverAgent { Name = "Target" };
         var nonTarget = new OfferObserverAgent { Name = "NonTarget" };
         var seller = new MakesTargetedSellOfferAgent(target, price: 10, resources: 5);
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         sim.InitEntities(
             (seller, new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 100)),
             (target, new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)),
@@ -146,7 +146,7 @@ public class TargetedOfferTests
         var receiver = new OfferObserverAgent { Name = "Receiver" };
         var seller1 = new MakesTargetedSellOfferAgent(receiver, price: 10, resources: 5);
         var seller2 = new MakesTargetedSellOfferAgent(receiver, price: 20, resources: 3);
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         sim.InitEntities(
             (seller1, new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 100)),
             (seller2, new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 100)),
@@ -174,7 +174,7 @@ public class TargetedOfferTests
         var targetB = new OfferObserverAgent { Name = "TargetB" };
         var sellerA = new MakesTargetedSellOfferAgent(targetA, price: 100, resources: 1);
         var sellerB = new MakesTargetedSellOfferAgent(targetB, price: 200, resources: 2);
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         sim.InitEntities(
             (sellerA, new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 100)),
             (sellerB, new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 100)),
@@ -211,7 +211,7 @@ public class TargetedOfferTests
         var seller = new MakesGeneralAndTargetedOffersAgent(target,
             generalPrice: 15, generalResources: 2,
             targetedPrice: 25, targetedResources: 4);
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         sim.InitEntities(
             (seller, new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 100)),
             (target, new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)),

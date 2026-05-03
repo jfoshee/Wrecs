@@ -8,7 +8,7 @@ public class AdvancedScenarios
     [Fact(DisplayName = "One Rich Dumb Agent and One Value Investor Agent")]
     public void OneRichDumbAgentAndOneValueInvestorAgent()
     {
-        var sim = new CommercialSystem();
+        var sim = new Sim();
         var sellTaker = new AlwaysSellingTaker();
         var buyTaker = new AlwaysBuyingTaker();
         var sellMaker = new AlwaysSellingMaker(10, 1);
@@ -16,11 +16,12 @@ public class AdvancedScenarios
         var valueInvestor = new ValueInvestorAgent(initialFairPrice: 10,
                                                    maxPosition: 5,
                                                    minCashReserve: 10);
-        sim.InitEntities((sellTaker, new(MoneyBalance: 1_000, ResourceBalance: 1_000)),
-                       (buyTaker, new(MoneyBalance: 1_000, ResourceBalance: 0)),
-                       (valueInvestor, new(MoneyBalance: 50, ResourceBalance: 0)),
-                       (randomAgent, new(MoneyBalance: 1_000, ResourceBalance: 100)),
-                       (sellMaker, new(MoneyBalance: 1_000, ResourceBalance: 100)));
+        sim.InitEntities(
+            (sellTaker, [new CommercialSnapshot(MoneyBalance: 1_000, ResourceBalance: 1_000)]),
+            (buyTaker, [new CommercialSnapshot(MoneyBalance: 1_000, ResourceBalance: 0)]),
+            (valueInvestor, [new CommercialSnapshot(MoneyBalance: 50, ResourceBalance: 0)]),
+            (randomAgent, [new CommercialSnapshot(MoneyBalance: 1_000, ResourceBalance: 100)]),
+            (sellMaker, [new CommercialSnapshot(MoneyBalance: 1_000, ResourceBalance: 100)]));
         sim.InitOffers(new SellOffer(Seller: sellTaker, Price: 10, Resources: 5));
         var loggingSim = new LoggingSim(sim);
 
@@ -29,7 +30,7 @@ public class AdvancedScenarios
             loggingSim.Tick();
         }
 
-        var valInvestorState = sim.GetState(valueInvestor);
+        var valInvestorState = sim.GetCommercialState(valueInvestor);
         valInvestorState.MoneyBalance.Should().BeGreaterThan(100);
 
         // Serialize the snapshot log to CSV
@@ -58,7 +59,7 @@ public class AdvancedScenarios
         const int StartingMoney = 500;
         const int StartingResources = 50;
 
-        var sim = new CommercialSystem();
+        var sim = new Sim();
 
         // One of each agent type from the Agents namespace
         var contrarianAgent = new ContrarianMeanReversionAgent();
@@ -71,24 +72,24 @@ public class AdvancedScenarios
         var randomAgent = new RandomAgent(maxPrice: 20);
         var valueInvestorAgent = new ValueInvestorAgent(initialFairPrice: 10, maxPosition: 20, minCashReserve: 50);
 
-        var agentInitList = new List<(IEntity, CommercialSnapshot?)>
+        var agentInitList = new List<(IEntity, IStateSnapshot[])>
         {
-            (contrarianAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
-            (marketMaker, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
-            (marketMaker2, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
-            (marketMaker3, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
-            (marketMaker4, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
-            (momentumAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
-            (spreadSniperAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
-            (randomAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
-            (valueInvestorAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)),
+            (contrarianAgent, [new CommercialSnapshot(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)]),
+            (marketMaker, [new CommercialSnapshot(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)]),
+            (marketMaker2, [new CommercialSnapshot(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)]),
+            (marketMaker3, [new CommercialSnapshot(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)]),
+            (marketMaker4, [new CommercialSnapshot(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)]),
+            (momentumAgent, [new CommercialSnapshot(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)]),
+            (spreadSniperAgent, [new CommercialSnapshot(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)]),
+            (randomAgent, [new CommercialSnapshot(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)]),
+            (valueInvestorAgent, [new CommercialSnapshot(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)]),
         };
 
         // Add 20 random agents
         for (int i = 0; i < 20; i++)
         {
             var extraRandomAgent = new RandomAgent(maxPrice: 20, random: new Random(i));
-            agentInitList.Add((extraRandomAgent, new(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)));
+            agentInitList.Add((extraRandomAgent, [new CommercialSnapshot(MoneyBalance: StartingMoney, ResourceBalance: StartingResources)]));
         }
 
         sim.InitEntities([.. agentInitList]);

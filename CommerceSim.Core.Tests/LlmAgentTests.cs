@@ -18,7 +18,7 @@ public class LlmAgentTests(ITestOutputHelper output)
         var chatClient = CreateChatClient();
         var llmAgent = new LlmAgent(chatClient, _output);
         var seller = Mock.Of<ICommercialAgent>(a => a.Name == "Seller" && a.Id == EntityId.Next());
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         sim.InitEntities((llmAgent, new(MoneyBalance: 100, ResourceBalance: 0)),
                        (seller, new(MoneyBalance: 0, ResourceBalance: 50)));
         // Very cheap offer - LLM should take it
@@ -41,7 +41,7 @@ public class LlmAgentTests(ITestOutputHelper output)
         var chatClient = CreateChatClient();
         var llmAgent = new LlmAgent(chatClient, _output);
         var buyer = Mock.Of<ICommercialAgent>(a => a.Name == "Buyer" && a.Id == EntityId.Next());
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         sim.InitEntities((llmAgent, new(MoneyBalance: 0, ResourceBalance: 100)),
                        (buyer, new(MoneyBalance: 500, ResourceBalance: 0)));
         // Very generous buy offer - LLM should take it
@@ -64,7 +64,7 @@ public class LlmAgentTests(ITestOutputHelper output)
         var chatClient = CreateChatClient();
         var llmAgent = new LlmAgent(chatClient, _output);
         var buyer = new AlwaysBuyingTaker();
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var initialLlm = new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 100);
         var initialBuyer = new CommercialSnapshot(MoneyBalance: 1000, ResourceBalance: 0);
         sim.InitEntities((llmAgent, initialLlm), (buyer, initialBuyer));
@@ -90,7 +90,7 @@ public class LlmAgentTests(ITestOutputHelper output)
         var chatClient = CreateChatClient();
         var llmAgent = new LlmAgent(chatClient, _output);
         var seller = new AlwaysSellingTaker();
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var initialLlm = new CommercialSnapshot(MoneyBalance: 1000, ResourceBalance: 0);
         var initialSeller = new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 100);
         sim.InitEntities((llmAgent, initialLlm), (seller, initialSeller));
@@ -116,7 +116,7 @@ public class LlmAgentTests(ITestOutputHelper output)
         var chatClient = CreateChatClient();
         var agent1 = new LlmAgent(chatClient, _output);
         var agent2 = new LlmAgent(chatClient, _output);
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var initial1 = new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 50);
         var initial2 = new CommercialSnapshot(MoneyBalance: 50, ResourceBalance: 100);
         sim.InitEntities((agent1, initial1), (agent2, initial2));

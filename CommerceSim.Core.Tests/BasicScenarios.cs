@@ -47,7 +47,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Agents, One Sell Offer, One Buyer")]
     public void TwoAgentsOneSellOfferOneBuyer()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
         sim.InitEntities((buyer, new(MoneyBalance: 32, ResourceBalance: 9)),
@@ -67,7 +67,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Agents, One Buy Offer, One Seller")]
     public void TwoAgentsOneBuyOfferOneSeller()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var seller = new AlwaysSellingTaker();
         var buyer = MockAgent();
         sim.InitEntities((seller, new(MoneyBalance: 32, ResourceBalance: 9)),
@@ -87,7 +87,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Agents, Two Offers, No Takers")]
     public void TwoOffersNoTakers()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var buyer = MockAgent();
         var seller = MockAgent();
         sim.InitEntities((buyer, new(MoneyBalance: 32, ResourceBalance: 9)),
@@ -115,7 +115,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Consumed offer has no effect on next tick")]
     public void ConsumedOfferHasNoEffectOnNextTick()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
         sim.InitEntities((buyer, new(MoneyBalance: 100, ResourceBalance: 0)),

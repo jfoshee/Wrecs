@@ -5,7 +5,7 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Typed resource trade: gold for money")]
     public void TypedResourceTrade_GoldForMoney()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
         sim.InitEntities(
@@ -27,7 +27,7 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Different resource types are independent")]
     public void DifferentResourceTypes_AreIndependent()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var trader = MockAgent();
         sim.InitEntities((trader, new(0, [("gold", 100), ("silver", 200)])));
 
@@ -41,7 +41,7 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Cannot sell typed resource you don't have")]
     public void CannotSellTypedResource_YouDontHave()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
         // Seller has gold but not silver
@@ -66,7 +66,7 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Gold and unitless resources are separate")]
     public void GoldAndUnitless_AreSeparate()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
         // Seller has unitless resources but not gold
@@ -120,7 +120,7 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Buy offer for typed resource")]
     public void BuyOffer_ForTypedResource()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var seller = new AlwaysSellingTaker();
         var buyer = MockAgent();
         sim.InitEntities(
@@ -142,7 +142,7 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Agent makes typed sell offer, other takes it")]
     public void AgentMakesTypedSellOffer_OtherTakesIt()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var seller = new MakesSellOfferAgent(price: 15, resources: 5, resourceType: "silver");
         var buyer = new AlwaysBuyingTaker();
         sim.InitEntities(
@@ -164,7 +164,7 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Mixed unitless and typed resources coexist")]
     public void MixedUnitlessAndTyped_Coexist()
     {
-        var sim = new CommercialSystem();
+        var sim = new CommercialSimHarness();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
         sim.InitEntities(
