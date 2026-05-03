@@ -22,9 +22,9 @@ class AlwaysBuyingTaker : ICommercialAgent
 
     public string Name => nameof(AlwaysBuyingTaker);
 
-    public Decision Decide(CommercialSnapshot _, List<Offer> opportunities)
+    public Decision Decide(CommercialSnapshot _, List<Offer> offers)
     {
-        var sellOffer = opportunities.OfType<SellOffer>().FirstOrDefault();
+        var sellOffer = offers.OfType<SellOffer>().FirstOrDefault();
         if (sellOffer is not null)
             return new TakeOfferDecision(sellOffer);
         return new DoNothingDecision();
@@ -40,9 +40,9 @@ class AlwaysSellingTaker : ICommercialAgent
 
     public string Name => nameof(AlwaysSellingTaker);
 
-    public Decision Decide(CommercialSnapshot _, List<Offer> opportunities)
+    public Decision Decide(CommercialSnapshot _, List<Offer> offers)
     {
-        var buyOffer = opportunities.OfType<BuyOffer>().FirstOrDefault();
+        var buyOffer = offers.OfType<BuyOffer>().FirstOrDefault();
         if (buyOffer is not null)
             return new TakeOfferDecision(buyOffer);
         return new DoNothingDecision();
@@ -58,7 +58,7 @@ class AlwaysSellingMaker(int price, int resources) : ICommercialAgent
 
     public string Name => nameof(AlwaysSellingMaker);
 
-    public Decision Decide(CommercialSnapshot _, List<Offer> opportunities)
+    public Decision Decide(CommercialSnapshot _, List<Offer> offers)
     {
         return new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources));
     }
@@ -74,7 +74,7 @@ class MakesSellOfferAgent(int price, int resources, string? resourceType = null)
 
     public string Name => nameof(MakesSellOfferAgent);
 
-    public Decision Decide(CommercialSnapshot _, List<Offer> opportunities)
+    public Decision Decide(CommercialSnapshot _, List<Offer> offers)
     {
         if (_hasMadeOffer)
             return new DoNothingDecision();
@@ -93,7 +93,7 @@ class MakesBuyOfferAgent(int price, int resources) : ICommercialAgent
 
     public string Name => nameof(MakesBuyOfferAgent);
 
-    public Decision Decide(CommercialSnapshot _, List<Offer> opportunities)
+    public Decision Decide(CommercialSnapshot _, List<Offer> offers)
     {
         if (_hasMadeOffer)
             return new DoNothingDecision();
@@ -111,7 +111,7 @@ class OffersToSellAllResourcesAgent(int price) : ICommercialAgent
 
     public string Name => nameof(OffersToSellAllResourcesAgent);
 
-    public Decision Decide(CommercialSnapshot state, List<Offer> opportunities)
+    public Decision Decide(CommercialSnapshot state, List<Offer> offers)
     {
         if (state.ResourceBalance > 0)
             return new MakeOfferDecision(new SellOffer(this, Price: price, Resources: state.ResourceBalance));

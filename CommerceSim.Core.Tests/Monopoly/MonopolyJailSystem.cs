@@ -49,6 +49,7 @@ class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>
     {
         foreach (var entity in _turnsRemaining.Keys.ToList())
         {
+            // TODO: Handle phases per turn
             _turnsRemaining[entity]--;
             if (_turnsRemaining[entity] <= 0)
                 _turnsRemaining.Remove(entity);

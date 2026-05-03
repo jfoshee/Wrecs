@@ -20,7 +20,7 @@ class BoardGameMovementController(IGameDice dice, int boardSize) : ISpatialContr
             throw new InvalidOperationException("Only the current player can move");
         int roll = dice.Roll();
         var newPosition = (currentPosition + roll) % boardSize;
-        return new(newPosition);
+        return newPosition;
     }
 
     public void Inject(TurnSystem dependency)
