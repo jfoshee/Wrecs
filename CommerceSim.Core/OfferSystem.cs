@@ -2,7 +2,15 @@ namespace CommerceSim.Core;
 
 public record struct OfferSnapshot(ICommercialAgent? Seller, ICommercialAgent? Buyer, int Price, int Resources, string? ResourceType = null);
 
-public record struct OfferListSnapshot(List<OfferSnapshot> OfferSnapshots) : IStateSnapshot<OfferSystem>;
+public record struct OfferListSnapshot(List<OfferSnapshot>? OfferSnapshots) : IStateSnapshot<OfferSystem>
+{
+    public override readonly string ToString()
+    {
+        // When this struct is defaulted OfferSnapshots is null
+        var snapshots = OfferSnapshots ?? [];
+        return "[" + string.Join(", ", snapshots.Select(x => x.ToString())) + "]";
+    }
+}
 
 public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequire<CommercialSystem>
 {
