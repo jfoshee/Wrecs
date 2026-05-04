@@ -18,11 +18,15 @@ public class LlmAgentTests(ITestOutputHelper output)
         var chatClient = CreateChatClient();
         var llmAgent = new LlmAgent(chatClient, _output);
         var seller = Mock.Of<ICommercialAgent>(a => a.Name == "Seller" && a.Id == EntityId.Next());
-        var sim = new CommercialSimHarness();
-        sim.InitEntities((llmAgent, new(MoneyBalance: 100, ResourceBalance: 0)),
-                       (seller, new(MoneyBalance: 0, ResourceBalance: 50)));
-        // Very cheap offer - LLM should take it
-        sim.InitOffers(new SellOffer(seller, Price: 1, Resources: 10));
+        IStateSnapshot[] initSellerState =
+        [
+            new CommercialSnapshot(0, ResourceBalance: 50),
+            // Very cheap offer - LLM should take it
+            new OfferListSnapshot([new(Seller: seller, Buyer: null, Price: 1, Resources: 10)])
+        ];
+        var sim = new Sim();
+        sim.InitEntities((llmAgent, [new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)]),
+                         (seller, initSellerState));
 
         sim.Tick();
 
@@ -41,11 +45,15 @@ public class LlmAgentTests(ITestOutputHelper output)
         var chatClient = CreateChatClient();
         var llmAgent = new LlmAgent(chatClient, _output);
         var buyer = Mock.Of<ICommercialAgent>(a => a.Name == "Buyer" && a.Id == EntityId.Next());
-        var sim = new CommercialSimHarness();
-        sim.InitEntities((llmAgent, new(MoneyBalance: 0, ResourceBalance: 100)),
-                       (buyer, new(MoneyBalance: 500, ResourceBalance: 0)));
-        // Very generous buy offer - LLM should take it
-        sim.InitOffers(new BuyOffer(buyer, Price: 100, Resources: 1));
+        IStateSnapshot[] initBuyerState =
+        [
+            new CommercialSnapshot(500, 0),
+            // Very generous buy offer - LLM should take it
+            new OfferListSnapshot([new(Seller: null, Buyer: buyer, Price: 100, Resources: 1)])
+        ];
+        var sim = new Sim();
+        sim.InitEntities((llmAgent, [new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 100)]),
+                         (buyer, initBuyerState));
 
         sim.Tick();
 

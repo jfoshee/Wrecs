@@ -15,8 +15,6 @@ class CommercialSimHarness
         })]);
     }
 
-    public void InitOffers(params Offer[] offers) => _sim.InitOffers(offers);
-
     public void InitControllers(params IController[] controllers)
     {
         _sim.InitControllers(controllers);

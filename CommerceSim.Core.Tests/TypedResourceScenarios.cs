@@ -5,13 +5,17 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Typed resource trade: gold for money")]
     public void TypedResourceTrade_GoldForMoney()
     {
-        var sim = new CommercialSimHarness();
+        var sim = new Sim();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
+        IStateSnapshot[] initSellerState =
+        [
+            new CommercialSnapshot(100, [("gold", 50)]),
+            new OfferListSnapshot([new(Seller: seller, Buyer: null, Price: 20, Resources: 10, ResourceType: "gold")])
+        ];
         sim.InitEntities(
-            (buyer, new(MoneyBalance: 100, ResourceBalance: 0)),
-            (seller, new(100, [("gold", 50)])));
-        sim.InitOffers(new SellOffer(Seller: seller, Price: 20, Resources: 10, ResourceType: "gold"));
+            (buyer, [new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)]),
+            (seller, initSellerState));
 
         sim.Tick();
 
@@ -41,15 +45,18 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Cannot sell typed resource you don't have")]
     public void CannotSellTypedResource_YouDontHave()
     {
-        var sim = new CommercialSimHarness();
+        var sim = new Sim();
         var buyer = new AlwaysBuyingTaker();
+        // Seller has gold but not silver; trying to sell silver
         var seller = MockAgent();
-        // Seller has gold but not silver
+        IStateSnapshot[] initSellerState =
+        [
+            new CommercialSnapshot(0, [("gold", 50)]),
+            new OfferListSnapshot([new(Seller: seller, Buyer: null, Price: 20, Resources: 10, ResourceType: "silver")])
+        ];
         sim.InitEntities(
-            (buyer, new(MoneyBalance: 100, ResourceBalance: 0)),
-            (seller, new(0, [("gold", 50)])));
-        // Try to sell silver
-        sim.InitOffers(new SellOffer(Seller: seller, Price: 20, Resources: 10, ResourceType: "silver"));
+            (buyer, [new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)]),
+            (seller, initSellerState));
 
         sim.Tick();
 
@@ -66,15 +73,18 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Gold and unitless resources are separate")]
     public void GoldAndUnitless_AreSeparate()
     {
-        var sim = new CommercialSimHarness();
+        var sim = new Sim();
         var buyer = new AlwaysBuyingTaker();
+        // Seller has unitless resources but not gold; tries to sell gold
         var seller = MockAgent();
-        // Seller has unitless resources but not gold
+        IStateSnapshot[] initSellerState =
+        [
+            new CommercialSnapshot(0, ResourceBalance: 50),
+            new OfferListSnapshot([new(Seller: seller, Buyer: null, Price: 20, Resources: 10, ResourceType: "gold")])
+        ];
         sim.InitEntities(
-            (buyer, new(MoneyBalance: 100, ResourceBalance: 0)),
-            (seller, new(MoneyBalance: 0, ResourceBalance: 50)));
-        // Try to sell gold
-        sim.InitOffers(new SellOffer(Seller: seller, Price: 20, Resources: 10, ResourceType: "gold"));
+            (buyer, [new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)]),
+            (seller, initSellerState));
 
         sim.Tick();
 
@@ -120,13 +130,17 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Buy offer for typed resource")]
     public void BuyOffer_ForTypedResource()
     {
-        var sim = new CommercialSimHarness();
+        var sim = new Sim();
         var seller = new AlwaysSellingTaker();
         var buyer = MockAgent();
+        IStateSnapshot[] initBuyerState =
+        [
+            new CommercialSnapshot(200, 0),
+            new OfferListSnapshot([new(Seller: null, Buyer: buyer, Price: 50, Resources: 25, ResourceType: "gold")])
+        ];
         sim.InitEntities(
-            (seller, new(0, [("gold", 100)])),
-            (buyer, new(MoneyBalance: 200, ResourceBalance: 0)));
-        sim.InitOffers(new BuyOffer(Buyer: buyer, Price: 50, Resources: 25, ResourceType: "gold"));
+            (seller, [new CommercialSnapshot(0, [("gold", 100)])]),
+            (buyer, initBuyerState));
 
         sim.Tick();
 
@@ -164,13 +178,17 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Mixed unitless and typed resources coexist")]
     public void MixedUnitlessAndTyped_Coexist()
     {
-        var sim = new CommercialSimHarness();
+        var sim = new Sim();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
+        IStateSnapshot[] initSellerState =
+        [
+            new CommercialSnapshot(0, [("", 50), ("gold", 50)]),
+            new OfferListSnapshot([new(Seller: seller, Buyer: null, Price: 20, Resources: 10, ResourceType: "gold")])
+        ];
         sim.InitEntities(
-            (buyer, new(MoneyBalance: 100, ResourceBalance: 0)),
-            (seller, new(0, [("", 50), ("gold", 50)])));
-        sim.InitOffers(new SellOffer(Seller: seller, Price: 20, Resources: 10, ResourceType: "gold"));
+            (buyer, [new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)]),
+            (seller, initSellerState));
 
         sim.Tick();
 

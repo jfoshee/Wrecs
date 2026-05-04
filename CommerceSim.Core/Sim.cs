@@ -61,7 +61,6 @@ public class Sim
     public Position GetPosition(IEntity entity) => SpatialSystem.GetState(entity).Position;
     public IReadOnlyDictionary<int, CommercialSnapshot> GetStateSnapshot() => CommercialSystem.GetStateSnapshot();
     public IReadOnlyDictionary<int, string> GetAgentNames() => _entities.OfType<ICommercialAgent>().ToDictionary(a => a.Id, a => a.Name);
-    public void InitOffers(params Offer[] offers) => OfferSystem.InitOffers(offers);
 
     private void EnsureDependenciesInjected()
     {

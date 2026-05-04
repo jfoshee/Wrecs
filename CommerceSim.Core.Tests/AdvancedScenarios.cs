@@ -21,8 +21,10 @@ public class AdvancedScenarios
             (buyTaker, [new CommercialSnapshot(MoneyBalance: 1_000, ResourceBalance: 0)]),
             (valueInvestor, [new CommercialSnapshot(MoneyBalance: 50, ResourceBalance: 0)]),
             (randomAgent, [new CommercialSnapshot(MoneyBalance: 1_000, ResourceBalance: 100)]),
-            (sellMaker, [new CommercialSnapshot(MoneyBalance: 1_000, ResourceBalance: 100)]));
-        sim.InitOffers(new SellOffer(Seller: sellTaker, Price: 10, Resources: 5));
+            (sellMaker, [
+                new CommercialSnapshot(MoneyBalance: 1_000, ResourceBalance: 100),
+                new OfferListSnapshot([new(Seller: sellMaker, Buyer: null, Price: 10, Resources: 5)])
+            ]));
         var loggingSim = new LoggingSim(sim);
 
         for (int i = 0; i < 250; i++)

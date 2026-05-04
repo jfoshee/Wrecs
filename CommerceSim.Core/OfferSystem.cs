@@ -89,12 +89,6 @@ public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequir
         _stateMap[agent].Add(offer);
     }
 
-    public void InitOffers(params Offer[] offers)
-    {
-        foreach (var offer in offers)
-            AddOffer(offer.Author, offer);
-    }
-
     private void RemoveOffer(ICommercialAgent author, Offer offer)
     {
         if (!_stateMap.TryGetValue(author, out var offers))
