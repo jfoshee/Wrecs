@@ -38,28 +38,12 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
         }
     }
 
-    public void Tick()
-    {
-    }
+    public void Tick() { }
 
     internal class CommercialState
     {
-        // Internally use empty string for unitless (null) since Dictionary doesn't allow null keys
-        private const string UnitlessKey = "";
-
         public int MoneyBalance { get; set; }
         public Dictionary<string, int> Inventory { get; } = [];
-
-        public int GetResourceBalance(string? resourceType) =>
-            Inventory.TryGetValue(resourceType ?? UnitlessKey, out var balance) ? balance : 0;
-
-        public void AddResources(string? resourceType, int amount)
-        {
-            var key = resourceType ?? UnitlessKey;
-            if (!Inventory.TryGetValue(key, out var current))
-                current = 0;
-            Inventory[key] = current + amount;
-        }
 
         public CommercialState(CommercialSnapshot snapshot)
         {
