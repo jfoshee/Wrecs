@@ -26,12 +26,13 @@ public interface ISpatialController : IController<PositionSnapshot>
 {
 }
 
-public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
+public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>, ITickPhases
 {
     private List<IEntity> _entities = [];
     private IEnumerable<ISpatialAgent> Agents => _entities.OfType<ISpatialAgent>();
 
     private readonly Dictionary<IEntity, Position> _entityPositions = [];
+    private Dictionary<ISpatialAgent, Vector> _pendingSteps = [];
 
     public PositionSnapshot GetState(IEntity entity) => new(_entityPositions[entity]);
 
@@ -54,16 +55,23 @@ public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
         }
     }
 
-    public void Tick()
+    public void PrepareUpdates()
     {
         // Get steps that all agents want to take
-        var agentSteps = Agents.ToDictionary(agent => agent, agent => agent.GetStep(_entityPositions[agent]));
+        _pendingSteps = Agents.ToDictionary(agent => agent, agent => agent.GetStep(_entityPositions[agent]));
+    }
 
+    public void ApplyUpdates()
+    {
         // Update Agents based on their steps
-        foreach (var (agent, step) in agentSteps)
-        {
+        foreach (var (agent, step) in _pendingSteps)
             _entityPositions[agent] += step;
-        }
+    }
+
+    public void Tick()
+    {
+        PrepareUpdates();
+        ApplyUpdates();
     }
 
     public double GetDistance(Position p1, Position p2)

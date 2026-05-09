@@ -7,6 +7,12 @@ public interface ISystem
     void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState);
 }
 
+public interface ITickPhases
+{
+    void PrepareUpdates();
+    void ApplyUpdates();
+}
+
 public interface IControllableSystem : ISystem
 {
     bool MatchesController(IController controller);

@@ -12,7 +12,7 @@ public interface ITakeTurns : IEntity;
 /// </summary>
 public record struct TurnSnapshot(bool IsMyTurn, int Phase = 0) : IStateSnapshot<TurnSystem>;
 
-public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>
+public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>, ITickPhases
 {
     private List<IEntity> _entities = [];
     private int _currentTurnIndex = 0;
@@ -60,7 +60,9 @@ public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>
         return new TurnSnapshot(index == _currentTurnIndex, _currentPhase);
     }
 
-    public void Tick()
+    public void PrepareUpdates() { }
+
+    public void ApplyUpdates()
     {
         _currentPhase++;
         if (_currentPhase < PhasesPerTurn)
@@ -68,6 +70,12 @@ public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>
 
         _currentPhase = 0;
         _currentTurnIndex = (_currentTurnIndex + 1) % _entities.Count;
+    }
+
+    public void Tick()
+    {
+        PrepareUpdates();
+        ApplyUpdates();
     }
 
     public IEntity GetCurrentPlayer() => _entities[_currentTurnIndex];

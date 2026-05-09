@@ -12,11 +12,12 @@ public record struct OfferListSnapshot(List<OfferSnapshot>? OfferSnapshots) : IS
     }
 }
 
-public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequire<CommercialSystem>
+public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequire<CommercialSystem>, ITickPhases
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, List<Offer>> _stateMap = [];
     private CommercialSystem? _commercialSystem;
+    private List<(ICommercialAgent Agent, Decision Decision)> _pendingDecisions = [];
 
     private readonly List<ITradePolicy> _tradePolicies = [
         new OfferSingleUsePolicy(),
@@ -54,7 +55,7 @@ public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequir
         }
     }
 
-    public void Tick()
+    public void PrepareUpdates()
     {
         var allOffers = _stateMap.Values.SelectMany(x => x).ToList();
 
@@ -71,9 +72,13 @@ public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequir
             decisions.Add((agent, decision));
         }
 
+        _pendingDecisions = Shuffle(decisions);
+    }
+
+    public void ApplyUpdates()
+    {
         // Processing phase
-        decisions = Shuffle(decisions);
-        foreach (var (agent, decision) in decisions)
+        foreach (var (agent, decision) in _pendingDecisions)
         {
             switch (decision)
             {
@@ -88,6 +93,12 @@ public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequir
                     break;
             }
         }
+    }
+
+    public void Tick()
+    {
+        PrepareUpdates();
+        ApplyUpdates();
     }
 
     private void AddOffer(ICommercialAgent agent, Offer offer)
