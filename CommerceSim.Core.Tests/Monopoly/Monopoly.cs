@@ -6,7 +6,7 @@ public class MonopolyTest(ITestOutputHelper output)
     private readonly IOutput _output = new XUnitOutput(output);
 
     [Fact(DisplayName = "Turns and Movement")]
-    public void MonopolyGameTest()
+    public void TurnsAndMovement()
     {
         var game = new MonopolyGame(_output);
         game.Init();
@@ -28,6 +28,8 @@ public class MonopolyTest(ITestOutputHelper output)
         game.Tick(); // Player 1 moves again
         game.GetPosition(game.Player1).Should().BeInRange(p1Position + 2, p1Position + 12); // Player 1 should have moved forward by 2-12 spaces
         game.GetPosition(game.Player2).Should().Be(p2Position); // Player 2 should not have moved
+
+        game.Tick(); // Log final state
     }
 
     [Fact(DisplayName = "Player buys Baltic from Real Estate Agent")]

@@ -22,14 +22,18 @@ public class SystemLoggerTests
 
         logger.Inject(system);
         system.InitEntities((entity1, null), (entity2, null));
-        system.Tick();
 
-        logger.Tick();
+        // Prepare phase
+        logger.PrepareUpdates();
+        system.PrepareUpdates();
+        // Apply phase
+        logger.ApplyUpdates();
+        system.ApplyUpdates();
 
         output.Lines.Should().Equal(
-            "TurnSystem Tick 0",
-            "Entity1 (1): TurnSnapshot { IsMyTurn = False, Phase = 0 }",
-            "Entity2 (2): TurnSnapshot { IsMyTurn = True, Phase = 0 }");
+            "--- TurnSystem Tick 0 ---",
+            "Entity1 (1): TurnSnapshot { IsMyTurn = True, Phase = 0 }",
+            "Entity2 (2): TurnSnapshot { IsMyTurn = False, Phase = 0 }");
     }
 
     [Fact(DisplayName = "System logger piggy-backs on Sim tick order")]
@@ -49,8 +53,8 @@ public class SystemLoggerTests
         sim.Tick();
 
         output.Lines.Should().Equal(
-            "TurnSystem Tick 0",
-            "Entity1 (1): TurnSnapshot { IsMyTurn = False, Phase = 0 }",
-            "Entity2 (2): TurnSnapshot { IsMyTurn = True, Phase = 0 }");
+            "--- TurnSystem Tick 0 ---",
+            "Entity1 (1): TurnSnapshot { IsMyTurn = True, Phase = 0 }",
+            "Entity2 (2): TurnSnapshot { IsMyTurn = False, Phase = 0 }");
     }
 }

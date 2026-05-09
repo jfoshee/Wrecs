@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 
 namespace CommerceSim.Core;
 
-public class SystemLogger<TSystem>(IOutput output) : ISystem, IRequire<TSystem>
+public class SystemLogger<TSystem>(IOutput output) : ISystem, IRequire<TSystem>, ITickPhases
     where TSystem : class, ISystem
 {
     private static readonly Func<TSystem, IReadOnlyList<IEntity>> _getEntities = CreateGetEntities();
@@ -18,17 +18,26 @@ public class SystemLogger<TSystem>(IOutput output) : ISystem, IRequire<TSystem>
 
     public void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState) { }
 
-    public void Tick()
+    public void PrepareUpdates()
     {
-        var system = _system ?? throw new InvalidOperationException($"{nameof(SystemLogger<TSystem>)} requires an injected {typeof(TSystem).Name}.");
-        output.WriteLine($"{typeof(TSystem).Name} Tick {_tickCount}");
+        var system = _system ?? throw new InvalidOperationException($"{nameof(SystemLogger<>)} requires an injected {typeof(TSystem).Name}.");
+        output.WriteLine($"--- {typeof(TSystem).Name} Tick {_tickCount} ---");
 
         foreach (var entity in _getEntities(system))
         {
             output.WriteLine($"{entity.Name} ({entity.Id}): {_getState(system, entity)}");
         }
+    }
 
+    public void ApplyUpdates()
+    {
         _tickCount++;
+    }
+
+    public void Tick()
+    {
+        PrepareUpdates();
+        ApplyUpdates();
     }
 
     private static Type GetStateSystemInterface() =>
