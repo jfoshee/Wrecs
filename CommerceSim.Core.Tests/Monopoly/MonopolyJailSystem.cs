@@ -4,13 +4,16 @@ namespace CommerceSim.Core.Tests.Monopoly;
 
 record struct MonopolyJailSnapshot(bool IsInJail, int TurnsRemaining) : IStateSnapshot<MonopolyJailSystem>;
 
-class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>
+class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>, IRequire<TurnSystem>
 {
-    public const string PayFineResource = "Pay Fine : Get out of Jail";
+    public const string PayFineResource = "Jail Fine Receipt";
     private readonly List<IEntity> _entities = [];
     public IReadOnlyList<IEntity> GetEntities() => _entities;
 
     private readonly Dictionary<IEntity, int> _turnsRemaining = [];
+
+    private TurnSystem? _turnSystem;
+    public void Inject(TurnSystem dependency) => _turnSystem = dependency;
 
     public void InitEntities(params (IEntity entity, MonopolyJailSnapshot? initialState)[] initialEntities)
     {
@@ -49,10 +52,12 @@ class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>
     {
         foreach (var entity in _turnsRemaining.Keys.ToList())
         {
-            // TODO: Handle phases per turn
-            _turnsRemaining[entity]--;
-            if (_turnsRemaining[entity] <= 0)
-                _turnsRemaining.Remove(entity);
+            if (_turnSystem?.CurrentPhase == 1)
+            {
+                _turnsRemaining[entity]--;
+                if (_turnsRemaining[entity] <= 0)
+                    _turnsRemaining.Remove(entity);
+            }
         }
     }
 
@@ -73,7 +78,7 @@ class MonopolyJailController :
 
     public MonopolyJailSnapshot GetNewState(IEntity entity, MonopolyJailSnapshot currentState)
     {
-        // Snd them to jail for 3 turns
+        // Send them to jail for 3 turns
         return new MonopolyJailSnapshot(true, 3);
     }
 
@@ -86,6 +91,8 @@ class MonopolyJailController :
     public void Inject(SpatialSystem dependency) => _spatialSystem = dependency;
 }
 
+// TODO: A controller that gets inmates out of jail (e.g. if they possess a PayFineResource)
+
 // Jailer is an agent that makes an offer to allow an inmate to pay $50 to get out of jail.
 class JailerAgent : ICommercialAgent, IRequire<MonopolyJailSystem>
 {
@@ -95,9 +102,7 @@ class JailerAgent : ICommercialAgent, IRequire<MonopolyJailSystem>
     private MonopolyJailSystem? _jailSystem;
     public void Inject(MonopolyJailSystem dependency) => _jailSystem = dependency;
 
-    public Decision Decide(CommercialSnapshot state, List<Offer> offers) => new DoNothingDecision();
-
-    public IEnumerable<Offer> GetOffers(IEntity entity, CommercialSnapshot commercialState)
+    public Decision Decide(CommercialSnapshot state, List<Offer> offers)
     {
         // TODO: Only make the offer on the inmate's turn (which phase?)
         // Make offers to all inmates to pay $50 to get out of jail
@@ -106,7 +111,10 @@ class JailerAgent : ICommercialAgent, IRequire<MonopolyJailSystem>
         {
             var inmateAgent = (ICommercialAgent)inmate;  // HACK: Do we require that all monopoly players are commercial agents? Maybe we should?
             var offer = new TargetedSellOffer(this, inmateAgent, 50, 1, MonopolyJailSystem.PayFineResource);
-            yield return offer;
+            return new MakeOfferDecision(offer);
+            // yield return offer;
+            // TODO: Handle making multiple offers
         }
+        return new DoNothingDecision();
     }
 }
