@@ -5,12 +5,16 @@ public interface ISystem
     void Tick();
 
     void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState);
+}
+
+public interface IControllableSystem : ISystem
+{
     bool MatchesController(IController controller);
-    void ApplyController(IController controller, IEnumerable<ISystem> matchingSystems);
+    void ApplyController(IController controller, IEnumerable<IControllableSystem> matchingSystems);
     void ApplyStateUpdates(IController controller, IEntity[] entities);
 }
 
-public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem
+public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem, IControllableSystem
     where TMarkerInterface : IEntity
     where TStateSnapshot : struct
 {
@@ -32,12 +36,12 @@ public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem
         InitEntities(matchingEntities);
     }
 
-    bool ISystem.MatchesController(IController controller)
+    bool IControllableSystem.MatchesController(IController controller)
     {
         return controller is IController<TStateSnapshot>;
     }
 
-    void ISystem.ApplyController(IController controller, IEnumerable<ISystem> matchingSystems)
+    void IControllableSystem.ApplyController(IController controller, IEnumerable<IControllableSystem> matchingSystems)
     {
         if (controller is IController<TStateSnapshot> typedController)
         {
@@ -49,7 +53,7 @@ public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem
         }
     }
 
-    void ISystem.ApplyStateUpdates(IController controller, IEntity[] entities)
+    void IControllableSystem.ApplyStateUpdates(IController controller, IEntity[] entities)
     {
         if (controller is IController<TStateSnapshot> typedController)
         {

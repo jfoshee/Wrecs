@@ -53,7 +53,8 @@ public class Sim
         foreach (var system in _systems)
         {
             system.Tick();
-            ApplyControllers(system);
+            if (system is IControllableSystem controllableSystem)
+                ApplyControllers(controllableSystem);
         }
     }
 
@@ -79,7 +80,7 @@ public class Sim
         }
     }
 
-    private void ApplyControllers(ISystem system)
+    private void ApplyControllers(IControllableSystem system)
     {
         // We grab each controller only once to make sure we do not call GetEntitiesToUpdate more than once,
         // and we loop over matching systems for each controller. This could be made less awkward.
@@ -109,6 +110,7 @@ public class Sim
     private bool IsPrimaryControllerSystem(IController controller, ISystem system) =>
         ReferenceEquals(GetMatchingSystems(controller).FirstOrDefault(), system);
 
-    private ISystem[] GetMatchingSystems(IController controller) =>
-        [.. _systems.Where(system => system.MatchesController(controller))];
+    private IControllableSystem[] GetMatchingSystems(IController controller) =>
+        [.. _systems.OfType<IControllableSystem>()
+                    .Where(system => system.MatchesController(controller))];
 }

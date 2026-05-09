@@ -16,9 +16,6 @@ public class SystemLogger<TSystem>(IOutput output) : ISystem, IRequire<TSystem>
         _system = dependency;
     }
 
-    public void ApplyController(IController controller, IEnumerable<ISystem> matchingSystems) { }
-    public bool MatchesController(IController controller) => false;
-    public void ApplyStateUpdates(IController controller, IEntity[] entities) { }
     public void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState) { }
 
     public void Tick()
