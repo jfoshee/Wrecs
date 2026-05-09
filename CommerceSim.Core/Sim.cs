@@ -50,9 +50,21 @@ public class Sim
     public void Tick()
     {
         EnsureDependenciesInjected();
+        foreach (var tickPhaseSystem in _systems.OfType<ITickPhases>())
+        {
+            tickPhaseSystem.PrepareUpdates();
+        }
+
         foreach (var system in _systems)
         {
-            system.Tick();
+            if (system is ITickPhases tickPhaseSystem)
+            {
+                tickPhaseSystem.ApplyUpdates();
+            }
+            else
+            {
+                system.Tick();
+            }
             if (system is IControllableSystem controllableSystem)
                 ApplyControllers(controllableSystem);
         }

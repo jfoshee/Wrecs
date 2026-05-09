@@ -15,13 +15,15 @@ public class MonopolyTest(ITestOutputHelper output)
         var p1Position = game.GetPosition(game.Player1);
         p1Position.Should().BeInRange(2, 12); // 2 six-sided dice can yield a result between 2 and 12
         game.GetPosition(game.Player2).Should().Be(0);
-        game.Tick(); // Resolution phase
+        game.Tick(); // Offer phase
+        game.Tick(); // Decision phase
 
         game.Tick(); // Player 2 moves
         game.GetPosition(game.Player1).Should().Be(p1Position); // Player 1 should not have moved
         var p2Position = game.GetPosition(game.Player2);
         p2Position.Should().BeInRange(2, 12);
-        game.Tick(); // Resolution phase
+        game.Tick(); // Offer phase
+        game.Tick(); // Decision phase
 
         game.Tick(); // Player 1 moves again
         game.GetPosition(game.Player1).Should().BeInRange(p1Position + 2, p1Position + 12); // Player 1 should have moved forward by 2-12 spaces
@@ -46,7 +48,9 @@ public class MonopolyTest(ITestOutputHelper output)
 
         game.Tick(); // Player 1 moves to Baltic
         game.GetPosition(game.Player1).Should().Be(3);
-        game.Tick(); // Agent makes offer to sell Baltic, Player 1 takes it
+        game.Tick(); // Agent makes offer to sell Baltic
+        // TODO: verify offer exists
+        game.Tick(); // Player 1 takes it
 
         // Player should have bought Baltic Avenue from the RealEstateAgent
         game.GetCommercialState(game.Player1).GetResourceBalance("Baltic Avenue").Should().Be(1);
@@ -74,7 +78,8 @@ public class MonopolyTest(ITestOutputHelper output)
         game.Tick(); // Player 1 moves to Baltic
         game.GetPosition(game.Player1).Should().Be(3);
 
-        game.Tick(); // Agent makes offer, Player 1 buys Baltic
+        game.Tick(); // Agent makes offer
+        game.Tick(); // Player 1 takes offer
         game.GetCommercialState(game.Player1).GetResourceBalance("Baltic Avenue").Should().Be(1);
         game.GetCommercialState(game.Player1).MoneyBalance.Should().Be(1500 - 60);
         game.GetPosition(game.Player2).Should().Be(0);
@@ -102,9 +107,11 @@ public class MonopolyTest(ITestOutputHelper output)
         for (var round = 0; round < 4; round++)
         {
             game.Tick(); // Player 1 moves
-            game.Tick(); // Player 1 resolution
+            game.Tick(); // Player 1 receives offers
+            game.Tick(); // Player 1 makes decisions
             game.Tick(); // Player 2 move, ignored in this scenario
-            game.Tick(); // Player 2 resolution
+            game.Tick(); // Player 2 receives offers
+            game.Tick(); // Player 2 makes decisions
         }
         game.GetPosition(game.Player1).Should().Be(24); // After 4 rounds of rolling 6, Player 1 should be on position 24
 
