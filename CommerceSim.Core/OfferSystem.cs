@@ -138,40 +138,31 @@ public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequir
 
     private void Execute(Offer offer, ICommercialAgent counterparty, CommercialSnapshot authorState, CommercialSnapshot counterpartyState)
     {
-        CommercialSnapshot buyer, seller;
+        ICommercialAgent buyer, seller;
+        CommercialSnapshot buyerState, sellerState;
         switch (offer)
         {
-            case BuyOffer buyOffer:
-                buyer = authorState;
-                seller = counterpartyState;
+            case BuyOffer:
+                (buyer, buyerState) = (offer.Author, authorState);
+                (seller, sellerState) = (counterparty, counterpartyState);
                 break;
-            case SellOffer sellOffer:
-                buyer = counterpartyState;
-                seller = authorState;
+            case SellOffer:
+                (buyer, buyerState) = (counterparty, counterpartyState);
+                (seller, sellerState) = (offer.Author, authorState);
                 break;
             default:
                 throw new InvalidOperationException("Unknown offer type");
         }
         // Transfer money from buyer to seller
-        var buyerMoneyBalance = buyer.MoneyBalance - offer.Price;
-        var sellerMoneyBalance = seller.MoneyBalance + offer.Price;
+        var buyerMoneyBalance = buyerState.MoneyBalance - offer.Price;
+        var sellerMoneyBalance = sellerState.MoneyBalance + offer.Price;
         // Transfer resources from seller to buyer
-        var buyerResourceBalance = buyer.GetResourceBalance(offer.ResourceType) + offer.Resources;
-        var sellerResourceBalance = seller.GetResourceBalance(offer.ResourceType) - offer.Resources;
+        var buyerResourceBalance = buyerState.GetResourceBalance(offer.ResourceType) + offer.Resources;
+        var sellerResourceBalance = sellerState.GetResourceBalance(offer.ResourceType) - offer.Resources;
         // Update states
-        var updatedBuyerState = UpdatedInventory(buyer, buyerMoneyBalance, buyerResourceBalance, offer.ResourceType);
-        var updatedSellerState = UpdatedInventory(seller, sellerMoneyBalance, sellerResourceBalance, offer.ResourceType);
-        switch (offer)
-        {
-            case BuyOffer:
-                _commercialSystem!.SetStates([
-                    (offer.Author, updatedBuyerState), (counterparty, updatedSellerState)]);
-                break;
-            case SellOffer:
-                _commercialSystem!.SetStates([
-                    (offer.Author, updatedSellerState), (counterparty, updatedBuyerState)]);
-                break;
-        }
+        var updatedBuyerState = UpdatedInventory(buyerState, buyerMoneyBalance, buyerResourceBalance, offer.ResourceType);
+        var updatedSellerState = UpdatedInventory(sellerState, sellerMoneyBalance, sellerResourceBalance, offer.ResourceType);
+        _commercialSystem!.SetStates([(buyer, updatedBuyerState), (seller, updatedSellerState)]);
     }
 
     private static CommercialSnapshot UpdatedInventory(CommercialSnapshot state, int newMoneyBalance, int newResourceBalance, string? resourceType)
