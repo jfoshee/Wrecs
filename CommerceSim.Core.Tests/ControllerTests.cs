@@ -21,9 +21,10 @@ public class SystemA : IControllableSystem<TestEntity, StateA>
 
     public IReadOnlyList<IEntity> GetEntities() => _entities;
     public StateA GetState(IEntity entity) => _states.TryGetValue(entity, out var s) ? s : default;
-    public void SetStates(IEnumerable<(IEntity entity, StateA state)> stateUpdates)
+    public void ApplyUpdates(IEnumerable<EntityUpdate<StateA>> updates)
     {
-        foreach (var (entity, state) in stateUpdates) _states[entity] = state;
+        foreach (var update in updates)
+            _states[update.Entity] = update.State;
     }
 
     public void PrepareUpdates() { }
@@ -47,9 +48,10 @@ public class SystemB : IControllableSystem<TestEntity, StateB>
 
     public IReadOnlyList<IEntity> GetEntities() => _entities;
     public StateB GetState(IEntity entity) => _states.TryGetValue(entity, out var s) ? s : default;
-    public void SetStates(IEnumerable<(IEntity entity, StateB state)> stateUpdates)
+    public void ApplyUpdates(IEnumerable<EntityUpdate<StateB>> updates)
     {
-        foreach (var (entity, state) in stateUpdates) _states[entity] = state;
+        foreach (var update in updates)
+            _states[update.Entity] = update.State;
     }
 
     public void PrepareUpdates() { }

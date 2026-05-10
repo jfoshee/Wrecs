@@ -47,11 +47,11 @@ public class SpatialSystem : IControllableSystem<ISpatialEntity, PositionSnapsho
         }
     }
 
-    public void SetStates(IEnumerable<(IEntity entity, PositionSnapshot state)> stateUpdates)
+    public void ApplyUpdates(IEnumerable<EntityUpdate<PositionSnapshot>> updates)
     {
-        foreach (var (entity, state) in stateUpdates)
+        foreach (var update in updates)
         {
-            _entityPositions[entity] = state;
+            _entityPositions[update.Entity] = update.State;
         }
     }
 

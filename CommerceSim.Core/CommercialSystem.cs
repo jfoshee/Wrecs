@@ -7,7 +7,7 @@ public interface ICommercialEntity : IEntity;
 
 public interface ICommercialController : IController<CommercialSnapshot>;
 
-public class CommercialSystem : IControllableSystem<ICommercialEntity, CommercialSnapshot>, IAcceptUpdates<CommercialSnapshot>
+public class CommercialSystem : IControllableSystem<ICommercialEntity, CommercialSnapshot>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, CommercialState> _states = [];
@@ -32,14 +32,6 @@ public class CommercialSystem : IControllableSystem<ICommercialEntity, Commercia
 
     public void PrepareUpdates() { }
     public void ApplyUpdates() { }
-
-    public void SetStates(IEnumerable<(IEntity entity, CommercialSnapshot state)> stateUpdates)
-    {
-        foreach (var (entity, state) in stateUpdates)
-        {
-            _states[entity] = new CommercialState(state);
-        }
-    }
 
     public void ApplyUpdates(IEnumerable<EntityUpdate<CommercialSnapshot>> updates)
     {

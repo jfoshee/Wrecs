@@ -74,12 +74,10 @@ public interface IControllableSystem : ISystem
     void ApplyStateUpdates(IController controller, IEntity[] entities);
 }
 
-public interface IControllableSystem<TMarkerInterface, TStateSnapshot> : IControllableSystem, ISystem<TMarkerInterface, TStateSnapshot>
+public interface IControllableSystem<TMarkerInterface, TStateSnapshot> : IControllableSystem, ISystem<TMarkerInterface, TStateSnapshot>, IAcceptUpdates<TStateSnapshot>
     where TMarkerInterface : IEntity
-    where TStateSnapshot : struct
+    where TStateSnapshot : struct, IStateSnapshot
 {
-    void SetStates(IEnumerable<(IEntity entity, TStateSnapshot state)> stateUpdates);
-
     bool IControllableSystem.MatchesController(IController controller)
     {
         return controller is IController<TStateSnapshot>;
@@ -101,8 +99,8 @@ public interface IControllableSystem<TMarkerInterface, TStateSnapshot> : IContro
     {
         if (controller is IController<TStateSnapshot> typedController)
         {
-            SetStates(entities.Select(entity =>
-                (entity, typedController.GetNewState(entity, GetState(entity)))));
+            ApplyUpdates(entities.Select(entity =>
+                new EntityUpdate<TStateSnapshot>(entity, typedController.GetNewState(entity, GetState(entity)))));
         }
     }
 }
