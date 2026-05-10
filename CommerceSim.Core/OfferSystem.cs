@@ -12,9 +12,12 @@ public record struct OfferListSnapshot(List<OfferSnapshot>? OfferSnapshots) : IS
     }
 }
 
+public record struct RemoveOfferOperation(Offer? Offer) : IStateSnapshot<OfferSystem>;
+
 public class OfferSystem :
     ISystem<ICommercialAgent, OfferListSnapshot>,
     IPrepareCompositeUpdates,
+    IAcceptUpdates<RemoveOfferOperation>,
     IRequire<CommercialSystem>
 {
     private readonly List<IEntity> _entities = [];
@@ -78,19 +81,6 @@ public class OfferSystem :
         _pendingDecisions = Shuffle(decisions);
     }
 
-    public void ApplyUpdates()
-    {
-        // Make-offer decisions can be handled here because they only affect the offer system's own state
-        foreach (var (agent, decision) in _pendingDecisions)
-        {
-            if (decision is MakeOfferDecision makeOfferDecision)
-            {
-                var newOffer = makeOfferDecision.Offer;
-                AddOffer(agent, newOffer);
-            }
-        }
-    }
-
     public IEnumerable<UpdateSet> PrepareCompositeUpdates()
     {
         // Take-offer decisions need to be processed here because they affect multiple systems
@@ -105,6 +95,29 @@ public class OfferSystem :
             }
         }
         return updateSets;
+    }
+
+    public void ApplyUpdates()
+    {
+        // Make-offer decisions can be handled here because they only affect the offer system's own state
+        foreach (var (agent, decision) in _pendingDecisions)
+        {
+            if (decision is MakeOfferDecision makeOfferDecision)
+            {
+                var newOffer = makeOfferDecision.Offer;
+                AddOffer(agent, newOffer);
+            }
+        }
+    }
+
+    public void ApplyUpdates(IEnumerable<EntityUpdate<RemoveOfferOperation>> updates)
+    {
+        foreach (var update in updates)
+        {
+            var operation = update.State;
+            if (operation.Offer is not null)
+                RemoveOffer(operation.Offer.Author, operation.Offer);
+        }
     }
 
     private void AddOffer(ICommercialAgent agent, Offer offer)
@@ -149,16 +162,13 @@ public class OfferSystem :
         {
             policy.OnExecuted(trade);
         }
-
-        RemoveOffer(author, offer);
-
         return new UpdateSet(updates);
     }
 
-    private static IEnumerable<EntityUpdate<CommercialSnapshot>> Execute(Offer offer,
-                                                                         ICommercialAgent counterparty,
-                                                                         CommercialSnapshot authorState,
-                                                                         CommercialSnapshot counterpartyState)
+    private static IEnumerable<IEntityUpdate> Execute(Offer offer,
+                                                      ICommercialAgent counterparty,
+                                                      CommercialSnapshot authorState,
+                                                      CommercialSnapshot counterpartyState)
     {
         ICommercialAgent buyer, seller;
         CommercialSnapshot buyerState, sellerState;
@@ -181,11 +191,15 @@ public class OfferSystem :
         // Transfer resources from seller to buyer
         var buyerResourceBalance = buyerState.GetResourceBalance(offer.ResourceType) + offer.Resources;
         var sellerResourceBalance = sellerState.GetResourceBalance(offer.ResourceType) - offer.Resources;
-        // Update states
+        // Generate updates
         var updatedBuyerState = UpdatedInventory(buyerState, buyerMoneyBalance, buyerResourceBalance, offer.ResourceType);
         var updatedSellerState = UpdatedInventory(sellerState, sellerMoneyBalance, sellerResourceBalance, offer.ResourceType);
-        return [new EntityUpdate<CommercialSnapshot>(buyer, updatedBuyerState),
-                new EntityUpdate<CommercialSnapshot>(seller, updatedSellerState)];
+        return
+        [
+            new EntityUpdate<CommercialSnapshot>(buyer, updatedBuyerState),
+            new EntityUpdate<CommercialSnapshot>(seller, updatedSellerState),
+            new EntityUpdate<RemoveOfferOperation>(offer.Author, new RemoveOfferOperation(offer))
+        ];
     }
 
     private static CommercialSnapshot UpdatedInventory(CommercialSnapshot state, int newMoneyBalance, int newResourceBalance, string? resourceType)
@@ -199,6 +213,8 @@ public class OfferSystem :
 
     private static List<Offer> State(OfferListSnapshot snapshot)
     {
+        if (snapshot.OfferSnapshots is null)
+            return [];
         return [.. snapshot.OfferSnapshots.Select(State)];
     }
 

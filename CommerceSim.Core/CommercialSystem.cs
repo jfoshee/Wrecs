@@ -30,7 +30,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>, 
         }
     }
 
-
     public void PrepareUpdates() { }
     public void ApplyUpdates() { }
 

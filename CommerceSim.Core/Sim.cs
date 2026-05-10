@@ -74,7 +74,9 @@ public class Sim
                 acceptUpdatesSystem.ApplyUpdates(allUpdates);
             }
             if (system is IControllableSystem controllableSystem)
+            {
                 ApplyControllers(controllableSystem);
+            }
         }
     }
 
