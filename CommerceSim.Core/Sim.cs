@@ -7,7 +7,6 @@ public class Sim
 {
     private SpatialSystem SpatialSystem => _systems.OfType<SpatialSystem>().First();
     private CommercialSystem CommercialSystem => _systems.OfType<CommercialSystem>().First();
-    private OfferSystem OfferSystem => _systems.OfType<OfferSystem>().First();
     private readonly List<ISystem> _systems =
     [
         new SpatialSystem(),
@@ -58,7 +57,8 @@ public class Sim
             system.PrepareUpdates();
             if (system is IPrepareCompositeUpdates compositeUpdateSystem)
             {
-                compositeUpdates.AddRange(compositeUpdateSystem.PrepareCompositeUpdates());
+                var updateSet = compositeUpdateSystem.PrepareCompositeUpdates();
+                compositeUpdates.AddRange(updateSet);
             }
         }
 
