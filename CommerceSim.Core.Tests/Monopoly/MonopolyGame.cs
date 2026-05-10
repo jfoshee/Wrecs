@@ -27,7 +27,8 @@ public class MonopolyGame : Sim
         AddSystem(JailSystem);
         AddSystem(new LogTickSystem(this.output));
         AddSystem(new SystemLogger<TurnSystem>(this.output));
-        AddSystem(new SystemLogger<CommercialSystem>(this.output));
+        AddSystem(new SystemLogger<MoneySystem>(this.output));
+        AddSystem(new SystemLogger<InventorySystem>(this.output));
         AddSystem(new SystemLogger<OfferSystem>(this.output));
         AddSystem(new SystemLogger<SpatialSystem>(this.output));
         AddSystem(new SystemLogger<MonopolyJailSystem>(this.output));

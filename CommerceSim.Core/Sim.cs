@@ -6,11 +6,11 @@ namespace CommerceSim.Core;
 public class Sim
 {
     private SpatialSystem SpatialSystem => _systems.OfType<SpatialSystem>().First();
-    private CommercialSystem CommercialSystem => _systems.OfType<CommercialSystem>().First();
     private readonly List<ISystem> _systems =
     [
         new SpatialSystem(),
-        new CommercialSystem(),
+        new MoneySystem(),
+        new InventorySystem(),
         new OfferSystem(),
     ];
     private readonly List<IEntity> _entities = [];
@@ -80,9 +80,20 @@ public class Sim
         }
     }
 
-    public CommercialSnapshot GetCommercialState(IEntity entity) => CommercialSystem.GetState(entity);
+    public CommercialSnapshot GetCommercialState(IEntity entity)
+    {
+        var moneyState = _systems.OfType<MoneySystem>().First().GetState(entity);
+        var inventoryState = _systems.OfType<InventorySystem>().First().GetState(entity);
+        return new CommercialSnapshot(moneyState, inventoryState);
+    }
+
+    public IReadOnlyDictionary<int, CommercialSnapshot> GetStateSnapshot()
+    {
+        return _entities.OfType<ICommercialEntity>()
+                        .ToDictionary(e => e.Id, e => GetCommercialState(e));
+    }
+
     public Position GetPosition(IEntity entity) => SpatialSystem.GetState(entity).Position;
-    public IReadOnlyDictionary<int, CommercialSnapshot> GetStateSnapshot() => CommercialSystem.GetStateSnapshot();
     public IReadOnlyDictionary<int, string> GetAgentNames() => _entities.OfType<ICommercialAgent>().ToDictionary(a => a.Id, a => a.Name);
 
     private void EnsureDependenciesInjected()

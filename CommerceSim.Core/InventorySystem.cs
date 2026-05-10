@@ -10,7 +10,7 @@ public record struct InventorySnapshot : IStateSnapshot<InventorySystem>
 {
     private readonly ImmutableArray<(string Type, int Amount)> _inventory;
 
-    public ImmutableArray<(string Type, int Amount)> Inventory =>
+    public readonly ImmutableArray<(string Type, int Amount)> Inventory =>
         _inventory.IsDefault ? [] : _inventory;
 
     public InventorySnapshot(IEnumerable<(string Type, int Amount)> inventory)
@@ -18,7 +18,7 @@ public record struct InventorySnapshot : IStateSnapshot<InventorySystem>
         _inventory = Normalize(inventory);
     }
 
-    public int GetAmount(string resourceType)
+    public readonly int GetAmount(string resourceType)
     {
         foreach (var (type, amount) in Inventory)
             if (type == resourceType) return amount;
@@ -29,9 +29,9 @@ public record struct InventorySnapshot : IStateSnapshot<InventorySystem>
         IEnumerable<(string Type, int Amount)> inventory) =>
         [.. inventory.Where(i => i.Amount != 0).OrderBy(i => i.Type)];
 
-    public bool Equals(InventorySnapshot other) => Inventory.SequenceEqual(other.Inventory);
+    public readonly bool Equals(InventorySnapshot other) => Inventory.SequenceEqual(other.Inventory);
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         var hash = new HashCode();
         foreach (var (type, amount) in Inventory)
@@ -42,7 +42,7 @@ public record struct InventorySnapshot : IStateSnapshot<InventorySystem>
         return hash.ToHashCode();
     }
 
-    public override string ToString() =>
+    public override readonly string ToString() =>
         string.Join(", ", Inventory.Select(i => $"{i.Type}: {i.Amount}"));
 }
 
@@ -73,6 +73,17 @@ public class InventorySystem : IControllableSystem<IInventoryEntity, InventorySn
                     inv[type] = amount;
             _inventories[entity] = inv;
         }
+    }
+
+    void ISystem.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
+    {
+        var matchingEntities = entitiesWithState
+            .Select(e => (e.entity, initialState:
+                e.initialStates.OfType<InventorySnapshot>().Select(s => (InventorySnapshot?)s).FirstOrDefault()
+                ?? e.initialStates.OfType<CommercialSnapshot>().Select(s => (InventorySnapshot?)s.Inventory).FirstOrDefault()))
+            .Where(e => e.entity is IInventoryEntity || e.initialState != null)
+            .ToArray();
+        InitEntities(matchingEntities);
     }
 
     public void PrepareUpdates() { }

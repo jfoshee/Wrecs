@@ -7,11 +7,13 @@ namespace CommerceSim.Core.Tests.Monopoly;
 /// and giving the money to the owning player.
 /// </summary>
 public class MonopolyRentController(MonopolyProperty?[] boardConfig)
-    : ICommercialController, IRequire<TurnSystem>, IRequire<SpatialSystem>, IRequire<CommercialSystem>
+    : ICommercialController, IRequire<TurnSystem>, IRequire<SpatialSystem>,
+      IRequire<MoneySystem>, IRequire<InventorySystem>
 {
     private TurnSystem _turnSystem = null!;
     private SpatialSystem _spatialSystem = null!;
-    private CommercialSystem _commercialSystem = null!;
+    private MoneySystem _moneySystem = null!;
+    private InventorySystem _inventorySystem = null!;
 
     // Calculated per-tick rent adjustments (positive = receiving rent, negative = paying rent)
     private readonly Dictionary<IEntity, int> _rentAdjustments = [];
@@ -23,7 +25,8 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
 
     public void Inject(TurnSystem dependency) => _turnSystem = dependency;
     public void Inject(SpatialSystem dependency) => _spatialSystem = dependency;
-    public void Inject(CommercialSystem dependency) => _commercialSystem = dependency;
+    public void Inject(MoneySystem dependency) => _moneySystem = dependency;
+    public void Inject(InventorySystem dependency) => _inventorySystem = dependency;
 
     public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities)
     {
@@ -44,8 +47,7 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
         IEntity? owner = null;
         foreach (var entity in allEntities)
         {
-            var state = _commercialSystem.GetState(entity);
-            if (state.GetResourceBalance(property.Name) > 0)
+            if (_inventorySystem.GetState(entity).GetAmount(property.Name) > 0)
             {
                 owner = entity;
                 break;
@@ -62,9 +64,9 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
         var rent = property.Price / 10;
 
         // Check if tenant can afford rent
-        var tenantState = _commercialSystem.GetState(currentPlayer);
-        if (tenantState.MoneyBalance < rent)
-            rent = tenantState.MoneyBalance; // Pay what they can
+        var tenantMoney = _moneySystem.GetState(currentPlayer).MoneyBalance;
+        if (tenantMoney < rent)
+            rent = tenantMoney; // Pay what they can
 
         if (rent <= 0)
             return [];
@@ -76,12 +78,12 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
         return [currentPlayer, owner];
     }
 
-    public CommercialSnapshot GetNewState(IEntity entity, CommercialSnapshot currentState)
+    public MoneySnapshot GetNewState(IEntity entity, MoneySnapshot currentState)
     {
         if (_rentAdjustments.TryGetValue(entity, out var adjustment))
-        {
-            return currentState with { MoneyBalance = currentState.MoneyBalance + adjustment };
-        }
+            return new MoneySnapshot(currentState.MoneyBalance + adjustment);
         return currentState;
     }
+
+    public InventorySnapshot GetNewState(IEntity entity, InventorySnapshot currentState) => currentState;
 }

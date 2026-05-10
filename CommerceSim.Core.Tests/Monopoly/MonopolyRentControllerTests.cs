@@ -11,9 +11,8 @@ public class MonopolyRentControllerTests
     }
 
     [Fact(DisplayName = "Player pays rent when landing on property owned by another player")]
-    public void PlayerPaysRent_WhenLandingOnOwnedProperty()
+    public void PlayerPaysRentWhenLandingOnOwnedProperty()
     {
-        // Arrange - array index = board position
         var boardConfig = new MonopolyProperty?[]
         {
             null, null, null, new("Baltic Avenue", 60)  // Position 3 = Baltic, rent = 6 (10% of price)
@@ -34,22 +33,29 @@ public class MonopolyRentControllerTests
             (landlord, new PositionSnapshot(0))
         );
 
-        var commercialSystem = new CommercialSystem();
-        commercialSystem.InitEntities(
-            (tenant, new CommercialSnapshot(MoneyBalance: 100)),           // Tenant has $100
-            (landlord, new CommercialSnapshot(50, [("Baltic Avenue", 1)])) // Landlord owns Baltic, has $50
+        var moneySystem = new MoneySystem();
+        moneySystem.InitEntities(
+            (tenant, new MoneySnapshot(100)),    // Tenant has $100
+            (landlord, new MoneySnapshot(50))
+        );
+
+        var inventorySystem = new InventorySystem();
+        inventorySystem.InitEntities(
+            (tenant, null),
+            (landlord, new InventorySnapshot([("Baltic Avenue", 1)]))  // Landlord owns Baltic
         );
 
         var controller = new MonopolyRentController(boardConfig);
         controller.Inject(turnSystem);
         controller.Inject(spatialSystem);
-        controller.Inject(commercialSystem);
+        controller.Inject(moneySystem);
+        controller.Inject(inventorySystem);
 
         // Act
         var entitiesToUpdate = controller.GetEntitiesToUpdate([tenant, landlord]).ToList();
+        var tenantNewState = controller.GetNewState(tenant, moneySystem.GetState(tenant));
+        var landlordNewState = controller.GetNewState(landlord, moneySystem.GetState(landlord));
 
-        var tenantNewState = controller.GetNewState(tenant, commercialSystem.GetState(tenant));
-        var landlordNewState = controller.GetNewState(landlord, commercialSystem.GetState(landlord));
 
         // Assert
         entitiesToUpdate.Should().Contain(tenant);

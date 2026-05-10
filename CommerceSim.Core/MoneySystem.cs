@@ -29,6 +29,17 @@ public class MoneySystem : IControllableSystem<IMoneyEntity, MoneySnapshot>
         }
     }
 
+    void ISystem.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
+    {
+        var matchingEntities = entitiesWithState
+            .Select(e => (e.entity, initialState:
+                e.initialStates.OfType<MoneySnapshot>().Select(s => (MoneySnapshot?)s).FirstOrDefault()
+                ?? e.initialStates.OfType<CommercialSnapshot>().Select(s => (MoneySnapshot?)s.Money).FirstOrDefault()))
+            .Where(e => e.entity is IMoneyEntity || e.initialState != null)
+            .ToArray();
+        InitEntities(matchingEntities);
+    }
+
     public void PrepareUpdates() { }
     public void ApplyUpdates() { }
 

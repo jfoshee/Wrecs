@@ -1,86 +1,17 @@
-using System.Collections.Immutable;
-using System.Diagnostics;
-
 namespace CommerceSim.Core;
 
-[DebuggerDisplay("Money: {MoneyBalance}, Resources: {ResourceBalance}")]
-public record struct CommercialSnapshot : IStateSnapshot<CommercialSystem>
+public record struct CommercialSnapshot(MoneySnapshot Money, InventorySnapshot Inventory) : IStateSnapshot
 {
-    // Internally use empty string for unitless (null)
-    private const string UnitlessKey = "";
+    public CommercialSnapshot(int MoneyBalance, int ResourceBalance = 0)
+        : this(new MoneySnapshot(MoneyBalance), new InventorySnapshot([("", ResourceBalance)])) { }
 
-    public int MoneyBalance { get; init; }
-    private readonly ImmutableArray<(string Type, int Amount)> _inventory;
+    public CommercialSnapshot(int MoneyBalance, IEnumerable<(string Type, int Amount)> inventory)
+        : this(new MoneySnapshot(MoneyBalance), new InventorySnapshot(inventory)) { }
 
-    /// <summary>
-    /// Gets the inventory as an immutable array of (Type, Amount) tuples.
-    /// Always sorted by Type and excludes zero amounts.
-    /// </summary>
-    public ImmutableArray<(string Type, int Amount)> Inventory =>
-        _inventory.IsDefault ? [] : _inventory;
-
-    /// <summary>
-    /// Gets the balance for unitless resources (backward compatibility).
-    /// </summary>
-    public int ResourceBalance => GetResourceBalance(null);
-
-    public int GetResourceBalance(string? resourceType)
-    {
-        var key = resourceType ?? UnitlessKey;
-        foreach (var (type, amount) in Inventory)
-            if (type == key) return amount;
-        return 0;
-    }
-
-    public CommercialSnapshot(int MoneyBalance = 0, int ResourceBalance = 0)
-    {
-        this.MoneyBalance = MoneyBalance;
-        _inventory = Normalize([(UnitlessKey, ResourceBalance)]);
-    }
-
-    public CommercialSnapshot(int moneyBalance, IEnumerable<(string Type, int Amount)> inventory)
-    {
-        MoneyBalance = moneyBalance;
-        _inventory = Normalize(inventory);
-    }
-
-    internal CommercialSnapshot(CommercialSystem.CommercialState state)
-    {
-        MoneyBalance = state.MoneyBalance;
-        _inventory = Normalize([.. state.Inventory.Select(kvp => (kvp.Key, kvp.Value))]);
-    }
-
-    internal CommercialSnapshot(int money, Dictionary<string, int> inventory)
-        : this(money, inventory.Select(kvp => (kvp.Key, kvp.Value)))
-    {
-    }
-
-    /// <summary>
-    /// Normalizes inventory: filters out zero amounts, sorts by Type.
-    /// This enables simple SequenceEqual for equality comparison.
-    /// </summary>
-    private static ImmutableArray<(string Type, int Amount)> Normalize(
-        IEnumerable<(string Type, int Amount)> inventory) =>
-        [.. inventory.Where(i => i.Amount != 0).OrderBy(i => i.Type)];
-
-    public bool Equals(CommercialSnapshot other) =>
-        MoneyBalance == other.MoneyBalance && Inventory.SequenceEqual(other.Inventory);
-
-    public override int GetHashCode()
-    {
-        var hash = new HashCode();
-        hash.Add(MoneyBalance);
-        foreach (var (type, amount) in Inventory)
-        {
-            hash.Add(type);
-            hash.Add(amount);
-        }
-        return hash.ToHashCode();
-    }
-
-    public override string ToString()
-    {
-        var inventoryStr = string.Join(", ", Inventory.Select(i => $"{i.Type}: {i.Amount}"));
-        return $"Money: {MoneyBalance}, Inventory: [{inventoryStr}]";
-    }
+    public int MoneyBalance => Money.MoneyBalance;
+    public readonly int ResourceBalance => Inventory.GetAmount("");
+    public readonly int GetResourceBalance(string? resourceType) => Inventory.GetAmount(resourceType ?? "");
 }
+
+public interface ICommercialEntity : IMoneyEntity, IInventoryEntity;
+public interface ICommercialController : IController<MoneySnapshot>, IController<InventorySnapshot>;

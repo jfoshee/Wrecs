@@ -18,11 +18,13 @@ public class OfferSystem :
     ISystem<ICommercialAgent, OfferListSnapshot>,
     IPrepareCompositeUpdates,
     IAcceptUpdates<RemoveOfferOperation>,
-    IRequire<CommercialSystem>
+    IRequire<MoneySystem>,
+    IRequire<InventorySystem>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, List<Offer>> _stateMap = [];
-    private CommercialSystem? _commercialSystem;
+    private MoneySystem? _moneySystem;
+    private InventorySystem? _inventorySystem;
     private List<(ICommercialAgent Agent, Decision Decision)> _pendingDecisions = [];
 
     private readonly List<ITradePolicy> _tradePolicies = [
@@ -31,7 +33,8 @@ public class OfferSystem :
         new CannotCreateMoneyPolicy()
     ];
 
-    public void Inject(CommercialSystem dependency) => _commercialSystem = dependency;
+    public void Inject(MoneySystem dependency) => _moneySystem = dependency;
+    public void Inject(InventorySystem dependency) => _inventorySystem = dependency;
 
     public void InitEntities(params (IEntity entity, OfferListSnapshot? initialState)[] initialEntities)
     {
@@ -65,7 +68,7 @@ public class OfferSystem :
             var offersForAgent = allOffers
                 .Where(o => o is not TargetedSellOffer targeted || targeted.Buyer == agent)
                 .ToList();
-            var commercialState = _commercialSystem?.GetState(agent) ?? throw new InvalidOperationException("No state for agent");
+            var commercialState = BuildCommercialSnapshot(agent);
             var decision = agent.Decide(commercialState, offersForAgent);
             decisions.Add((agent, decision));
         }
@@ -131,8 +134,8 @@ public class OfferSystem :
     private UpdateSet ProcessOffer(ICommercialAgent taker, Offer offer)
     {
         var author = offer.Author;
-        var authorState = _commercialSystem!.GetState(author);
-        var counterpartyState = _commercialSystem!.GetState(taker);
+        var authorState = BuildCommercialSnapshot(author);
+        var counterpartyState = BuildCommercialSnapshot(taker);
 
         // Construct a trade based on the offer
         var trade = new Trade(Offer: offer,
@@ -156,6 +159,9 @@ public class OfferSystem :
         }
         return new UpdateSet(updates);
     }
+
+    private CommercialSnapshot BuildCommercialSnapshot(IEntity entity) =>
+        new(_moneySystem!.GetState(entity), _inventorySystem!.GetState(entity));
 
     private static IEnumerable<IEntityUpdate> Execute(Offer offer,
                                                       ICommercialAgent counterparty,
@@ -183,24 +189,23 @@ public class OfferSystem :
         // Transfer resources from seller to buyer
         var buyerResourceBalance = buyerState.GetResourceBalance(offer.ResourceType) + offer.Resources;
         var sellerResourceBalance = sellerState.GetResourceBalance(offer.ResourceType) - offer.Resources;
-        // Generate updates
-        var updatedBuyerState = UpdatedInventory(buyerState, buyerMoneyBalance, buyerResourceBalance, offer.ResourceType);
-        var updatedSellerState = UpdatedInventory(sellerState, sellerMoneyBalance, sellerResourceBalance, offer.ResourceType);
         return
         [
-            new EntityUpdate<CommercialSnapshot>(buyer, updatedBuyerState),
-            new EntityUpdate<CommercialSnapshot>(seller, updatedSellerState),
+            new EntityUpdate<MoneySnapshot>(buyer, new MoneySnapshot(buyerMoneyBalance)),
+            new EntityUpdate<MoneySnapshot>(seller, new MoneySnapshot(sellerMoneyBalance)),
+            new EntityUpdate<InventorySnapshot>(buyer, UpdatedInventorySnapshot(buyerState.Inventory, buyerResourceBalance, offer.ResourceType)),
+            new EntityUpdate<InventorySnapshot>(seller, UpdatedInventorySnapshot(sellerState.Inventory, sellerResourceBalance, offer.ResourceType)),
             new EntityUpdate<RemoveOfferOperation>(offer.Author, new RemoveOfferOperation(offer))
         ];
     }
 
-    private static CommercialSnapshot UpdatedInventory(CommercialSnapshot state, int newMoneyBalance, int newResourceBalance, string? resourceType)
+    private static InventorySnapshot UpdatedInventorySnapshot(InventorySnapshot inventory, int newResourceBalance, string? resourceType)
     {
-        var newInventory = state.Inventory
-            .Except([(resourceType ?? "", state.GetResourceBalance(resourceType))])
-            .ToList();
-        newInventory.Add((resourceType ?? "", newResourceBalance));
-        return new CommercialSnapshot(newMoneyBalance, newInventory);
+        var key = resourceType ?? "";
+        var updated = inventory.Inventory
+            .Where(i => i.Type != key)
+            .Append((key, newResourceBalance));
+        return new InventorySnapshot(updated);
     }
 
     private static List<Offer> State(OfferListSnapshot snapshot)
