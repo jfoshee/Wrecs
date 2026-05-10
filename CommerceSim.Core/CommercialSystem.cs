@@ -7,7 +7,7 @@ public interface ICommercialEntity : IEntity;
 
 public interface ICommercialController : IController<CommercialSnapshot>;
 
-public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>, IAcceptUpdates<CommercialSnapshot>
+public class CommercialSystem : IControllableSystem<ICommercialEntity, CommercialSnapshot>, IAcceptUpdates<CommercialSnapshot>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, CommercialState> _states = [];

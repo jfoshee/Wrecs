@@ -8,6 +8,28 @@ public interface ISystem
     void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState);
 }
 
+public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem
+    where TMarkerInterface : IEntity
+    where TStateSnapshot : struct
+{
+    void InitEntities(params (IEntity entity, TStateSnapshot? initialState)[] initialEntities);
+    IReadOnlyList<IEntity> GetEntities();
+    TStateSnapshot GetState(IEntity entity);
+
+    // Default interface methods to apply generic types
+    void ISystem.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
+    {
+        // An entity is relevant to this system if it implements the marker interface or has an initial state for this system
+        var matchingEntities = entitiesWithState
+            .Select(e => (e.entity, initialState:
+                e.initialStates.OfType<TStateSnapshot>().Select(s => (TStateSnapshot?)s).FirstOrDefault()))
+            .Where(e => e.entity is TMarkerInterface || e.initialState != null)
+            .ToArray();
+
+        InitEntities(matchingEntities);
+    }
+}
+
 public interface IEntityUpdate
 {
     IEntity Entity { get; }
@@ -52,27 +74,11 @@ public interface IControllableSystem : ISystem
     void ApplyStateUpdates(IController controller, IEntity[] entities);
 }
 
-public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem, IControllableSystem
+public interface IControllableSystem<TMarkerInterface, TStateSnapshot> : IControllableSystem, ISystem<TMarkerInterface, TStateSnapshot>
     where TMarkerInterface : IEntity
     where TStateSnapshot : struct
 {
-    void InitEntities(params (IEntity entity, TStateSnapshot? initialState)[] initialEntities);
-    IReadOnlyList<IEntity> GetEntities();
-    TStateSnapshot GetState(IEntity entity);
     void SetStates(IEnumerable<(IEntity entity, TStateSnapshot state)> stateUpdates);
-
-    // Default interface methods to apply generic types
-    void ISystem.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
-    {
-        // An entity is relevant to this system if it implements the marker interface or has an initial state for this system
-        var matchingEntities = entitiesWithState
-            .Select(e => (e.entity, initialState:
-                e.initialStates.OfType<TStateSnapshot>().Select(s => (TStateSnapshot?)s).FirstOrDefault()))
-            .Where(e => e.entity is TMarkerInterface || e.initialState != null)
-            .ToArray();
-
-        InitEntities(matchingEntities);
-    }
 
     bool IControllableSystem.MatchesController(IController controller)
     {

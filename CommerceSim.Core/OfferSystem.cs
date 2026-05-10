@@ -53,14 +53,6 @@ public class OfferSystem :
         return Snapshot(state);
     }
 
-    public void SetStates(IEnumerable<(IEntity entity, OfferListSnapshot state)> stateUpdates)
-    {
-        foreach (var (entity, state) in stateUpdates)
-        {
-            _stateMap[entity] = State(state);
-        }
-    }
-
     public void PrepareUpdates()
     {
         var allOffers = _stateMap.Values.SelectMany(x => x).ToList();

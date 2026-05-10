@@ -1,13 +1,10 @@
-using FluentAssertions;
-using Xunit;
-
 namespace CommerceSim.Core.Tests;
 
 public record TestEntity(int Id, string Name = "Test") : IEntity;
 public record struct StateA(int Value) : IStateSnapshot<SystemA>;
 public record struct StateB(string Data) : IStateSnapshot<SystemB>;
 
-public class SystemA : ISystem<TestEntity, StateA>
+public class SystemA : IControllableSystem<TestEntity, StateA>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, StateA> _states = [];
@@ -33,7 +30,7 @@ public class SystemA : ISystem<TestEntity, StateA>
     public void ApplyUpdates() { }
 }
 
-public class SystemB : ISystem<TestEntity, StateB>
+public class SystemB : IControllableSystem<TestEntity, StateB>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, StateB> _states = [];

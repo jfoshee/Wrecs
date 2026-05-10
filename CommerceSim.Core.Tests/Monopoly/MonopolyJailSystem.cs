@@ -4,7 +4,7 @@ namespace CommerceSim.Core.Tests.Monopoly;
 
 record struct MonopolyJailSnapshot(bool IsInJail, int TurnsRemaining) : IStateSnapshot<MonopolyJailSystem>;
 
-class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>, IRequire<TurnSystem>
+class MonopolyJailSystem : IControllableSystem<IMonopolyEntity, MonopolyJailSnapshot>, IRequire<TurnSystem>
 {
     public const string PayFineResource = "Jail Fine Receipt";
     private readonly List<IEntity> _entities = [];

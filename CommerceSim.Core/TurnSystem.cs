@@ -49,11 +49,6 @@ public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>
 
     public IReadOnlyList<IEntity> GetEntities() => _entities;
 
-    public void SetStates(IEnumerable<(IEntity entity, TurnSnapshot state)> stateUpdates)
-    {
-        throw new NotImplementedException("TurnSystem does not yet support controllers");
-    }
-
     public TurnSnapshot GetState(IEntity entity)
     {
         var index = _entities.IndexOf(entity);
