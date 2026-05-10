@@ -18,6 +18,9 @@ public abstract class FlowsController<TFlowOrigin>(IEnumerable<TFlowOrigin> flow
 
     public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities)
     {
+        if (_moneySystem == null || _inventorySystem == null)
+            throw new InvalidOperationException("Dependencies not injected");
+
         var context = new Context(allEntities);
         var allFlows = _flowOrigins.SelectMany(origin => origin.CreateFlows(context));
 
@@ -34,20 +37,17 @@ public abstract class FlowsController<TFlowOrigin>(IEnumerable<TFlowOrigin> flow
         _approvedFlows = [];
         foreach (var (entity, flows) in pendingFlows)
         {
-            var money = (_moneySystem?.GetState(entity) ?? default).MoneyBalance;
-            var inventory = (_inventorySystem?.GetState(entity) ?? default).Inventory
-                .ToDictionary(i => i.Type, i => i.Amount);
+            var money = _moneySystem.GetState(entity).MoneyBalance;
+            var inventory = _inventorySystem.GetState(entity).Inventory;
 
             var approved = new List<Flow>();
             foreach (var flow in flows)
             {
-                var inProgress = new CommercialSnapshot(money, inventory.Select(kvp => (kvp.Key, kvp.Value)));
-                if (_flowPolicies.Any(policy => !policy.CanExecute(flow, inProgress)))
+                // Check policies against the proposed new state if this flow were applied
+                var proposed = new CommercialSnapshot(money, inventory);
+                if (_flowPolicies.Any(policy => !policy.CanExecute(flow, proposed)))
                     continue;
                 approved.Add(flow);
-                money += flow.SignedMoney;
-                var key = flow.ResourceType ?? "";
-                inventory[key] = inventory.GetValueOrDefault(key, 0) + flow.SignedResources;
             }
 
             if (approved.Count > 0)
