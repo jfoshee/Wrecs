@@ -26,7 +26,7 @@ public interface ISpatialController : IController<PositionSnapshot>
 {
 }
 
-public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>, ITickPhases
+public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
 {
     private List<IEntity> _entities = [];
     private IEnumerable<ISpatialAgent> Agents => _entities.OfType<ISpatialAgent>();

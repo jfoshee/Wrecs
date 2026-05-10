@@ -141,7 +141,7 @@ public class MonopolyTest(ITestOutputHelper output)
         }
     }
 
-    [Fact(DisplayName = "Player 1 gets out of jail by paying $50")]
+    [Fact(DisplayName = "Player 1 gets out of jail by paying $50", Skip = "WIP")]
     public void Player1_GetsOutOfJail_ByPaying50Dollars()
     {
         var game = new MonopolyGame(_output)

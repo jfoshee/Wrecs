@@ -12,7 +12,7 @@ public interface ITakeTurns : IEntity;
 /// </summary>
 public record struct TurnSnapshot(bool IsMyTurn, int Phase = 0) : IStateSnapshot<TurnSystem>;
 
-public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>, ITickPhases
+public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>
 {
     private List<IEntity> _entities = [];
     private int _currentTurnIndex = 0;

@@ -2,15 +2,10 @@ namespace CommerceSim.Core;
 
 public interface ISystem
 {
-    void Tick();
-
-    void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState);
-}
-
-public interface ITickPhases
-{
     void PrepareUpdates();
     void ApplyUpdates();
+
+    void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState);
 }
 
 public interface IControllableSystem : ISystem

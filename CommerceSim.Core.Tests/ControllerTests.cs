@@ -29,7 +29,8 @@ public class SystemA : ISystem<TestEntity, StateA>
         foreach (var (entity, state) in stateUpdates) _states[entity] = state;
     }
 
-    public void Tick() { }
+    public void PrepareUpdates() { }
+    public void ApplyUpdates() { }
 }
 
 public class SystemB : ISystem<TestEntity, StateB>
@@ -54,7 +55,8 @@ public class SystemB : ISystem<TestEntity, StateB>
         foreach (var (entity, state) in stateUpdates) _states[entity] = state;
     }
 
-    public void Tick() { }
+    public void PrepareUpdates() { }
+    public void ApplyUpdates() { }
 }
 
 public class ControllerA : IController<StateA>

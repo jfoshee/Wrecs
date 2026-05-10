@@ -1,6 +1,6 @@
 namespace CommerceSim.Core;
 
-public class LogTickSystem(IOutput output) : ISystem, ITickPhases
+public class LogTickSystem(IOutput output) : ISystem
 {
     private int _tickCount = 0;
 
@@ -14,11 +14,5 @@ public class LogTickSystem(IOutput output) : ISystem, ITickPhases
     public void ApplyUpdates()
     {
         _tickCount++;
-    }
-
-    public void Tick()
-    {
-        PrepareUpdates();
-        ApplyUpdates();
     }
 }

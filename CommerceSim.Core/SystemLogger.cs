@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 
 namespace CommerceSim.Core;
 
-public class SystemLogger<TSystem>(IOutput output) : ISystem, IRequire<TSystem>, ITickPhases
+public class SystemLogger<TSystem>(IOutput output) : ISystem, IRequire<TSystem>
     where TSystem : class, ISystem
 {
     private static readonly Func<TSystem, IReadOnlyList<IEntity>> _getEntities = CreateGetEntities();
@@ -32,12 +32,6 @@ public class SystemLogger<TSystem>(IOutput output) : ISystem, IRequire<TSystem>,
     public void ApplyUpdates()
     {
         _tickCount++;
-    }
-
-    public void Tick()
-    {
-        PrepareUpdates();
-        ApplyUpdates();
     }
 
     private static Type GetStateSystemInterface() =>

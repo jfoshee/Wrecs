@@ -12,7 +12,7 @@ public record struct OfferListSnapshot(List<OfferSnapshot>? OfferSnapshots) : IS
     }
 }
 
-public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequire<CommercialSystem>, ITickPhases
+public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequire<CommercialSystem>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, List<Offer>> _stateMap = [];
@@ -93,12 +93,6 @@ public class OfferSystem : ISystem<ICommercialAgent, OfferListSnapshot>, IRequir
                     break;
             }
         }
-    }
-
-    public void Tick()
-    {
-        PrepareUpdates();
-        ApplyUpdates();
     }
 
     private void AddOffer(ICommercialAgent agent, Offer offer)

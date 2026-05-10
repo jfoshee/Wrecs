@@ -48,16 +48,22 @@ class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>, IRequ
         }
     }
 
-    public void Tick()
+    int? _currentPhase;
+
+    public void PrepareUpdates()
     {
+        _currentPhase = _turnSystem?.CurrentPhase;
+    }
+
+    public void ApplyUpdates()
+    {
+        if (_currentPhase != 1)
+            return;
         foreach (var entity in _turnsRemaining.Keys.ToList())
         {
-            if (_turnSystem?.CurrentPhase == 1)
-            {
-                _turnsRemaining[entity]--;
-                if (_turnsRemaining[entity] <= 0)
-                    _turnsRemaining.Remove(entity);
-            }
+            _turnsRemaining[entity]--;
+            if (_turnsRemaining[entity] <= 0)
+                _turnsRemaining.Remove(entity);
         }
     }
 
