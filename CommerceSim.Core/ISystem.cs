@@ -8,6 +8,43 @@ public interface ISystem
     void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState);
 }
 
+public interface IEntityUpdate
+{
+    IEntity Entity { get; }
+    // IStateSnapshot State { get; }
+}
+
+// public record EntityUpdate<TSystem, TStateSnapshot>(IEntity Entity, TStateSnapshot State) : IEntityUpdate
+//     where TSystem : ISystem
+//     where TStateSnapshot : IStateSnapshot<TSystem>;
+
+public record EntityUpdate<TStateSnapshot>(IEntity Entity, TStateSnapshot State) : IEntityUpdate
+    where TStateSnapshot : IStateSnapshot;
+
+public record UpdateSet(IEnumerable<IEntityUpdate> Updates);
+
+public interface IPrepareCompositeUpdates : ISystem
+{
+    IEnumerable<UpdateSet> PrepareCompositeUpdates();
+}
+
+public interface IAcceptUpdates : ISystem
+{
+    void ApplyUpdates(IEnumerable<IEntityUpdate> updates);
+}
+
+public interface IAcceptUpdates<TStateSnapshot> : IAcceptUpdates
+    where TStateSnapshot : IStateSnapshot
+{
+    void ApplyUpdates(IEnumerable<EntityUpdate<TStateSnapshot>> updates);
+
+    void IAcceptUpdates.ApplyUpdates(IEnumerable<IEntityUpdate> updates)
+    {
+        var typedUpdates = updates.OfType<EntityUpdate<TStateSnapshot>>();
+        ApplyUpdates(typedUpdates);
+    }
+}
+
 public interface IControllableSystem : ISystem
 {
     bool MatchesController(IController controller);

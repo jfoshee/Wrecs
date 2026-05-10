@@ -52,15 +52,27 @@ public class Sim
         EnsureDependenciesInjected();
 
         // Preparation Phase
+        List<UpdateSet> compositeUpdates = [];
         foreach (var system in _systems)
         {
             system.PrepareUpdates();
+            if (system is IPrepareCompositeUpdates compositeUpdateSystem)
+            {
+                compositeUpdates.AddRange(compositeUpdateSystem.PrepareCompositeUpdates());
+            }
         }
+
+        // HACK: Put all composite updates into one big bucket
+        var allUpdates = compositeUpdates.SelectMany(cu => cu.Updates);
 
         // Update Phase
         foreach (var system in _systems)
         {
             system.ApplyUpdates();
+            if (system is IAcceptUpdates acceptUpdatesSystem)
+            {
+                acceptUpdatesSystem.ApplyUpdates(allUpdates);
+            }
             if (system is IControllableSystem controllableSystem)
                 ApplyControllers(controllableSystem);
         }
