@@ -15,10 +15,7 @@ class CommercialSimHarness
         })]);
     }
 
-    public void InitControllers(params IController[] controllers)
-    {
-        _sim.InitControllers(controllers);
-    }
+    public void InitControllers(params IController[] controllers) => _sim.InitControllers(controllers);
 
     public CommercialSnapshot GetCommercialState(IEntity entity) => _sim.GetCommercialState(entity);
 

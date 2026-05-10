@@ -72,11 +72,5 @@ public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>
         _currentTurnIndex = (_currentTurnIndex + 1) % _entities.Count;
     }
 
-    public void Tick()
-    {
-        PrepareUpdates();
-        ApplyUpdates();
-    }
-
     public IEntity GetCurrentPlayer() => _entities[_currentTurnIndex];
 }

@@ -68,12 +68,6 @@ public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>
             _entityPositions[agent] += step;
     }
 
-    public void Tick()
-    {
-        PrepareUpdates();
-        ApplyUpdates();
-    }
-
     public double GetDistance(Position p1, Position p2)
     {
         return Math.Abs(p1 - p2);

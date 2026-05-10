@@ -38,7 +38,6 @@ public class CommercialSystem : ISystem<ICommercialEntity, CommercialSnapshot>
         }
     }
 
-    public void Tick() { }
     public void PrepareUpdates() { }
     public void ApplyUpdates() { }
 
