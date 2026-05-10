@@ -78,29 +78,33 @@ public class OfferSystem :
         _pendingDecisions = Shuffle(decisions);
     }
 
+    public void ApplyUpdates()
+    {
+        // Make-offer decisions can be handled here because they only affect the offer system's own state
+        foreach (var (agent, decision) in _pendingDecisions)
+        {
+            if (decision is MakeOfferDecision makeOfferDecision)
+            {
+                var newOffer = makeOfferDecision.Offer;
+                AddOffer(agent, newOffer);
+            }
+        }
+    }
+
     public IEnumerable<UpdateSet> PrepareCompositeUpdates()
     {
+        // Take-offer decisions need to be processed here because they affect multiple systems
         List<UpdateSet> updateSets = [];
         foreach (var (agent, decision) in _pendingDecisions)
         {
-            switch (decision)
+            if (decision is TakeOfferDecision takeOfferDecision)
             {
-                case TakeOfferDecision takeOfferDecision:
-                    var offer = takeOfferDecision.Offer;
-                    // allOffers.Remove(offer);
-                    updateSets.Add(ProcessOffer(agent, offer));
-                    break;
-                case MakeOfferDecision makeOfferDecision:
-                    var newOffer = makeOfferDecision.Offer;
-                    AddOffer(agent, newOffer);
-                    break;
+                var offer = takeOfferDecision.Offer;
+                var updateSet = ProcessOffer(agent, offer);
+                updateSets.Add(updateSet);
             }
         }
         return updateSets;
-    }
-
-    public void ApplyUpdates()
-    {
     }
 
     private void AddOffer(ICommercialAgent agent, Offer offer)
