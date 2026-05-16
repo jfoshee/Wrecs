@@ -1,4 +1,4 @@
-namespace Wrecs.Core.Tests;
+namespace Wrecs.Tests;
 
 /// <summary>
 /// A controller that adds interest to the money balance of all agents.

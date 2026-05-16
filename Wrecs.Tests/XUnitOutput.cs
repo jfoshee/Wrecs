@@ -1,6 +1,4 @@
-using Xunit.Abstractions;
-
-namespace Wrecs.Core.Tests;
+namespace Wrecs.Tests;
 
 public class XUnitOutput(ITestOutputHelper output) : IOutput
 {

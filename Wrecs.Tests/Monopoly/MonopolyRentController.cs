@@ -1,6 +1,6 @@
 using Wrecs.Systems;
 
-namespace Wrecs.Core.Tests.Monopoly;
+namespace Wrecs.Tests.Monopoly;
 
 /// <summary>
 /// Responsible for charging rent by taking money from players who land on properties owned by other players

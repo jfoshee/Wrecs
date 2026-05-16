@@ -1,6 +1,6 @@
 using Wrecs.Systems;
 
-namespace Wrecs.Core.Tests.Monopoly;
+namespace Wrecs.Tests.Monopoly;
 
 /// <summary>
 /// Agent responsible for holding initial property inventory and making

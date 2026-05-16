@@ -1,6 +1,6 @@
 using Wrecs.Systems;
 
-namespace Wrecs.Core.Tests;
+namespace Wrecs.Tests;
 
 public class TurnSystemTests
 {

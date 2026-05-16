@@ -1,8 +1,6 @@
-using System.Runtime.CompilerServices;
 using Wrecs.Systems;
-using Position = int;
 
-namespace Wrecs.Core.Tests;
+namespace Wrecs.Tests;
 
 public class SimInitTest
 {

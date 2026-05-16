@@ -1,4 +1,4 @@
-namespace Wrecs.Core.Tests.Monopoly;
+namespace Wrecs.Tests.Monopoly;
 
 public record AlwaysBuyingMonopolyPlayer(string Name) : IMonopolyEntity, ICommercialAgent
 {

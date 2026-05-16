@@ -1,6 +1,6 @@
 using Wrecs.Systems;
 
-namespace Wrecs.Core.Tests;
+namespace Wrecs.Tests;
 
 class BoardGameMovementController(IGameDice dice, int boardSize) : ISpatialController, IRequire<TurnSystem>
 {

@@ -1,4 +1,4 @@
-namespace Wrecs.Core.Tests;
+namespace Wrecs.Tests;
 
 public record InventoryEntity(int Id, string Name = "Trader") : IInventoryEntity;
 

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.AI;
 using OllamaSharp;
 
-namespace Wrecs.Core.Tests;
+namespace Wrecs.Tests;
 
 public class LlmAgentTests(ITestOutputHelper output)
 {

@@ -1,4 +1,4 @@
-namespace Wrecs.Core.Tests;
+namespace Wrecs.Tests;
 
 /// <summary>
 /// Always grants a fixed amount of money and resources to a recipient agent each tick.

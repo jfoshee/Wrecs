@@ -1,4 +1,4 @@
-namespace Wrecs.Core.Tests;
+namespace Wrecs.Tests;
 
 public record MoneyEntity(int Id, string Name = "Agent") : IMoneyEntity;
 

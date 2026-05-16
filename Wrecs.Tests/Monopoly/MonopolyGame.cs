@@ -1,6 +1,6 @@
 using Wrecs.Systems;
 
-namespace Wrecs.Core.Tests.Monopoly;
+namespace Wrecs.Tests.Monopoly;
 
 public interface IMonopolyEntity : ISpatialEntity, ITakeTurns, ICommercialEntity;
 

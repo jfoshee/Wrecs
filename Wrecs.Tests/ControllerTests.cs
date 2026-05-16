@@ -1,4 +1,4 @@
-namespace Wrecs.Core.Tests;
+namespace Wrecs.Tests;
 
 public record TestEntity(int Id, string Name = "Test") : IEntity;
 public record struct StateA(int Value) : IStateSnapshot<SystemA>;

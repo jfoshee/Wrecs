@@ -1,4 +1,4 @@
-namespace Wrecs.Core.Tests.Monopoly;
+namespace Wrecs.Tests.Monopoly;
 
 /// <summary>
 /// Represents a property on the Monopoly board with its position and price.

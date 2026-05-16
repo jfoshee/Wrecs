@@ -1,5 +1,5 @@
 
-namespace Wrecs.Core.Tests;
+namespace Wrecs.Tests;
 
 /// <summary>
 /// Agent that always does nothing.

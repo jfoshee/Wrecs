@@ -1,6 +1,6 @@
 using Wrecs.Systems;
 
-namespace Wrecs.Core.Tests.Monopoly;
+namespace Wrecs.Tests.Monopoly;
 
 record struct MonopolyJailSnapshot(bool IsInJail, int TurnsRemaining) : IStateSnapshot<MonopolyJailSystem>;
 

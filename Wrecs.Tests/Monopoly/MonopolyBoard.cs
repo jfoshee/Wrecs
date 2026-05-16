@@ -1,4 +1,4 @@
-namespace Wrecs.Core.Tests.Monopoly;
+namespace Wrecs.Tests.Monopoly;
 
 /// <summary>
 /// Standard Monopoly board configuration. Array index = board position.
