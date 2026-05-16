@@ -1,3 +1,6 @@
 {
-  "cSpell.words": ["Ollama", "Payor", "unitless", "Ventnor", "xunit"]
+  "cSpell.words": ["Ollama", "Payor", "unitless", "Ventnor", "xunit"],
+  "chat.tools.terminal.autoApprove": {
+    "dotnet test": true
+  }
 }
