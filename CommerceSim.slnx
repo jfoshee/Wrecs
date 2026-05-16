@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="CommerceSim.Core.Tests/CommerceSim.Core.Tests.csproj" />
-  <Project Path="CommerceSim.Core/CommerceSim.Core.csproj" />
-</Solution>

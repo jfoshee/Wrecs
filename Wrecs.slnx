@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Wrecs.Core.Tests/Wrecs.Core.Tests.csproj" />
+  <Project Path="Wrecs.Core/Wrecs.Core.csproj" />
+</Solution>
