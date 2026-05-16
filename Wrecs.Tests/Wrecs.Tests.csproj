@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Wrecs.Core/Wrecs.Core.csproj" />
+    <ProjectReference Include="../Wrecs/Wrecs.csproj" />
   </ItemGroup>
 
 </Project>
