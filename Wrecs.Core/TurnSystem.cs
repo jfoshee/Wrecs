@@ -55,9 +55,9 @@ public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>
         return new TurnSnapshot(index == _currentTurnIndex, _currentPhase);
     }
 
-    public void PrepareUpdates() { }
+    public void PrepareInternalUpdates() { }
 
-    public void ApplyUpdates()
+    public void ApplyInternalUpdates()
     {
         _currentPhase++;
         if (_currentPhase < PhasesPerTurn)

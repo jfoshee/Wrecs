@@ -27,8 +27,8 @@ public class SystemA : IControllableSystem<TestEntity, StateA>
             _states[update.Entity] = update.State;
     }
 
-    public void PrepareUpdates() { }
-    public void ApplyUpdates() { }
+    public void PrepareInternalUpdates() { }
+    public void ApplyInternalUpdates() { }
 }
 
 public class SystemB : IControllableSystem<TestEntity, StateB>
@@ -54,8 +54,8 @@ public class SystemB : IControllableSystem<TestEntity, StateB>
             _states[update.Entity] = update.State;
     }
 
-    public void PrepareUpdates() { }
-    public void ApplyUpdates() { }
+    public void PrepareInternalUpdates() { }
+    public void ApplyInternalUpdates() { }
 }
 
 public class ControllerA : IController<StateA>

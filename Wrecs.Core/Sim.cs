@@ -51,24 +51,24 @@ public class Sim
         EnsureDependenciesInjected();
 
         // Preparation Phase
-        List<UpdateSet> compositeUpdates = [];
+        List<UpdateSet> sharedUpdates = [];
         foreach (var system in _systems)
         {
-            system.PrepareUpdates();
-            if (system is IPrepareCompositeUpdates compositeUpdateSystem)
+            system.PrepareInternalUpdates();
+            if (system is IPrepareSharedUpdates sharedUpdateSystem)
             {
-                var updateSet = compositeUpdateSystem.PrepareCompositeUpdates();
-                compositeUpdates.AddRange(updateSet);
+                var updateSet = sharedUpdateSystem.PrepareSharedUpdates();
+                sharedUpdates.AddRange(updateSet);
             }
         }
 
-        // HACK: Put all composite updates into one big bucket
-        var allUpdates = compositeUpdates.SelectMany(cu => cu.Updates);
+        // HACK: Put all shared updates into one big bucket
+        var allUpdates = sharedUpdates.SelectMany(cu => cu.Updates);
 
         // Update Phase
         foreach (var system in _systems)
         {
-            system.ApplyUpdates();
+            system.ApplyInternalUpdates();
             if (system is IAcceptUpdates acceptUpdatesSystem)
             {
                 acceptUpdatesSystem.ApplyUpdates(allUpdates);

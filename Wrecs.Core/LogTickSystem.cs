@@ -6,12 +6,12 @@ public class LogTickSystem(IOutput output) : ISystem
 
     public void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState) { }
 
-    public void PrepareUpdates()
+    public void PrepareInternalUpdates()
     {
         output.WriteLine($"=== Tick {_tickCount} ===");
     }
 
-    public void ApplyUpdates()
+    public void ApplyInternalUpdates()
     {
         _tickCount++;
     }

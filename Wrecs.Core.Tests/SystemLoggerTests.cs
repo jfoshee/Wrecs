@@ -24,11 +24,11 @@ public class SystemLoggerTests
         system.InitEntities((entity1, null), (entity2, null));
 
         // Prepare phase
-        logger.PrepareUpdates();
-        system.PrepareUpdates();
+        logger.PrepareInternalUpdates();
+        system.PrepareInternalUpdates();
         // Apply phase
-        logger.ApplyUpdates();
-        system.ApplyUpdates();
+        logger.ApplyInternalUpdates();
+        system.ApplyInternalUpdates();
 
         output.Lines.Should().Equal(
             "--- TurnSystem Tick 0 ---",

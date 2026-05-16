@@ -2,8 +2,15 @@ namespace Wrecs.Core;
 
 public interface ISystem
 {
-    void PrepareUpdates();
-    void ApplyUpdates();
+    /// <summary>
+    /// Using the current state of the world, prepares any internal updates that this System will perform on its own state during this Tick.
+    /// </summary>
+    void PrepareInternalUpdates();
+
+    /// <summary>
+    /// Applies any internal updates to this System's own state for this Tick.
+    /// </summary>
+    void ApplyInternalUpdates();
 
     void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState);
 }
@@ -43,11 +50,19 @@ public interface IEntityUpdate
 public record EntityUpdate<TStateSnapshot>(IEntity Entity, TStateSnapshot State) : IEntityUpdate
     where TStateSnapshot : IStateSnapshot;
 
+/// <summary>
+/// A set of updates that should be handled atomically.
+/// Either the entire set of updates should be applied, or none of them.
+/// </summary>
 public record UpdateSet(IEnumerable<IEntityUpdate> Updates);
 
-public interface IPrepareCompositeUpdates : ISystem
+public interface IPrepareSharedUpdates : ISystem
 {
-    IEnumerable<UpdateSet> PrepareCompositeUpdates();
+    /// <summary>
+    /// Prepares a set of updates that may involve multiple Systems.
+    /// Each UpdateSet represents a group of updates that should be applied atomically.
+    /// </summary>
+    IEnumerable<UpdateSet> PrepareSharedUpdates();
 }
 
 public interface IAcceptUpdates : ISystem

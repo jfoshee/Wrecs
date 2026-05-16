@@ -18,7 +18,7 @@ public class SystemLogger<TSystem>(IOutput output) : ISystem, IRequire<TSystem>
 
     public void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState) { }
 
-    public void PrepareUpdates()
+    public void PrepareInternalUpdates()
     {
         var system = _system ?? throw new InvalidOperationException($"{nameof(SystemLogger<>)} requires an injected {typeof(TSystem).Name}.");
         output.WriteLine($"--- {typeof(TSystem).Name} Tick {_tickCount} ---");
@@ -29,7 +29,7 @@ public class SystemLogger<TSystem>(IOutput output) : ISystem, IRequire<TSystem>
         }
     }
 
-    public void ApplyUpdates()
+    public void ApplyInternalUpdates()
     {
         _tickCount++;
     }

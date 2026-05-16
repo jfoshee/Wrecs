@@ -6,14 +6,14 @@ public static class ISystemExtensions
     {
         /// <summary>
         /// Performs a full "tick" for this individual system,
-        /// invoking <see cref="ISystem.PrepareUpdates"/> and <see cref="ISystem.ApplyUpdates"/> in sequence.
+        /// invoking <see cref="ISystem.PrepareInternalUpdates"/> and <see cref="ISystem.ApplyInternalUpdates"/> in sequence.
         /// </summary>
         public void Tick()
         {
             ArgumentNullException.ThrowIfNull(system);
 
-            system.PrepareUpdates();
-            system.ApplyUpdates();
+            system.PrepareInternalUpdates();
+            system.ApplyInternalUpdates();
         }
     }
 }

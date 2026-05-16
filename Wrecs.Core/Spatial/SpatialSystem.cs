@@ -55,13 +55,13 @@ public class SpatialSystem : IControllableSystem<ISpatialEntity, PositionSnapsho
         }
     }
 
-    public void PrepareUpdates()
+    public void PrepareInternalUpdates()
     {
         // Get steps that all agents want to take
         _pendingSteps = Agents.ToDictionary(agent => agent, agent => agent.GetStep(_entityPositions[agent]));
     }
 
-    public void ApplyUpdates()
+    public void ApplyInternalUpdates()
     {
         // Update Agents based on their steps
         foreach (var (agent, step) in _pendingSteps)

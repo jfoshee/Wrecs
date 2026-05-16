@@ -40,8 +40,8 @@ public class MoneySystem : IControllableSystem<IMoneyEntity, MoneySnapshot>
         InitEntities(matchingEntities);
     }
 
-    public void PrepareUpdates() { }
-    public void ApplyUpdates() { }
+    public void PrepareInternalUpdates() { }
+    public void ApplyInternalUpdates() { }
 
     public void ApplyUpdates(IEnumerable<EntityUpdate<MoneySnapshot>> updates)
     {

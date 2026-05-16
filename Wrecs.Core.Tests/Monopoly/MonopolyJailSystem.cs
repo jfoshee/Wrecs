@@ -46,12 +46,12 @@ class MonopolyJailSystem : IControllableSystem<IMonopolyEntity, MonopolyJailSnap
 
     int? _currentPhase;
 
-    public void PrepareUpdates()
+    public void PrepareInternalUpdates()
     {
         _currentPhase = _turnSystem?.CurrentPhase;
     }
 
-    public void ApplyUpdates()
+    public void ApplyInternalUpdates()
     {
         if (_currentPhase != 1)
             return;

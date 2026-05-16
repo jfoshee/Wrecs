@@ -16,7 +16,7 @@ public record struct RemoveOfferOperation(Offer? Offer) : IStateSnapshot<OfferSy
 
 public class OfferSystem :
     ISystem<ICommercialAgent, OfferListSnapshot>,
-    IPrepareCompositeUpdates,
+    IPrepareSharedUpdates,
     IAcceptUpdates<RemoveOfferOperation>,
     IRequire<MoneySystem>,
     IRequire<InventorySystem>
@@ -56,7 +56,7 @@ public class OfferSystem :
         return Snapshot(state);
     }
 
-    public void PrepareUpdates()
+    public void PrepareInternalUpdates()
     {
         var allOffers = _stateMap.Values.SelectMany(x => x).ToList();
 
@@ -76,7 +76,7 @@ public class OfferSystem :
         _pendingDecisions = Shuffle(decisions);
     }
 
-    public IEnumerable<UpdateSet> PrepareCompositeUpdates()
+    public IEnumerable<UpdateSet> PrepareSharedUpdates()
     {
         // Take-offer decisions need to be processed here because they affect multiple systems
         List<UpdateSet> updateSets = [];
@@ -92,7 +92,7 @@ public class OfferSystem :
         return updateSets;
     }
 
-    public void ApplyUpdates()
+    public void ApplyInternalUpdates()
     {
         // Make-offer decisions can be handled here because they only affect the offer system's own state
         foreach (var (agent, decision) in _pendingDecisions)
