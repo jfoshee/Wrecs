@@ -1,7 +1,8 @@
 using System.Text.Json;
 using Microsoft.Extensions.AI;
+using Wrecs.Core;
 
-namespace Wrecs.Core.Agents;
+namespace Wrecs.Systems.Commercial.Agents;
 
 public sealed class LlmAgent(IChatClient chatClient, IOutput? output = null) : ICommercialAgent
 {

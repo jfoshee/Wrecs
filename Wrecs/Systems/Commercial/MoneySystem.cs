@@ -1,4 +1,6 @@
-namespace Wrecs.Core;
+using Wrecs.Core;
+
+namespace Wrecs.Systems.Commercial;
 
 public interface IMoneyEntity : IEntity;
 

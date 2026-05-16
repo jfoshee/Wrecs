@@ -5,13 +5,13 @@ namespace Wrecs.Core.Tests;
 /// </summary>
 class FixedGrantSource(ICommercialAgent recipient, int money, int resources, string? resourceType = null) : IMoneySource, IResourceSource
 {
-    IEnumerable<MoneyFlow> IMoneyFlowOrigin.CreateFlows(Context _)
+    IEnumerable<MoneyFlow> IMoneyFlowOrigin.CreateFlows(FlowContext _)
     {
         if (money > 0)
             yield return MoneyFlow.Credit(recipient, money);
     }
 
-    IEnumerable<ResourceFlow> IResourceFlowOrigin.CreateFlows(Context _)
+    IEnumerable<ResourceFlow> IResourceFlowOrigin.CreateFlows(FlowContext _)
     {
         if (resources > 0)
             yield return ResourceFlow.Credit(recipient, resources, resourceType);

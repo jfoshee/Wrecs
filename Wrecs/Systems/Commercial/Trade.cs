@@ -1,4 +1,4 @@
-namespace Wrecs.Core;
+namespace Wrecs.Systems.Commercial;
 
 public record struct Trade(Offer Offer,
                            CommercialSnapshot SellerState,

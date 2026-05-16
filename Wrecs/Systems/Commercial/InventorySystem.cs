@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
+using Wrecs.Core;
 
-namespace Wrecs.Core;
+namespace Wrecs.Systems.Commercial;
 
 public interface IInventoryEntity : IEntity;
 

@@ -1,4 +1,4 @@
-namespace Wrecs.Core;
+namespace Wrecs.Systems.Commercial;
 
 public class MoneySourcesController(IEnumerable<IMoneySource> sources) : MoneyFlowsController<IMoneySource>(
     sources,

@@ -183,12 +183,12 @@ public class PolicyTests
 
     class FixedSink(ICommercialAgent recipient, int money, int resources) : IMoneySink, IResourceSink
     {
-        IEnumerable<MoneyFlow> IMoneyFlowOrigin.CreateFlows(Context _)
+        IEnumerable<MoneyFlow> IMoneyFlowOrigin.CreateFlows(FlowContext _)
         {
             if (money != 0) yield return MoneyFlow.Debit(recipient, money);
         }
 
-        IEnumerable<ResourceFlow> IResourceFlowOrigin.CreateFlows(Context _)
+        IEnumerable<ResourceFlow> IResourceFlowOrigin.CreateFlows(FlowContext _)
         {
             if (resources != 0) yield return ResourceFlow.Debit(recipient, resources);
         }

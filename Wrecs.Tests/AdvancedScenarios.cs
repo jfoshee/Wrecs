@@ -1,5 +1,4 @@
 using ScottPlot;
-using Wrecs.Core.Agents;
 
 namespace Wrecs.Core.Tests;
 

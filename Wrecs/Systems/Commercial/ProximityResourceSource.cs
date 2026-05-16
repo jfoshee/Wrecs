@@ -1,6 +1,6 @@
-using Wrecs.Systems;
+using Wrecs.Core;
 
-namespace Wrecs.Core;
+namespace Wrecs.Systems.Commercial;
 
 public class ProximityResourceSource(int resourcesGranted, int intervalTicks, double proximity) : IResourceSource, ISpatialEntity, IRequire<SpatialSystem>
 {
@@ -17,7 +17,7 @@ public class ProximityResourceSource(int resourcesGranted, int intervalTicks, do
         _spatial = dependency;
     }
 
-    public IEnumerable<ResourceFlow> CreateFlows(Context context)
+    public IEnumerable<ResourceFlow> CreateFlows(FlowContext context)
     {
         var spatial = _spatial;
         var agents = context.Entities.OfType<ICommercialAgent>();

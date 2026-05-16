@@ -1,4 +1,6 @@
-namespace Wrecs.Core;
+using Wrecs.Core;
+
+namespace Wrecs.Systems;
 
 public class LogTickSystem(IOutput output) : ISystem
 {

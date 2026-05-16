@@ -1,3 +1,5 @@
+using Wrecs.Systems;
+
 namespace Wrecs.Core.Tests;
 
 public class TurnSystemTests

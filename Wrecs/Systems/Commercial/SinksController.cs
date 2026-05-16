@@ -1,4 +1,4 @@
-namespace Wrecs.Core;
+namespace Wrecs.Systems.Commercial;
 
 public class MoneySinksController(IEnumerable<IMoneySink> sinks) : MoneyFlowsController<IMoneySink>(
     sinks,

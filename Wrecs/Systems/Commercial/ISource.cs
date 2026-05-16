@@ -1,4 +1,4 @@
-namespace Wrecs.Core;
+namespace Wrecs.Systems.Commercial;
 
 /// <summary>
 /// Creates credit flows that add money to entities.

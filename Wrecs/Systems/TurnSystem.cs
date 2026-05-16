@@ -1,4 +1,6 @@
-namespace Wrecs.Core;
+using Wrecs.Core;
+
+namespace Wrecs.Systems;
 
 /// <summary>
 /// Marker interface for entities that participate in taking turns.

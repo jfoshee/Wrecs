@@ -1,4 +1,4 @@
-﻿namespace Wrecs.Core.Tests;
+namespace Wrecs.Core.Tests;
 
 public class Canary
 {

@@ -1,4 +1,4 @@
-namespace Wrecs.Core;
+namespace Wrecs.Systems.Commercial;
 
 public record class Offer(ICommercialAgent Author, int Price, int Resources, string? ResourceType = null)
 {

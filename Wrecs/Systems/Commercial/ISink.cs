@@ -1,4 +1,4 @@
-namespace Wrecs.Core;
+namespace Wrecs.Systems.Commercial;
 
 /// <summary>
 /// Creates debit flows that remove money from entities.

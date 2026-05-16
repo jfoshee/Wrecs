@@ -1,6 +1,5 @@
 using Microsoft.Extensions.AI;
 using OllamaSharp;
-using Wrecs.Core.Agents;
 
 namespace Wrecs.Core.Tests;
 

@@ -1,4 +1,4 @@
-namespace Wrecs.Core.Agents;
+namespace Wrecs.Systems.Commercial.Agents;
 
 internal static class OfferMath
 {

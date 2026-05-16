@@ -1,4 +1,6 @@
-namespace Wrecs.Core;
+using Wrecs.Core;
+
+namespace Wrecs.Systems.Commercial;
 
 public record MoneyFlow(IEntity Entity, int Money, FlowDirection Direction)
 {
@@ -30,10 +32,10 @@ public enum FlowDirection
 
 public interface IMoneyFlowOrigin
 {
-    IEnumerable<MoneyFlow> CreateFlows(Context context);
+    IEnumerable<MoneyFlow> CreateFlows(FlowContext context);
 }
 
 public interface IResourceFlowOrigin
 {
-    IEnumerable<ResourceFlow> CreateFlows(Context context);
+    IEnumerable<ResourceFlow> CreateFlows(FlowContext context);
 }

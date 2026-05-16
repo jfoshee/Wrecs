@@ -1,4 +1,6 @@
-namespace Wrecs.Core;
+using Wrecs.Core;
+
+namespace Wrecs.Systems.Commercial;
 
 public abstract class MoneyFlowsController<TMoneyFlowOrigin>(IEnumerable<TMoneyFlowOrigin> flowOrigins,
                                                              IEnumerable<IMoneyFlowPolicy> flowPolicies)
@@ -18,7 +20,7 @@ public abstract class MoneyFlowsController<TMoneyFlowOrigin>(IEnumerable<TMoneyF
         if (_moneySystem == null)
             throw new InvalidOperationException("Dependencies not injected");
 
-        var context = new Context(allEntities);
+        var context = new FlowContext(allEntities);
         var allFlows = _flowOrigins.SelectMany(origin => origin.CreateFlows(context));
 
         var pendingFlows = new Dictionary<IEntity, List<MoneyFlow>>();

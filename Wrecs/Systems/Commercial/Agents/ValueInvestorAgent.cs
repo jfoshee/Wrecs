@@ -1,4 +1,6 @@
-namespace Wrecs.Core.Agents;
+using Wrecs.Core;
+
+namespace Wrecs.Systems.Commercial.Agents;
 
 public sealed class ValueInvestorAgent(
     int initialFairPrice,
