@@ -3,10 +3,17 @@ namespace CommerceSim.Core.Tests;
 /// <summary>
 /// Always grants a fixed amount of money and resources to a recipient agent each tick.
 /// </summary>
-class FixedGrantSource(ICommercialAgent recipient, int money, int resources, string? resourceType = null) : ISource
+class FixedGrantSource(ICommercialAgent recipient, int money, int resources, string? resourceType = null) : IMoneySource, IResourceSource
 {
-    public IEnumerable<Flow> CreateFlows(Context _)
+    IEnumerable<MoneyFlow> IMoneyFlowOrigin.CreateFlows(Context _)
     {
-        yield return Flow.Credit(recipient, money, resources, resourceType);
+        if (money > 0)
+            yield return MoneyFlow.Credit(recipient, money);
+    }
+
+    IEnumerable<ResourceFlow> IResourceFlowOrigin.CreateFlows(Context _)
+    {
+        if (resources > 0)
+            yield return ResourceFlow.Credit(recipient, resources, resourceType);
     }
 }

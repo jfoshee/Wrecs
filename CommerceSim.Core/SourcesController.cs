@@ -1,11 +1,15 @@
 namespace CommerceSim.Core;
 
-/// <summary>
-/// A commercial controller that applies credits from one or more <see cref="ISource"/> instances.
-/// </summary>
-public class SourcesController(IEnumerable<ISource> sources) : FlowsController<ISource>(
+public class MoneySourcesController(IEnumerable<IMoneySource> sources) : MoneyFlowsController<IMoneySource>(
     sources,
-    [new NoNegativeFlowAmountsPolicy()])
+    [new NoNegativeMoneyFlowAmountsPolicy()])
 {
-    public SourcesController(params ISource[] sources) : this((IEnumerable<ISource>)sources) { }
+    public MoneySourcesController(params IMoneySource[] sources) : this((IEnumerable<IMoneySource>)sources) { }
+}
+
+public class ResourceSourcesController(IEnumerable<IResourceSource> sources) : ResourceFlowsController<IResourceSource>(
+    sources,
+    [new NoNegativeResourceFlowAmountsPolicy()])
+{
+    public ResourceSourcesController(params IResourceSource[] sources) : this((IEnumerable<IResourceSource>)sources) { }
 }

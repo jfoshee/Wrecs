@@ -1,9 +1,17 @@
 namespace CommerceSim.Core;
 
 /// <summary>
-/// Creates debit flows that remove money or resources from entities.
+/// Creates debit flows that remove money from entities.
 /// </summary>
-public interface ISink : IFlowOrigin
+public interface IMoneySink : IMoneyFlowOrigin
+{
+    // TODO: Can/should we enforce that only creates Debits
+}
+
+/// <summary>
+/// Creates debit flows that remove resources from entities.
+/// </summary>
+public interface IResourceSink : IResourceFlowOrigin
 {
     // TODO: Can/should we enforce that only creates Debits
 }

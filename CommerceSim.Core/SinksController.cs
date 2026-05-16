@@ -1,11 +1,15 @@
 namespace CommerceSim.Core;
 
-/// <summary>
-/// A commercial controller that applies debits from one or more <see cref="ISink"/> instances.
-/// </summary>
-public class SinksController(IEnumerable<ISink> sinks) : FlowsController<ISink>(
+public class MoneySinksController(IEnumerable<IMoneySink> sinks) : MoneyFlowsController<IMoneySink>(
     sinks,
-    [new NoNegativeFlowAmountsPolicy(), new NoForcingNegativeBalanceFlowPolicy()])
+    [new NoNegativeMoneyFlowAmountsPolicy(), new NoForcingNegativeMoneyBalanceFlowPolicy()])
 {
-    public SinksController(params ISink[] sinks) : this((IEnumerable<ISink>)sinks) { }
+    public MoneySinksController(params IMoneySink[] sinks) : this((IEnumerable<IMoneySink>)sinks) { }
+}
+
+public class ResourceSinksController(IEnumerable<IResourceSink> sinks) : ResourceFlowsController<IResourceSink>(
+    sinks,
+    [new NoNegativeResourceFlowAmountsPolicy(), new NoForcingNegativeInventoryBalanceFlowPolicy()])
+{
+    public ResourceSinksController(params IResourceSink[] sinks) : this((IEnumerable<IResourceSink>)sinks) { }
 }

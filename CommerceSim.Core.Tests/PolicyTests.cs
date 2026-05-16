@@ -157,7 +157,7 @@ public class PolicyTests
         var source = new FixedGrantSource(agent, money: 0, resources: -10);
         CommercialSnapshot agentState0 = new(MoneyBalance: 0, ResourceBalance: 100);
         sim.InitEntities((agent, agentState0));
-        sim.InitControllers(new SourcesController(source));
+        sim.InitControllers(new MoneySourcesController(source), new ResourceSourcesController(source));
 
         sim.Tick();
 
@@ -173,7 +173,7 @@ public class PolicyTests
         var source = new FixedGrantSource(agent, money: -10, resources: 0);
         CommercialSnapshot agentState0 = new(MoneyBalance: 100, ResourceBalance: 0);
         sim.InitEntities((agent, agentState0));
-        sim.InitControllers(new SourcesController(source));
+        sim.InitControllers(new MoneySourcesController(source), new ResourceSourcesController(source));
 
         sim.Tick();
 
@@ -181,11 +181,16 @@ public class PolicyTests
         sim.GetCommercialState(agent).Should().Be(agentState0);
     }
 
-    class FixedSink(ICommercialAgent recipient, int money, int resources) : ISink
+    class FixedSink(ICommercialAgent recipient, int money, int resources) : IMoneySink, IResourceSink
     {
-        public IEnumerable<Flow> CreateFlows(Context _)
+        IEnumerable<MoneyFlow> IMoneyFlowOrigin.CreateFlows(Context _)
         {
-            yield return Flow.Debit(recipient, money, resources);
+            if (money != 0) yield return MoneyFlow.Debit(recipient, money);
+        }
+
+        IEnumerable<ResourceFlow> IResourceFlowOrigin.CreateFlows(Context _)
+        {
+            if (resources != 0) yield return ResourceFlow.Debit(recipient, resources);
         }
     }
 
@@ -198,7 +203,7 @@ public class PolicyTests
         var sink2 = new FixedSink(agent, money: 0, resources: -10);
         CommercialSnapshot agentState0 = new(MoneyBalance: 100, ResourceBalance: 0);
         sim.InitEntities((agent, agentState0));
-        sim.InitControllers(new SinksController(sink1, sink2));
+        sim.InitControllers(new MoneySinksController(sink1, sink2), new ResourceSinksController(sink1, sink2));
 
         sim.Tick();
 
@@ -214,7 +219,7 @@ public class PolicyTests
         var sink = new FixedSink(agent, money: 150, resources: 150);
         CommercialSnapshot agentState0 = new(MoneyBalance: 100, ResourceBalance: 100);
         sim.InitEntities((agent, agentState0));
-        sim.InitControllers(new SinksController(sink));
+        sim.InitControllers(new MoneySinksController(sink), new ResourceSinksController(sink));
 
         sim.Tick();
 
@@ -230,7 +235,7 @@ public class PolicyTests
         var sink = new FixedSink(agent, money: 100, resources: 0);
         CommercialSnapshot agentState0 = new(MoneyBalance: 100, ResourceBalance: 42);
         sim.InitEntities((agent, agentState0));
-        sim.InitControllers(new SinksController(sink));
+        sim.InitControllers(new MoneySinksController(sink), new ResourceSinksController(sink));
 
         sim.Tick();
 
@@ -246,7 +251,7 @@ public class PolicyTests
         var sink = new FixedSink(agent, money: 0, resources: 100);
         CommercialSnapshot agentState0 = new(MoneyBalance: 42, ResourceBalance: 100);
         sim.InitEntities((agent, agentState0));
-        sim.InitControllers(new SinksController(sink));
+        sim.InitControllers(new MoneySinksController(sink), new ResourceSinksController(sink));
 
         sim.Tick();
 

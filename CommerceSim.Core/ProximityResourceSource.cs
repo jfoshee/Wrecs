@@ -2,7 +2,7 @@ using CommerceSim.Core.Spatial;
 
 namespace CommerceSim.Core;
 
-public class ProximityResourceSource(int resourcesGranted, int intervalTicks, double proximity) : ISource, ISpatialEntity, IRequire<SpatialSystem>
+public class ProximityResourceSource(int resourcesGranted, int intervalTicks, double proximity) : IResourceSource, ISpatialEntity, IRequire<SpatialSystem>
 {
     public int Id { get; } = EntityId.Next();
 
@@ -17,7 +17,7 @@ public class ProximityResourceSource(int resourcesGranted, int intervalTicks, do
         _spatial = dependency;
     }
 
-    public IEnumerable<Flow> CreateFlows(Context context)
+    public IEnumerable<ResourceFlow> CreateFlows(Context context)
     {
         var spatial = _spatial;
         var agents = context.Entities.OfType<ICommercialAgent>();
@@ -42,7 +42,7 @@ public class ProximityResourceSource(int resourcesGranted, int intervalTicks, do
         // If they've been nearby long enough, grant them resources and reset
         if (_nearbyTimeTicks >= intervalTicks)
         {
-            yield return Flow.Credit(recipient: _nearbyAgent, money: 0, resources: resourcesGranted);
+            yield return ResourceFlow.Credit(recipient: _nearbyAgent, resources: resourcesGranted);
             // Reset tracking
             _nearbyTimeTicks = 0;
             _nearbyAgent = null;

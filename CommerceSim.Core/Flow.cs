@@ -1,16 +1,25 @@
 namespace CommerceSim.Core;
 
-public record struct Flow(IEntity Entity, int Money, int Resources, FlowDirection Direction, string? ResourceType = null)
+public record MoneyFlow(IEntity Entity, int Money, FlowDirection Direction)
 {
-    public readonly int SignedMoney => Direction == FlowDirection.Credit ? Money : -Money;
+    public int SignedAmount => Direction == FlowDirection.Credit ? Money : -Money;
 
-    public readonly int SignedResources => Direction == FlowDirection.Credit ? Resources : -Resources;
+    public static MoneyFlow Credit(IEntity recipient, int money) =>
+        new(recipient, money, FlowDirection.Credit);
 
-    public static Flow Credit(IEntity recipient, int money, int resources, string? resourceType = null) =>
-        new(recipient, money, resources, FlowDirection.Credit, resourceType);
+    public static MoneyFlow Debit(IEntity payor, int money) =>
+        new(payor, money, FlowDirection.Debit);
+}
 
-    public static Flow Debit(IEntity payor, int money, int resources, string? resourceType = null) =>
-        new(payor, money, resources, FlowDirection.Debit, resourceType);
+public record ResourceFlow(IEntity Entity, int Resources, FlowDirection Direction, string? ResourceType = null)
+{
+    public int SignedAmount => Direction == FlowDirection.Credit ? Resources : -Resources;
+
+    public static ResourceFlow Credit(IEntity recipient, int resources, string? resourceType = null) =>
+        new(recipient, resources, FlowDirection.Credit, resourceType);
+
+    public static ResourceFlow Debit(IEntity payor, int resources, string? resourceType = null) =>
+        new(payor, resources, FlowDirection.Debit, resourceType);
 }
 
 public enum FlowDirection
@@ -19,7 +28,12 @@ public enum FlowDirection
     Debit
 }
 
-public interface IFlowOrigin
+public interface IMoneyFlowOrigin
 {
-    IEnumerable<Flow> CreateFlows(Context context);
+    IEnumerable<MoneyFlow> CreateFlows(Context context);
+}
+
+public interface IResourceFlowOrigin
+{
+    IEnumerable<ResourceFlow> CreateFlows(Context context);
 }

@@ -18,12 +18,20 @@ public interface ITradePolicy
     void OnExecuted(Trade trade);
 }
 
-public interface IFlowPolicy
+public interface IMoneyFlowPolicy
 {
     /// <summary>
     /// Called before a flow is executed to determine if it can proceed.
     /// </summary>
-    bool CanExecute(Flow flow, CommercialSnapshot entityState);
+    bool CanExecute(MoneyFlow flow, MoneySnapshot entityState);
+}
+
+public interface IResourceFlowPolicy
+{
+    /// <summary>
+    /// Called before a flow is executed to determine if it can proceed.
+    /// </summary>
+    bool CanExecute(ResourceFlow flow, InventorySnapshot entityState);
 }
 
 public class OfferSingleUsePolicy : ITradePolicy
@@ -53,16 +61,26 @@ public class CannotCreateMoneyPolicy : ITradePolicy
     public void OnExecuted(Trade trade) { }
 }
 
-public class NoNegativeFlowAmountsPolicy : IFlowPolicy
+public class NoNegativeMoneyFlowAmountsPolicy : IMoneyFlowPolicy
 {
-    public bool CanExecute(Flow flow, CommercialSnapshot _) =>
-        flow.Money >= 0 && flow.Resources >= 0;
+    public bool CanExecute(MoneyFlow flow, MoneySnapshot _) =>
+        flow.Money >= 0;
 }
 
-public class NoForcingNegativeBalanceFlowPolicy : IFlowPolicy
+public class NoNegativeResourceFlowAmountsPolicy : IResourceFlowPolicy
 {
-    public bool CanExecute(Flow flow, CommercialSnapshot entityState) =>
-        flow.Direction != FlowDirection.Debit
-        || (flow.Money <= entityState.MoneyBalance
-            && flow.Resources <= entityState.GetResourceBalance(flow.ResourceType));
+    public bool CanExecute(ResourceFlow flow, InventorySnapshot _) =>
+        flow.Resources >= 0;
+}
+
+public class NoForcingNegativeMoneyBalanceFlowPolicy : IMoneyFlowPolicy
+{
+    public bool CanExecute(MoneyFlow flow, MoneySnapshot entityState) =>
+        flow.Direction != FlowDirection.Debit || flow.Money <= entityState.MoneyBalance;
+}
+
+public class NoForcingNegativeInventoryBalanceFlowPolicy : IResourceFlowPolicy
+{
+    public bool CanExecute(ResourceFlow flow, InventorySnapshot entityState) =>
+        flow.Direction != FlowDirection.Debit || flow.Resources <= entityState.GetAmount(flow.ResourceType ?? "");
 }
