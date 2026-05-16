@@ -1,4 +1,6 @@
-namespace Wrecs.Core.Spatial;
+using Wrecs.Core;
+
+namespace Wrecs.Systems;
 
 using Position = int;
 using Vector = int;

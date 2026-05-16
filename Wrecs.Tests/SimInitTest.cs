@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
-using Wrecs.Core.Spatial;
+using Wrecs.Systems;
 using Position = int;
 
 namespace Wrecs.Core.Tests;

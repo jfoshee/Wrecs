@@ -1,4 +1,4 @@
-using Wrecs.Core.Spatial;
+using Wrecs.Systems;
 
 namespace Wrecs.Core.Tests.Monopoly;
 

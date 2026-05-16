@@ -1,7 +1,9 @@
-using Wrecs.Core.Spatial;
+using Wrecs.Core;
+using Wrecs.Systems;
+
 using Position = int;
 
-namespace Wrecs.Core;
+namespace Wrecs;
 
 public class Sim
 {
