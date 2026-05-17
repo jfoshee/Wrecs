@@ -126,6 +126,4 @@ public class Sim
             injectMethod.Invoke(entity, [system]);
         }
     }
-
-
 }
