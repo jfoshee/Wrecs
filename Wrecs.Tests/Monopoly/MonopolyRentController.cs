@@ -16,9 +16,6 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
     private MoneySystem _moneySystem = null!;
     private InventorySystem _inventorySystem = null!;
 
-    public int Id { get; } = EntityId.Next();
-    public string Name => "Monopoly Rent Controller";
-
     public MonopolyRentController() : this(MonopolyBoard.Properties) { }
 
     public void Inject(TurnSystem dependency) => _turnSystem = dependency;

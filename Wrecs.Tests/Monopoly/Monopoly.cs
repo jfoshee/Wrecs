@@ -91,6 +91,7 @@ public class MonopolyTest(ITestOutputHelper output)
         game.GetPosition(game.Player1).Should().Be(3);
 
         // Rent is 10% of property price: 60 / 10 = 6
+        game.Tick(); // Rent is processed
         game.GetCommercialState(game.Player2).MoneyBalance.Should().Be(1500 - 6);
         game.GetCommercialState(game.Player1).MoneyBalance.Should().Be(1500 - 60 + 6);
     }
@@ -117,6 +118,7 @@ public class MonopolyTest(ITestOutputHelper output)
         game.GetPosition(game.Player1).Should().Be(24); // After 4 rounds of rolling 6, Player 1 should be on position 24
 
         game.Tick(); // Player 1 lands on Go To Jail
+        game.Tick(); // Player is sent to Jail
 
         game.GetPosition(game.Player1).Should().Be(10);
         game.GetJailState(game.Player1).IsInJail.Should().BeTrue();
