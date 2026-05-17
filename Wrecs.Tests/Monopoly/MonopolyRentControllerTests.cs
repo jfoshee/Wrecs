@@ -4,9 +4,10 @@ namespace Wrecs.Tests.Monopoly;
 
 public class MonopolyRentControllerTests
 {
-    private record TestPlayer(string Name) : ICommercialAgent, ISpatialEntity, ITakeTurns
+    private class TestPlayer(string name) : ICommercialAgent, ISpatialEntity, ITakeTurns
     {
         public int Id { get; } = EntityId.Next();
+        public string Name { get; } = name;
         public Decision Decide(CommercialSnapshot state, List<Offer> offers) => new DoNothingDecision();
     }
 
