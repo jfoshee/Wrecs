@@ -54,17 +54,17 @@ public class BasicCombinedScenarios
         // Move the agent on top of the source
         agent.NextStep = 1;
         sim.Tick();
-
-        // Agent should have received resources from the source
         sim.GetPosition(agent).Should().Be(sim.GetPosition(source)); // at same position as source
-        sim.GetCommercialState(agent).Should().Be(new CommercialSnapshot(0, 10));
 
         // Move agent 1 unit beyond the source
         agent.NextStep = 1;
         sim.Tick();
+        // Agent should have received resources from the source
+        sim.GetCommercialState(agent).Should().Be(new CommercialSnapshot(0, 10));
+        sim.GetPosition(agent).Should().Be(6);
 
         // Agent has moved and no longer receives grant
-        sim.GetPosition(agent).Should().Be(6);
+        sim.Tick();
         sim.GetCommercialState(agent).Should().Be(new CommercialSnapshot(0, 10));
     }
 
