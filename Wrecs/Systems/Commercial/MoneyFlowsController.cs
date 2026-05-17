@@ -4,22 +4,22 @@ namespace Wrecs.Systems.Commercial;
 
 public abstract class MoneyFlowsController<TMoneyFlowOrigin>(IEnumerable<TMoneyFlowOrigin> flowOrigins,
                                                              IEnumerable<IMoneyFlowPolicy> flowPolicies)
-    : IController<MoneySnapshot>, IRequire<MoneySystem>
+    : IPrepareSharedUpdates, IRequire<MoneySystem>
     where TMoneyFlowOrigin : IMoneyFlowOrigin
 {
     private readonly List<TMoneyFlowOrigin> _flowOrigins = [.. flowOrigins];
     private readonly List<IMoneyFlowPolicy> _flowPolicies = [.. flowPolicies];
 
     protected MoneySystem? _moneySystem;
-    private Dictionary<IEntity, List<MoneyFlow>> _approvedFlows = [];
 
     public void Inject(MoneySystem system) => _moneySystem = system;
 
-    public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities)
+    public IEnumerable<UpdateSet> PrepareSharedUpdates()
     {
         if (_moneySystem == null)
             throw new InvalidOperationException("Dependencies not injected");
 
+        var allEntities = _moneySystem.GetEntities();
         var context = new FlowContext(allEntities);
         var allFlows = _flowOrigins.SelectMany(origin => origin.CreateFlows(context));
 
@@ -31,10 +31,11 @@ public abstract class MoneyFlowsController<TMoneyFlowOrigin>(IEnumerable<TMoneyF
             pendingFlows[flow.Entity] = entityFlows;
         }
 
-        _approvedFlows = [];
+        var updates = new List<IEntityUpdate>();
         foreach (var (entity, flows) in pendingFlows)
         {
-            var money = _moneySystem.GetState(entity).MoneyBalance;
+            var current = _moneySystem.GetState(entity);
+            var money = current.MoneyBalance;
 
             var approved = new List<MoneyFlow>();
             foreach (var flow in flows)
@@ -45,20 +46,16 @@ public abstract class MoneyFlowsController<TMoneyFlowOrigin>(IEnumerable<TMoneyF
                 approved.Add(flow);
             }
 
-            if (approved.Count > 0)
-                _approvedFlows[entity] = approved;
+            if (approved.Count == 0)
+                continue;
+
+            foreach (var flow in approved)
+                money += flow.SignedAmount;
+
+            updates.Add(new EntityUpdate<MoneySnapshot>(entity, new MoneySnapshot(money)));
         }
 
-        return _approvedFlows.Keys;
-    }
-
-    public MoneySnapshot GetNewState(IEntity entity, MoneySnapshot current)
-    {
-        if (!_approvedFlows.TryGetValue(entity, out var flows))
-            return current;
-        var money = current.MoneyBalance;
-        foreach (var flow in flows)
-            money += flow.SignedAmount;
-        return new MoneySnapshot(money);
+        if (updates.Count > 0)
+            yield return new UpdateSet(updates);
     }
 }

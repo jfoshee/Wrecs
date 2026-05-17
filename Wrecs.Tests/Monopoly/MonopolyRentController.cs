@@ -1,3 +1,4 @@
+using Wrecs.Core;
 using Wrecs.Systems;
 
 namespace Wrecs.Tests.Monopoly;
@@ -15,9 +16,6 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
     private MoneySystem _moneySystem = null!;
     private InventorySystem _inventorySystem = null!;
 
-    // Calculated per-tick rent adjustments (positive = receiving rent, negative = paying rent)
-    private readonly Dictionary<IEntity, int> _rentAdjustments = [];
-
     public int Id { get; } = EntityId.Next();
     public string Name => "Monopoly Rent Controller";
 
@@ -28,24 +26,22 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
     public void Inject(MoneySystem dependency) => _moneySystem = dependency;
     public void Inject(InventorySystem dependency) => _inventorySystem = dependency;
 
-    public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities)
+    public IEnumerable<UpdateSet> PrepareSharedUpdates()
     {
-        _rentAdjustments.Clear();
-
         // Get current player and their position
         var currentPlayer = _turnSystem.GetCurrentPlayer();
         var playerPosition = _spatialSystem.GetState(currentPlayer).Position;
 
         // Look up property at that position
         if (playerPosition < 0 || playerPosition >= boardConfig.Length)
-            return [];
+            yield break;
         var property = boardConfig[playerPosition];
         if (property is null)
-            return []; // No property at this position (GO, Jail, etc.)
+            yield break; // No property at this position (GO, Jail, etc.)
 
         // Find who owns this property (search all entities for who has it in inventory)
         IEntity? owner = null;
-        foreach (var entity in allEntities)
+        foreach (var entity in _inventorySystem.GetEntities())
         {
             if (_inventorySystem.GetState(entity).GetAmount(property.Name) > 0)
             {
@@ -55,10 +51,10 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
         }
 
         if (owner is RealEstateAgent)
-            return []; // Owned by bank, no rent
+            yield break; // Owned by bank, no rent
 
         if (owner is null || owner == currentPlayer)
-            return []; // Unowned or player owns it themselves
+            yield break; // Unowned or player owns it themselves
 
         // Calculate rent (simplified: 10% of property price)
         var rent = property.Price / 10;
@@ -69,21 +65,14 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
             rent = tenantMoney; // Pay what they can
 
         if (rent <= 0)
-            return [];
+            yield break;
 
-        // Record adjustments
-        _rentAdjustments[currentPlayer] = -rent;    // Tenant pays
-        _rentAdjustments[owner] = rent;             // Landlord receives
+        var tenantNewBalance = tenantMoney - rent;  // Tenant pays
+        var ownerNewBalance = _moneySystem.GetState(owner).MoneyBalance + rent;  // Landlord receives
 
-        return [currentPlayer, owner];
+        yield return new UpdateSet([
+            new EntityUpdate<MoneySnapshot>(currentPlayer, new MoneySnapshot(tenantNewBalance)),
+            new EntityUpdate<MoneySnapshot>(owner, new MoneySnapshot(ownerNewBalance)),
+        ]);
     }
-
-    public MoneySnapshot GetNewState(IEntity entity, MoneySnapshot currentState)
-    {
-        if (_rentAdjustments.TryGetValue(entity, out var adjustment))
-            return new MoneySnapshot(currentState.MoneyBalance + adjustment);
-        return currentState;
-    }
-
-    public InventorySnapshot GetNewState(IEntity entity, InventorySnapshot currentState) => currentState;
 }

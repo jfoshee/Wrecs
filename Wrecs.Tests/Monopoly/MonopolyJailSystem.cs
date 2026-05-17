@@ -4,7 +4,7 @@ namespace Wrecs.Tests.Monopoly;
 
 record struct MonopolyJailSnapshot(bool IsInJail, int TurnsRemaining) : IStateSnapshot<MonopolyJailSystem>;
 
-class MonopolyJailSystem : IControllableSystem<IMonopolyEntity, MonopolyJailSnapshot>, IRequire<TurnSystem>
+class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>, IAcceptUpdates<MonopolyJailSnapshot>, IRequire<TurnSystem>
 {
     public const string PayFineResource = "Jail Fine Receipt";
     private readonly List<IEntity> _entities = [];
@@ -66,31 +66,23 @@ class MonopolyJailSystem : IControllableSystem<IMonopolyEntity, MonopolyJailSnap
     internal IEnumerable<IEntity> GetInmates() => _turnsRemaining.Keys;
 }
 
-class MonopolyJailController :
-    IController<MonopolyJailSnapshot>,
-    IController<PositionSnapshot>, IRequire<SpatialSystem>
+class MonopolyJailController : IPrepareSharedUpdates, IRequire<SpatialSystem>
 {
     private SpatialSystem? _spatialSystem;
 
-    public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities)
+    public void Inject(SpatialSystem dependency) => _spatialSystem = dependency;
+
+    public IEnumerable<UpdateSet> PrepareSharedUpdates()
     {
         // Return entities that are on the 30th tile which is the "Go to Jail" space
-        return allEntities.Where(e => _spatialSystem!.GetState(e) == 30);
+        foreach (var entity in _spatialSystem!.GetEntities().Where(e => _spatialSystem.GetState(e) == 30))
+        {
+            yield return new UpdateSet([
+                new EntityUpdate<MonopolyJailSnapshot>(entity, new MonopolyJailSnapshot(true, 3)),  // Send them to jail for 3 turns
+                new EntityUpdate<PositionSnapshot>(entity, new PositionSnapshot(10)),               // Move them to the Jail tile which is at position 10
+            ]);
+        }
     }
-
-    public MonopolyJailSnapshot GetNewState(IEntity entity, MonopolyJailSnapshot currentState)
-    {
-        // Send them to jail for 3 turns
-        return new MonopolyJailSnapshot(true, 3);
-    }
-
-    public PositionSnapshot GetNewState(IEntity entity, PositionSnapshot currentState)
-    {
-        // Move them to the Jail tile which is at position 10
-        return new PositionSnapshot(10);
-    }
-
-    public void Inject(SpatialSystem dependency) => _spatialSystem = dependency;
 }
 
 // TODO: A controller that gets inmates out of jail (e.g. if they possess a PayFineResource)

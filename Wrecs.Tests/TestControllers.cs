@@ -3,31 +3,38 @@ namespace Wrecs.Tests;
 /// <summary>
 /// A controller that adds interest to the money balance of all agents.
 /// </summary>
-class InterestController(double interestRate) : IController<MoneySnapshot>
+class InterestController(double interestRate) : IPrepareSharedUpdates, IRequire<MoneySystem>
 {
-    public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities) => allEntities;
+    private MoneySystem? _moneySystem;
+    public void Inject(MoneySystem system) => _moneySystem = system;
 
-    public MoneySnapshot GetNewState(IEntity entity, MoneySnapshot currentState)
+    public IEnumerable<UpdateSet> PrepareSharedUpdates()
     {
-        var interest = (int)(currentState.MoneyBalance * interestRate);
-        return new MoneySnapshot(currentState.MoneyBalance + interest);
+        var updates = _moneySystem!.GetEntities().Select(entity =>
+        {
+            var balance = _moneySystem.GetState(entity).MoneyBalance;
+            var interest = (int)(balance * interestRate);
+            return (IEntityUpdate)new EntityUpdate<MoneySnapshot>(entity, new MoneySnapshot(balance + interest));
+        });
+        yield return new(updates);
     }
 }
 
 /// <summary>
 /// A controller that grants unitless resources to a specific entity each tick (e.g., simulating mining).
 /// </summary>
-class MiningController(IEntity miner, int resourcesPerTick) : IController<InventorySnapshot>
+class MiningController(IEntity miner, int resourcesPerTick) : IPrepareSharedUpdates, IRequire<InventorySystem>
 {
-    public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities) =>
-        allEntities.Where(e => e == miner);
+    private InventorySystem? _inventorySystem;
+    public void Inject(InventorySystem system) => _inventorySystem = system;
 
-    public InventorySnapshot GetNewState(IEntity entity, InventorySnapshot currentState)
+    public IEnumerable<UpdateSet> PrepareSharedUpdates()
     {
-        var newAmount = currentState.GetAmount("") + resourcesPerTick;
-        var updated = currentState.Inventory
+        var current = _inventorySystem!.GetState(miner);
+        var newAmount = current.GetAmount("") + resourcesPerTick;
+        var updated = current.Inventory
             .Where(i => i.Type != "")
             .Append(("", newAmount));
-        return new InventorySnapshot(updated);
+        yield return new([new EntityUpdate<InventorySnapshot>(miner, new InventorySnapshot(updated))]);
     }
 }

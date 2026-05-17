@@ -4,7 +4,7 @@ public record TestEntity(int Id, string Name = "Test") : IEntity;
 public record struct StateA(int Value) : IStateSnapshot<SystemA>;
 public record struct StateB(string Data) : IStateSnapshot<SystemB>;
 
-public class SystemA : IControllableSystem<TestEntity, StateA>
+public class SystemA : ISystem<TestEntity, StateA>, IAcceptUpdates<StateA>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, StateA> _states = [];
@@ -31,7 +31,7 @@ public class SystemA : IControllableSystem<TestEntity, StateA>
     public void ApplyInternalUpdates() { }
 }
 
-public class SystemB : IControllableSystem<TestEntity, StateB>
+public class SystemB : ISystem<TestEntity, StateB>, IAcceptUpdates<StateB>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, StateB> _states = [];
@@ -58,41 +58,56 @@ public class SystemB : IControllableSystem<TestEntity, StateB>
     public void ApplyInternalUpdates() { }
 }
 
-public class ControllerA : IController<StateA>
+public class ControllerA : IPrepareSharedUpdates, IRequire<SystemA>
 {
-    public int GetEntitiesCalls { get; private set; }
-    public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities)
-    {
-        GetEntitiesCalls++;
-        return allEntities;
-    }
+    private SystemA? _systemA;
+    public void Inject(SystemA system) => _systemA = system;
 
-    public StateA GetNewState(IEntity entity, StateA currentState) => new(currentState.Value + 1);
+    public int PrepareSharedUpdatesCalls { get; private set; }
+
+    public IEnumerable<UpdateSet> PrepareSharedUpdates()
+    {
+        PrepareSharedUpdatesCalls++;
+        var updates = _systemA!.GetEntities()
+            .Select(e => (IEntityUpdate)new EntityUpdate<StateA>(e, new(_systemA.GetState(e).Value + 1)));
+        yield return new(updates);
+    }
 }
 
-public class ControllerB : IController<StateB>
+public class ControllerB : IPrepareSharedUpdates, IRequire<SystemB>
 {
-    public int GetEntitiesCalls { get; private set; }
-    public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities)
-    {
-        GetEntitiesCalls++;
-        return allEntities;
-    }
+    private SystemB? _systemB;
+    public void Inject(SystemB system) => _systemB = system;
 
-    public StateB GetNewState(IEntity entity, StateB currentState) => new(currentState.Data + "B");
+    public int PrepareSharedUpdatesCalls { get; private set; }
+
+    public IEnumerable<UpdateSet> PrepareSharedUpdates()
+    {
+        PrepareSharedUpdatesCalls++;
+        var updates = _systemB!.GetEntities()
+            .Select(e => (IEntityUpdate)new EntityUpdate<StateB>(e, new(_systemB.GetState(e).Data + "B")));
+        yield return new(updates);
+    }
 }
 
-public class CombinedController : IController<StateA>, IController<StateB>
+public class CombinedController : IPrepareSharedUpdates, IRequire<SystemA>, IRequire<SystemB>
 {
-    public int GetEntitiesCalls { get; private set; }
-    public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities)
-    {
-        GetEntitiesCalls++;
-        return allEntities;
-    }
+    private SystemA? _systemA;
+    private SystemB? _systemB;
+    public void Inject(SystemA system) => _systemA = system;
+    public void Inject(SystemB system) => _systemB = system;
 
-    public StateA GetNewState(IEntity entity, StateA currentState) => new(currentState.Value + 10);
-    public StateB GetNewState(IEntity entity, StateB currentState) => new(currentState.Data + "C");
+    public int PrepareSharedUpdatesCalls { get; private set; }
+
+    public IEnumerable<UpdateSet> PrepareSharedUpdates()
+    {
+        PrepareSharedUpdatesCalls++;
+        var updatesA = _systemA!.GetEntities()
+            .Select(e => (IEntityUpdate)new EntityUpdate<StateA>(e, new(_systemA.GetState(e).Value + 10)));
+        var updatesB = _systemB!.GetEntities()
+            .Select(e => (IEntityUpdate)new EntityUpdate<StateB>(e, new(_systemB.GetState(e).Data + "C")));
+        yield return new(updatesA.Concat(updatesB));
+    }
 }
 
 public class ControllerTests
@@ -118,8 +133,8 @@ public class ControllerTests
         systemA.GetState(entity).Value.Should().Be(11);
         systemB.GetState(entity).Data.Should().Be("TestB");
 
-        controllerA.GetEntitiesCalls.Should().Be(1);
-        controllerB.GetEntitiesCalls.Should().Be(1);
+        controllerA.PrepareSharedUpdatesCalls.Should().Be(1);
+        controllerB.PrepareSharedUpdatesCalls.Should().Be(1);
     }
 
     [Fact(DisplayName = "A controller that impacts multiple systems should only be called once per tick")]
@@ -143,7 +158,7 @@ public class ControllerTests
         systemA.GetState(entity).Value.Should().Be(20);
         systemB.GetState(entity).Data.Should().Be("TestC");
 
-        // Key behavior: Should only query entities once per tick, not once per system
-        combinedController.GetEntitiesCalls.Should().Be(1);
+        // Key behavior: Should only call PrepareSharedUpdates once per tick, not once per system
+        combinedController.PrepareSharedUpdatesCalls.Should().Be(1);
     }
 }

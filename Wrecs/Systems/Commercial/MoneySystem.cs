@@ -4,11 +4,11 @@ namespace Wrecs.Systems.Commercial;
 
 public interface IMoneyEntity : IEntity;
 
-public interface IMoneyController : IController<MoneySnapshot>;
+public interface IMoneyController : IPrepareSharedUpdates;
 
 public record struct MoneySnapshot(int MoneyBalance) : IStateSnapshot<MoneySystem>;
 
-public class MoneySystem : IControllableSystem<IMoneyEntity, MoneySnapshot>
+public class MoneySystem : ISystem<IMoneyEntity, MoneySnapshot>, IAcceptUpdates<MoneySnapshot>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, int> _balances = [];

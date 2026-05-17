@@ -17,7 +17,7 @@ public class Sim
         new OfferSystem(),
     ];
     private readonly List<IEntity> _entities = [];
-    private readonly List<IController> _controllers = [];
+    private readonly List<IPrepareSharedUpdates> _controllers = [];
     private bool _dependenciesInjected = false;
 
     public void AddSystem(ISystem system)
@@ -26,7 +26,7 @@ public class Sim
         _dependenciesInjected = false;
     }
 
-    public void InitControllers(params IController[] controllers)
+    public void InitControllers(params IPrepareSharedUpdates[] controllers)
     {
         _controllers.Clear();
         _controllers.AddRange(controllers);
@@ -64,6 +64,11 @@ public class Sim
                 sharedUpdates.AddRange(updateSet);
             }
         }
+        foreach (var controller in _controllers)
+        {
+            // Each controller is called exactly once per tick; its updates may span multiple systems
+            sharedUpdates.AddRange(controller.PrepareSharedUpdates());
+        }
 
         // HACK: Put all shared updates into one big bucket
         var allUpdates = sharedUpdates.SelectMany(cu => cu.Updates);
@@ -75,10 +80,6 @@ public class Sim
             if (system is IAcceptUpdates acceptUpdatesSystem)
             {
                 acceptUpdatesSystem.ApplyUpdates(allUpdates);
-            }
-            if (system is IControllableSystem controllableSystem)
-            {
-                ApplyControllers(controllableSystem);
             }
         }
     }
@@ -116,19 +117,6 @@ public class Sim
         }
     }
 
-    private void ApplyControllers(IControllableSystem system)
-    {
-        // We grab each controller only once to make sure we do not call GetEntitiesToUpdate more than once,
-        // and we loop over matching systems for each controller. This could be made less awkward.
-        var matchingControllers = _controllers
-            .Where(controller => IsPrimaryControllerSystem(controller, system));
-
-        foreach (var controller in matchingControllers)
-        {
-            system.ApplyController(controller, GetMatchingSystems(controller));
-        }
-    }
-
     private static void InjectSystemIfRequired(IRequire entity, ISystem system)
     {
         var requireInterface = typeof(IRequire<>).MakeGenericType(system.GetType());
@@ -139,10 +127,5 @@ public class Sim
         }
     }
 
-    private bool IsPrimaryControllerSystem(IController controller, ISystem system) =>
-        ReferenceEquals(GetMatchingSystems(controller).FirstOrDefault(), system);
 
-    private IControllableSystem[] GetMatchingSystems(IController controller) =>
-        [.. _systems.OfType<IControllableSystem>()
-                    .Where(system => system.MatchesController(controller))];
 }

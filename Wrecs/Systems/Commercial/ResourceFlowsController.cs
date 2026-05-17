@@ -4,22 +4,22 @@ namespace Wrecs.Systems.Commercial;
 
 public abstract class ResourceFlowsController<TResourceFlowOrigin>(IEnumerable<TResourceFlowOrigin> flowOrigins,
                                                                    IEnumerable<IResourceFlowPolicy> flowPolicies)
-    : IController<InventorySnapshot>, IRequire<InventorySystem>
+    : IPrepareSharedUpdates, IRequire<InventorySystem>
     where TResourceFlowOrigin : IResourceFlowOrigin
 {
     private readonly List<TResourceFlowOrigin> _flowOrigins = [.. flowOrigins];
     private readonly List<IResourceFlowPolicy> _flowPolicies = [.. flowPolicies];
 
     protected InventorySystem? _inventorySystem;
-    private Dictionary<IEntity, List<ResourceFlow>> _approvedFlows = [];
 
     public void Inject(InventorySystem system) => _inventorySystem = system;
 
-    public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> allEntities)
+    public IEnumerable<UpdateSet> PrepareSharedUpdates()
     {
         if (_inventorySystem == null)
             throw new InvalidOperationException("Dependencies not injected");
 
+        var allEntities = _inventorySystem.GetEntities();
         var context = new FlowContext(allEntities);
         var allFlows = _flowOrigins.SelectMany(origin => origin.CreateFlows(context));
 
@@ -31,37 +31,34 @@ public abstract class ResourceFlowsController<TResourceFlowOrigin>(IEnumerable<T
             pendingFlows[flow.Entity] = entityFlows;
         }
 
-        _approvedFlows = [];
+        var updates = new List<IEntityUpdate>();
         foreach (var (entity, flows) in pendingFlows)
         {
-            var inventory = _inventorySystem.GetState(entity).Inventory;
+            var current = _inventorySystem.GetState(entity);
+            var inventory = current.Inventory.ToDictionary(i => i.Type, i => i.Amount);
 
             var approved = new List<ResourceFlow>();
             foreach (var flow in flows)
             {
-                var proposed = new InventorySnapshot(inventory);
+                var proposed = new InventorySnapshot(inventory.Select(kvp => (kvp.Key, kvp.Value)));
                 if (_flowPolicies.Any(policy => !policy.CanExecute(flow, proposed)))
                     continue;
                 approved.Add(flow);
             }
 
-            if (approved.Count > 0)
-                _approvedFlows[entity] = approved;
+            if (approved.Count == 0)
+                continue;
+
+            foreach (var flow in approved)
+            {
+                var key = flow.ResourceType ?? "";
+                inventory[key] = inventory.GetValueOrDefault(key, 0) + flow.SignedAmount;
+            }
+
+            updates.Add(new EntityUpdate<InventorySnapshot>(entity, new InventorySnapshot(inventory.Select(kvp => (kvp.Key, kvp.Value)))));
         }
 
-        return _approvedFlows.Keys;
-    }
-
-    public InventorySnapshot GetNewState(IEntity entity, InventorySnapshot current)
-    {
-        if (!_approvedFlows.TryGetValue(entity, out var flows))
-            return current;
-        var inventory = current.Inventory.ToDictionary(i => i.Type, i => i.Amount);
-        foreach (var flow in flows)
-        {
-            var key = flow.ResourceType ?? "";
-            inventory[key] = inventory.GetValueOrDefault(key, 0) + flow.SignedAmount;
-        }
-        return new InventorySnapshot(inventory.Select(kvp => (kvp.Key, kvp.Value)));
+        if (updates.Count > 0)
+            yield return new UpdateSet(updates);
     }
 }

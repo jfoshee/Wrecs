@@ -52,17 +52,16 @@ public class MonopolyRentControllerTests
         controller.Inject(inventorySystem);
 
         // Act
-        var entitiesToUpdate = controller.GetEntitiesToUpdate([tenant, landlord]).ToList();
-        var tenantNewState = controller.GetNewState(tenant, moneySystem.GetState(tenant));
-        var landlordNewState = controller.GetNewState(landlord, moneySystem.GetState(landlord));
-
+        var updateSets = controller.PrepareSharedUpdates().ToList();
+        var allUpdates = updateSets.SelectMany(us => us.Updates).OfType<EntityUpdate<MoneySnapshot>>().ToList();
+        var tenantUpdate = allUpdates.FirstOrDefault(u => u.Entity == tenant);
+        var landlordUpdate = allUpdates.FirstOrDefault(u => u.Entity == landlord);
 
         // Assert
-        entitiesToUpdate.Should().Contain(tenant);
-        entitiesToUpdate.Should().Contain(landlord);
+        updateSets.Should().NotBeEmpty();
 
         // Rent is 10% of $60 = $6
-        tenantNewState.MoneyBalance.Should().Be(100 - 6);   // Tenant paid $6
-        landlordNewState.MoneyBalance.Should().Be(50 + 6);  // Landlord received $6
+        tenantUpdate!.State.MoneyBalance.Should().Be(100 - 6);   // Tenant paid $6
+        landlordUpdate!.State.MoneyBalance.Should().Be(50 + 6);  // Landlord received $6
     }
 }

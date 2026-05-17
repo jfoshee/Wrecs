@@ -56,7 +56,7 @@ public record EntityUpdate<TStateSnapshot>(IEntity Entity, TStateSnapshot State)
 /// </summary>
 public record UpdateSet(IEnumerable<IEntityUpdate> Updates);
 
-public interface IPrepareSharedUpdates : ISystem
+public interface IPrepareSharedUpdates
 {
     /// <summary>
     /// Prepares a set of updates that may involve multiple Systems.
@@ -79,43 +79,5 @@ public interface IAcceptUpdates<TStateSnapshot> : IAcceptUpdates
     {
         var typedUpdates = updates.OfType<EntityUpdate<TStateSnapshot>>();
         ApplyUpdates(typedUpdates);
-    }
-}
-
-public interface IControllableSystem : ISystem
-{
-    bool MatchesController(IController controller);
-    void ApplyController(IController controller, IEnumerable<IControllableSystem> matchingSystems);
-    void ApplyStateUpdates(IController controller, IEntity[] entities);
-}
-
-public interface IControllableSystem<TMarkerInterface, TStateSnapshot> : IControllableSystem, ISystem<TMarkerInterface, TStateSnapshot>, IAcceptUpdates<TStateSnapshot>
-    where TMarkerInterface : IEntity
-    where TStateSnapshot : struct, IStateSnapshot
-{
-    bool IControllableSystem.MatchesController(IController controller)
-    {
-        return controller is IController<TStateSnapshot>;
-    }
-
-    void IControllableSystem.ApplyController(IController controller, IEnumerable<IControllableSystem> matchingSystems)
-    {
-        if (controller is IController<TStateSnapshot> typedController)
-        {
-            var entities = typedController.GetEntitiesToUpdate(GetEntities()).ToArray();
-            foreach (var system in matchingSystems)
-            {
-                system.ApplyStateUpdates(controller, entities);
-            }
-        }
-    }
-
-    void IControllableSystem.ApplyStateUpdates(IController controller, IEntity[] entities)
-    {
-        if (controller is IController<TStateSnapshot> typedController)
-        {
-            ApplyUpdates(entities.Select(entity =>
-                new EntityUpdate<TStateSnapshot>(entity, typedController.GetNewState(entity, GetState(entity)))));
-        }
     }
 }

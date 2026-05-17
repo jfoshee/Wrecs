@@ -24,11 +24,11 @@ public interface ISpatialAgent : ISpatialEntity
     Vector GetStep(Position currentPosition);
 }
 
-public interface ISpatialController : IController<PositionSnapshot>
+public interface ISpatialController : IPrepareSharedUpdates
 {
 }
 
-public class SpatialSystem : IControllableSystem<ISpatialEntity, PositionSnapshot>
+public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>, IAcceptUpdates<PositionSnapshot>
 {
     private List<IEntity> _entities = [];
     private IEnumerable<ISpatialAgent> Agents => _entities.OfType<ISpatialAgent>();

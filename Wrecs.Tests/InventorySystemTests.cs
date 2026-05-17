@@ -200,15 +200,23 @@ public class InventorySystemTests
         inventorySystem.GetState(entity).GetAmount("wood").Should().Be(8);
     }
 
-    private class AddItemController(string type, int qty) : IController<InventorySnapshot>
+    private class AddItemController(string type, int qty) : IPrepareSharedUpdates, IRequire<InventorySystem>
     {
-        public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> all) => all;
-        public InventorySnapshot GetNewState(IEntity entity, InventorySnapshot current)
+        private InventorySystem? _inventorySystem;
+        public void Inject(InventorySystem system) => _inventorySystem = system;
+
+        public IEnumerable<UpdateSet> PrepareSharedUpdates()
         {
-            var updated = current.Inventory
-                .Where(i => i.Type != type)
-                .Append((type, current.GetAmount(type) + qty));
-            return new InventorySnapshot(updated);
+            var entities = _inventorySystem!.GetEntities();
+            var updates = entities.Select(entity =>
+            {
+                var current = _inventorySystem.GetState(entity);
+                var updated = current.Inventory
+                    .Where(i => i.Type != type)
+                    .Append((type, current.GetAmount(type) + qty));
+                return (IEntityUpdate)new EntityUpdate<InventorySnapshot>(entity, new InventorySnapshot(updated));
+            });
+            yield return new(updates);
         }
     }
 }

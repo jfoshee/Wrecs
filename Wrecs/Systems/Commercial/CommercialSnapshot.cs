@@ -16,4 +16,4 @@ public record struct CommercialSnapshot(MoneySnapshot Money, InventorySnapshot I
 }
 
 public interface ICommercialEntity : IMoneyEntity, IInventoryEntity;
-public interface ICommercialController : IController<MoneySnapshot>, IController<InventorySnapshot>;
+public interface ICommercialController : IPrepareSharedUpdates;

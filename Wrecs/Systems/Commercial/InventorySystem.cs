@@ -5,7 +5,7 @@ namespace Wrecs.Systems.Commercial;
 
 public interface IInventoryEntity : IEntity;
 
-public interface IInventoryController : IController<InventorySnapshot>;
+public interface IInventoryController : IPrepareSharedUpdates;
 
 public record struct InventorySnapshot : IStateSnapshot<InventorySystem>
 {
@@ -47,7 +47,7 @@ public record struct InventorySnapshot : IStateSnapshot<InventorySystem>
         string.Join(", ", Inventory.Select(i => $"{i.Type}: {i.Amount}"));
 }
 
-public class InventorySystem : IControllableSystem<IInventoryEntity, InventorySnapshot>
+public class InventorySystem : ISystem<IInventoryEntity, InventorySnapshot>, IAcceptUpdates<InventorySnapshot>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, Dictionary<string, int>> _inventories = [];

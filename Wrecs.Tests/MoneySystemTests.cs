@@ -137,10 +137,21 @@ public class MoneySystemTests
         moneySystem.GetState(entity).MoneyBalance.Should().Be(150);
     }
 
-    private class AddMoneyController(int amount) : IController<MoneySnapshot>
+    private class AddMoneyController(int amount) : IPrepareSharedUpdates, IRequire<MoneySystem>
     {
-        public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> all) => all;
-        public MoneySnapshot GetNewState(IEntity entity, MoneySnapshot current) =>
-            new(current.MoneyBalance + amount);
+        private MoneySystem? _moneySystem;
+        public void Inject(MoneySystem system) => _moneySystem = system;
+
+        public IEnumerable<UpdateSet> PrepareSharedUpdates()
+        {
+            var entities = _moneySystem!.GetEntities();
+            var updates = entities.Select(e =>
+            {
+                var currentBalance = _moneySystem.GetState(e).MoneyBalance;
+                var newBalance = currentBalance + amount;
+                return (IEntityUpdate)new EntityUpdate<MoneySnapshot>(e, new MoneySnapshot(newBalance));
+            });
+            yield return new(updates);
+        }
     }
 }

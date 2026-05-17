@@ -14,10 +14,17 @@ public class SimInitTest
     {
     }
 
-    class MoveAllController : ISpatialController
+    class MoveAllController : ISpatialController, IRequire<SpatialSystem>
     {
-        public IEnumerable<IEntity> GetEntitiesToUpdate(IEnumerable<IEntity> entities) => entities;
-        public PositionSnapshot GetNewState(IEntity _, PositionSnapshot currentPosition) => new(currentPosition.Position + 1);
+        private SpatialSystem? _spatialSystem;
+        public void Inject(SpatialSystem system) => _spatialSystem = system;
+
+        public IEnumerable<UpdateSet> PrepareSharedUpdates()
+        {
+            var updates = _spatialSystem!.GetEntities()
+                .Select(e => (IEntityUpdate)new EntityUpdate<PositionSnapshot>(e, new(_spatialSystem.GetState(e).Position + 1)));
+            yield return new(updates);
+        }
     }
 
     class InheritsCommercialEntity : BasicEntity, ICommercialEntity
