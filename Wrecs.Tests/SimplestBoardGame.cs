@@ -2,38 +2,64 @@ using Wrecs.Systems;
 
 namespace Wrecs.Tests;
 
-public class SimplestBoardGame
+class PlayerEntity(string name) : IEntity, ISpatial1DEntity, ITakeTurns
 {
-    class PlayerEntity(string name) : IEntity, ISpatial1DEntity, ITakeTurns
+    public int Id { get; } = EntityId.Next();
+    public string Name => name;
+}
+
+class SimplestBoardGame
+{
+    private readonly Sim _sim = new();
+
+    public PlayerEntity Player1 { get; }
+    public PlayerEntity Player2 { get; }
+
+    public SimplestBoardGame(IGameDice? dice = null)
     {
-        public int Id { get; } = EntityId.Next();
-        public string Name => name;
+        _sim.AddSystem(new TurnSystem());
+        _sim.AddSystem(new Spatial1DSystem());
+
+        dice ??= new GameDice(1);
+        var boardGameMovementController = new BoardGameMovementController(dice, boardSize: 10);
+        _sim.InitControllers(boardGameMovementController);
+
+        Player1 = new("Player 1");
+        Player2 = new("Player 2");
+        _sim.InitEntities(
+            (Player1, []),
+            (Player2, [])
+        );
     }
+
+    public void Tick() => _sim.Tick();
+
+    public int GetPosition(IEntity player)
+    {
+        var spatialSystem = _sim.GetSystem<Spatial1DSystem>();
+        return spatialSystem.GetState(player).Position;
+    }
+
+    public IEntity GetCurrentPlayer()
+    {
+        var turnSystem = _sim.GetSystem<TurnSystem>();
+        return turnSystem.CurrentPlayer;
+    }
+}
+
+public class SimplestBoardGameTest
+{
 
     [Fact(DisplayName = "Initialization")]
     public void Initialization()
     {
-        var dice = new GameDice(1);
-        var boardGameMovementController = new BoardGameMovementController(dice, boardSize: 10);
-        var turnSystem = new TurnSystem();
-        var player1 = new PlayerEntity("Player 1");
-        var player2 = new PlayerEntity("Player 2");
-        var sim = new Sim();
-        sim.AddSystem(turnSystem);
-        sim.AddSystem(new Spatial1DSystem());
-        sim.InitControllers(boardGameMovementController);
-        sim.InitEntities(
-            (player1, []),
-            (player2, [])
-        );
+        var game = new SimplestBoardGame();
 
         // Assert both players start at position 0
-        var spatialSystem = sim.GetSystem<Spatial1DSystem>();
-        spatialSystem.GetState(player1).Position.Should().Be(0);
-        spatialSystem.GetState(player2).Position.Should().Be(0);
+        game.GetPosition(game.Player1).Should().Be(0);
+        game.GetPosition(game.Player2).Should().Be(0);
         // Assert it is Player 1's turn
-        turnSystem.GetState(player1).IsMyTurn.Should().BeTrue();
-        turnSystem.GetState(player2).IsMyTurn.Should().BeFalse();
+        game.GetCurrentPlayer().Should().Be(game.Player1);
     }
 
     [Fact(DisplayName = "Single Turn Movement")]
@@ -41,28 +67,15 @@ public class SimplestBoardGame
     {
         var mockDice = new Mock<IGameDice>();
         mockDice.Setup(d => d.Roll()).Returns(3);
-        var boardGameMovementController = new BoardGameMovementController(mockDice.Object, boardSize: 10);
-        var turnSystem = new TurnSystem();
-        var player1 = new PlayerEntity("Player 1");
-        var player2 = new PlayerEntity("Player 2");
-        var sim = new Sim();
-        sim.AddSystem(turnSystem);
-        sim.AddSystem(new Spatial1DSystem());
-        sim.InitControllers(boardGameMovementController);
-        sim.InitEntities(
-            (player1, []),
-            (player2, [])
-        );
+        var game = new SimplestBoardGame(mockDice.Object);
 
         // Run one tick of the simulation
-        sim.Tick();
+        game.Tick();
 
         // Assert Player 1 moved to position 3
-        var spatialSystem = sim.GetSystem<Spatial1DSystem>();
-        spatialSystem.GetState(player1).Position.Should().Be(3);
-        spatialSystem.GetState(player2).Position.Should().Be(0);
+        game.GetPosition(game.Player1).Should().Be(3);
+        game.GetPosition(game.Player2).Should().Be(0);
         // Assert it is now Player 2's turn
-        turnSystem.GetState(player1).IsMyTurn.Should().BeFalse();
-        turnSystem.GetState(player2).IsMyTurn.Should().BeTrue();
+        game.GetCurrentPlayer().Should().Be(game.Player2);
     }
 }
