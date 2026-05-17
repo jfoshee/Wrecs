@@ -38,6 +38,8 @@ public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>
 
     public void InitEntities(params (IEntity entity, TurnSnapshot? initialState)[] initialEntities)
     {
+        if (initialEntities.Length == 0)
+            throw new ArgumentException("TurnSystem requires at least one entity to function", nameof(initialEntities));
         _entities = [.. initialEntities.Select(e => e.entity)];
         _currentTurnIndex = Array.FindIndex(initialEntities, e => e.initialState?.IsMyTurn == true);
         if (_currentTurnIndex == -1)
