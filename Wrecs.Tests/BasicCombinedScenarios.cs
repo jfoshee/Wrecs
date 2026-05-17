@@ -31,7 +31,7 @@ public class BasicCombinedScenarios
     {
         var agent = new BasicComboAgent();
         var source = new ProximityResourceSource(10, 1, 0);
-        var sim = new Sim();
+        var sim = new CommercialSim();
         sim.InitControllers(new ResourceSourcesController([source]));
         sim.InitEntities(
             (agent, [new CommercialSnapshot(0, 0), new PositionSnapshot(0)]),  // no money, sitting at origin

@@ -12,7 +12,6 @@ public class Sim
     private readonly List<ISystem> _systems =
     [
         new Spatial1DSystem(),
-        new MoneySystem(),
         new InventorySystem(),
     ];
     private readonly List<IEntity> _entities = [];

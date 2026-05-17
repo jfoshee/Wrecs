@@ -34,7 +34,7 @@ public class SimInitTest
     [Fact(DisplayName = "Entities inheriting ICommercialEntity or initial state are added to commercial system")]
     public void InitializingCommercialEntities()
     {
-        var sim = new Sim();
+        var sim = new CommercialSim();
         var inheritsCommercialEntity = new InheritsCommercialEntity();
         var hasInitialStateEntity = new BasicEntity();
         var nonCommercialEntity = new BasicEntity();
