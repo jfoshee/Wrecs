@@ -2,7 +2,7 @@ using Wrecs.Systems;
 
 namespace Wrecs.Tests;
 
-class BoardGameMovementController(IGameDice dice, int boardSize) : ISpatialController, IRequire<TurnSystem>, IRequire<SpatialSystem>
+class BoardGameMovementController(IGameDice dice, int boardSize) : IPrepareSharedUpdates, IRequire<TurnSystem>, IRequire<SpatialSystem>
 {
     private TurnSystem _turnSystem = null!;
     private SpatialSystem _spatialSystem = null!;

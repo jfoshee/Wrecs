@@ -5,8 +5,6 @@ namespace Wrecs.Systems.Commercial;
 
 public interface IInventoryEntity : IEntity;
 
-public interface IInventoryController : IPrepareSharedUpdates;
-
 public record struct InventorySnapshot : IStateSnapshot<InventorySystem>
 {
     private readonly ImmutableArray<(string Type, int Amount)> _inventory;

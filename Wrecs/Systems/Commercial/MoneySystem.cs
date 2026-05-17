@@ -4,8 +4,6 @@ namespace Wrecs.Systems.Commercial;
 
 public interface IMoneyEntity : IEntity;
 
-public interface IMoneyController : IPrepareSharedUpdates;
-
 public record struct MoneySnapshot(int MoneyBalance) : IStateSnapshot<MoneySystem>;
 
 public class MoneySystem : ISystem<IMoneyEntity, MoneySnapshot>, IAcceptUpdates<MoneySnapshot>

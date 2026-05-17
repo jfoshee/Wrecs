@@ -1,4 +1,3 @@
-using Wrecs.Core;
 using Wrecs.Systems;
 
 namespace Wrecs.Tests.Monopoly;
@@ -8,8 +7,11 @@ namespace Wrecs.Tests.Monopoly;
 /// and giving the money to the owning player.
 /// </summary>
 public class MonopolyRentController(MonopolyProperty?[] boardConfig)
-    : ICommercialController, IRequire<TurnSystem>, IRequire<SpatialSystem>,
-      IRequire<MoneySystem>, IRequire<InventorySystem>
+    : IPrepareSharedUpdates,
+      IRequire<TurnSystem>,
+      IRequire<SpatialSystem>,
+      IRequire<MoneySystem>,
+      IRequire<InventorySystem>
 {
     private TurnSystem _turnSystem = null!;
     private SpatialSystem _spatialSystem = null!;

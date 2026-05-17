@@ -24,10 +24,6 @@ public interface ISpatialAgent : ISpatialEntity
     Vector GetStep(Position currentPosition);
 }
 
-public interface ISpatialController : IPrepareSharedUpdates
-{
-}
-
 public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>, IAcceptUpdates<PositionSnapshot>
 {
     private List<IEntity> _entities = [];
