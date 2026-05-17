@@ -6,10 +6,10 @@ namespace Wrecs.Tests.Monopoly;
 /// Agent responsible for holding initial property inventory and making
 /// targeted sell offers to players as they land on properties.
 /// </summary>
-public class RealEstateAgent(MonopolyProperty?[] boardConfig) : ICommercialAgent, IRequire<TurnSystem>, IRequire<SpatialSystem>
+public class RealEstateAgent(MonopolyProperty?[] boardConfig) : ICommercialAgent, IRequire<TurnSystem>, IRequire<Spatial1DSystem>
 {
     private TurnSystem _turnSystem = null!;
-    private SpatialSystem _spatialSystem = null!;
+    private Spatial1DSystem _spatial1dSystem = null!;
 
     public int Id { get; } = EntityId.Next();
     public string Name => "Real Estate Agent";
@@ -17,7 +17,7 @@ public class RealEstateAgent(MonopolyProperty?[] boardConfig) : ICommercialAgent
     public RealEstateAgent() : this(MonopolyBoard.Properties) { }
 
     public void Inject(TurnSystem dependency) => _turnSystem = dependency;
-    public void Inject(SpatialSystem dependency) => _spatialSystem = dependency;
+    public void Inject(Spatial1DSystem dependency) => _spatial1dSystem = dependency;
 
     public Decision Decide(CommercialSnapshot state, List<Offer> offers)
     {
@@ -26,7 +26,7 @@ public class RealEstateAgent(MonopolyProperty?[] boardConfig) : ICommercialAgent
         if (currentPlayer is not ICommercialAgent buyer)
             return new DoNothingDecision();
 
-        var playerPosition = _spatialSystem.GetState(currentPlayer).Position;
+        var playerPosition = _spatial1dSystem.GetState(currentPlayer).Position;
 
         // Look up property at that position (array index = position)
         if (playerPosition < 0 || playerPosition >= boardConfig.Length)

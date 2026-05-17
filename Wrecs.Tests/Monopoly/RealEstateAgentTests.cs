@@ -5,7 +5,7 @@ namespace Wrecs.Tests.Monopoly;
 public class RealEstateAgentTests
 {
     // Simple player for testing (implements ICommercialAgent for targeted offers)
-    private record TestPlayer(string Name) : ICommercialAgent, ISpatialEntity, ITakeTurns
+    private record TestPlayer(string Name) : ICommercialAgent, ISpatial1DEntity, ITakeTurns
     {
         public int Id { get; } = EntityId.Next();
         public Decision Decide(CommercialSnapshot state, List<Offer> offers) => new DoNothingDecision();
@@ -26,14 +26,14 @@ public class RealEstateAgentTests
         var turnSystem = new TurnSystem();
         turnSystem.InitEntities((player, new TurnSnapshot(IsMyTurn: true)));
 
-        var spatialSystem = new SpatialSystem();
-        spatialSystem.InitEntities(
+        var spatial1dSystem = new Spatial1DSystem();
+        spatial1dSystem.InitEntities(
             (agent, null),
             (player, new PositionSnapshot(3))   // Player on Baltic Avenue
         );
 
         agent.Inject(turnSystem);
-        agent.Inject(spatialSystem);
+        agent.Inject(spatial1dSystem);
 
         // Agent owns Baltic Avenue (1 unit of "Baltic Avenue" resource type)
         var agentState = new CommercialSnapshot(0, [("Baltic Avenue", 1)]);
@@ -68,14 +68,14 @@ public class RealEstateAgentTests
         var turnSystem = new TurnSystem();
         turnSystem.InitEntities((player, new TurnSnapshot(true)));
 
-        var spatialSystem = new SpatialSystem();
-        spatialSystem.InitEntities(
+        var spatial1dSystem = new Spatial1DSystem();
+        spatial1dSystem.InitEntities(
             (agent, null),
             (player, new PositionSnapshot(3))  // Player on Baltic Avenue
         );
 
         agent.Inject(turnSystem);
-        agent.Inject(spatialSystem);
+        agent.Inject(spatial1dSystem);
 
         // Agent does NOT own Baltic Avenue (empty inventory)
         var agentState = new CommercialSnapshot(0, []);
@@ -101,14 +101,14 @@ public class RealEstateAgentTests
         var turnSystem = new TurnSystem();
         turnSystem.InitEntities((player, new TurnSnapshot(true)));
 
-        var spatialSystem = new SpatialSystem();
-        spatialSystem.InitEntities(
+        var spatial1dSystem = new Spatial1DSystem();
+        spatial1dSystem.InitEntities(
             (agent, null),
             (player, new PositionSnapshot(0))  // Player at GO (position 0, no property)
         );
 
         agent.Inject(turnSystem);
-        agent.Inject(spatialSystem);
+        agent.Inject(spatial1dSystem);
 
         // Agent owns Baltic Avenue but player is not there
         var agentState = new CommercialSnapshot(0, [("Baltic Avenue", 1)]);

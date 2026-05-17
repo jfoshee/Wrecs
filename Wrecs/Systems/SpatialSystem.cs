@@ -5,18 +5,18 @@ namespace Wrecs.Systems;
 using Position = int;
 using Vector = int;
 
-public record struct PositionSnapshot(Position Position) : IStateSnapshot<SpatialSystem>
+public record struct PositionSnapshot(Position Position) : IStateSnapshot<Spatial1DSystem>
 {
     public static implicit operator int(PositionSnapshot snapshot) => snapshot.Position;
     public static implicit operator PositionSnapshot(int position) => new(position);
 }
 
 /// <summary>
-/// Marker that an entity has a Spatial Position
+/// Marker that an entity has a Spatial1D Position
 /// </summary>
-public interface ISpatialEntity : IEntity;
+public interface ISpatial1DEntity : IEntity;
 
-public interface ISpatialAgent : ISpatialEntity
+public interface ISpatial1DAgent : ISpatial1DEntity
 {
     /// <summary>
     /// Given the agent's current position, returns the vector representing the step the agent wants to take.
@@ -24,13 +24,13 @@ public interface ISpatialAgent : ISpatialEntity
     Vector GetStep(Position currentPosition);
 }
 
-public class SpatialSystem : ISystem<ISpatialEntity, PositionSnapshot>, IAcceptUpdates<PositionSnapshot>
+public class Spatial1DSystem : ISystem<ISpatial1DEntity, PositionSnapshot>, IAcceptUpdates<PositionSnapshot>
 {
     private List<IEntity> _entities = [];
-    private IEnumerable<ISpatialAgent> Agents => _entities.OfType<ISpatialAgent>();
+    private IEnumerable<ISpatial1DAgent> Agents => _entities.OfType<ISpatial1DAgent>();
 
     private readonly Dictionary<IEntity, Position> _entityPositions = [];
-    private Dictionary<ISpatialAgent, Vector> _pendingSteps = [];
+    private Dictionary<ISpatial1DAgent, Vector> _pendingSteps = [];
 
     public PositionSnapshot GetState(IEntity entity) => new(_entityPositions[entity]);
 

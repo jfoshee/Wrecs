@@ -9,19 +9,19 @@ namespace Wrecs.Tests.Monopoly;
 public class MonopolyRentController(MonopolyProperty?[] boardConfig)
     : IPrepareSharedUpdates,
       IRequire<TurnSystem>,
-      IRequire<SpatialSystem>,
+      IRequire<Spatial1DSystem>,
       IRequire<MoneySystem>,
       IRequire<InventorySystem>
 {
     private TurnSystem _turnSystem = null!;
-    private SpatialSystem _spatialSystem = null!;
+    private Spatial1DSystem _spatial1dSystem = null!;
     private MoneySystem _moneySystem = null!;
     private InventorySystem _inventorySystem = null!;
 
     public MonopolyRentController() : this(MonopolyBoard.Properties) { }
 
     public void Inject(TurnSystem dependency) => _turnSystem = dependency;
-    public void Inject(SpatialSystem dependency) => _spatialSystem = dependency;
+    public void Inject(Spatial1DSystem dependency) => _spatial1dSystem = dependency;
     public void Inject(MoneySystem dependency) => _moneySystem = dependency;
     public void Inject(InventorySystem dependency) => _inventorySystem = dependency;
 
@@ -29,7 +29,7 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
     {
         // Get current player and their position
         var currentPlayer = _turnSystem.GetCurrentPlayer();
-        var playerPosition = _spatialSystem.GetState(currentPlayer).Position;
+        var playerPosition = _spatial1dSystem.GetState(currentPlayer).Position;
 
         // Look up property at that position
         if (playerPosition < 0 || playerPosition >= boardConfig.Length)

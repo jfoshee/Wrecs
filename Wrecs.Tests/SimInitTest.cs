@@ -10,19 +10,19 @@ public class SimInitTest
         public int Id { get; } = EntityId.Next();
     }
 
-    class InheritsSpatialEntity : BasicEntity, ISpatialEntity
+    class InheritsSpatial1DEntity : BasicEntity, ISpatial1DEntity
     {
     }
 
-    class MoveAllController : IPrepareSharedUpdates, IRequire<SpatialSystem>
+    class MoveAllController : IPrepareSharedUpdates, IRequire<Spatial1DSystem>
     {
-        private SpatialSystem? _spatialSystem;
-        public void Inject(SpatialSystem system) => _spatialSystem = system;
+        private Spatial1DSystem? _spatial1dSystem;
+        public void Inject(Spatial1DSystem system) => _spatial1dSystem = system;
 
         public IEnumerable<UpdateSet> PrepareSharedUpdates()
         {
-            var updates = _spatialSystem!.GetEntities()
-                .Select(e => (IEntityUpdate)new EntityUpdate<PositionSnapshot>(e, new(_spatialSystem.GetState(e).Position + 1)));
+            var updates = _spatial1dSystem!.GetEntities()
+                .Select(e => (IEntityUpdate)new EntityUpdate<PositionSnapshot>(e, new(_spatial1dSystem.GetState(e).Position + 1)));
             yield return new(updates);
         }
     }
@@ -50,43 +50,43 @@ public class SimInitTest
         sim.Invoking((s) => s.GetCommercialState(nonCommercialEntity)).Should().Throw<Exception>();
     }
 
-    [Fact(DisplayName = "Entities inheriting ISpatialEntity or initial position are added to spatial system")]
-    public void InitializingSpatialEntities()
+    [Fact(DisplayName = "Entities inheriting ISpatial1DEntity or initial position are added to spatial1d system")]
+    public void InitializingSpatial1DEntities()
     {
         var sim = new Sim();
-        var inheritsSpatialEntity = new InheritsSpatialEntity();
+        var inheritsSpatial1DEntity = new InheritsSpatial1DEntity();
         var hasInitialPositionEntity = new BasicEntity();
-        var nonSpatialEntity = new BasicEntity();
+        var nonSpatial1DEntity = new BasicEntity();
 
         sim.InitEntities(
-            (inheritsSpatialEntity, []),
-            (nonSpatialEntity, []),
+            (inheritsSpatial1DEntity, []),
+            (nonSpatial1DEntity, []),
             (hasInitialPositionEntity, [new PositionSnapshot(5)])
         );
 
-        sim.GetPosition(inheritsSpatialEntity).Should().Be(0);
+        sim.GetPosition(inheritsSpatial1DEntity).Should().Be(0);
         sim.GetPosition(hasInitialPositionEntity).Should().Be(5);
-        sim.Invoking((s) => s.GetPosition(nonSpatialEntity)).Should().Throw<Exception>();
+        sim.Invoking((s) => s.GetPosition(nonSpatial1DEntity)).Should().Throw<Exception>();
     }
 
-    [Fact(DisplayName = "Spatial Controllers move spatial entities")]
+    [Fact(DisplayName = "Spatial1D Controllers move spatial1d entities")]
     public void ControllersMoveEntities()
     {
         var sim = new Sim();
-        var inheritsSpatialEntity = new InheritsSpatialEntity();
+        var inheritsSpatial1DEntity = new InheritsSpatial1DEntity();
         var hasInitialPositionEntity = new BasicEntity();
-        var nonSpatialEntity = new BasicEntity();
+        var nonSpatial1DEntity = new BasicEntity();
         sim.InitEntities(
-            (inheritsSpatialEntity, []),
-            (nonSpatialEntity, []),
+            (inheritsSpatial1DEntity, []),
+            (nonSpatial1DEntity, []),
             (hasInitialPositionEntity, [new PositionSnapshot(5)])
         );
         sim.InitControllers(new MoveAllController());
 
         sim.Tick();
 
-        sim.GetPosition(inheritsSpatialEntity).Should().Be(1);
+        sim.GetPosition(inheritsSpatial1DEntity).Should().Be(1);
         sim.GetPosition(hasInitialPositionEntity).Should().Be(6);
-        sim.Invoking((s) => s.GetPosition(nonSpatialEntity)).Should().Throw<Exception>();
+        sim.Invoking((s) => s.GetPosition(nonSpatial1DEntity)).Should().Throw<Exception>();
     }
 }

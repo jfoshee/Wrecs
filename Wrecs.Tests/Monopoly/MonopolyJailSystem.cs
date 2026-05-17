@@ -66,16 +66,16 @@ class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>, IAcce
     internal IEnumerable<IEntity> GetInmates() => _turnsRemaining.Keys;
 }
 
-class MonopolyJailController : IPrepareSharedUpdates, IRequire<SpatialSystem>
+class MonopolyJailController : IPrepareSharedUpdates, IRequire<Spatial1DSystem>
 {
-    private SpatialSystem? _spatialSystem;
+    private Spatial1DSystem? _spatial1dSystem;
 
-    public void Inject(SpatialSystem dependency) => _spatialSystem = dependency;
+    public void Inject(Spatial1DSystem dependency) => _spatial1dSystem = dependency;
 
     public IEnumerable<UpdateSet> PrepareSharedUpdates()
     {
         // Return entities that are on the 30th tile which is the "Go to Jail" space
-        foreach (var entity in _spatialSystem!.GetEntities().Where(e => _spatialSystem.GetState(e) == 30))
+        foreach (var entity in _spatial1dSystem!.GetEntities().Where(e => _spatial1dSystem.GetState(e) == 30))
         {
             yield return new UpdateSet([
                 new EntityUpdate<MonopolyJailSnapshot>(entity, new MonopolyJailSnapshot(true, 3)),  // Send them to jail for 3 turns

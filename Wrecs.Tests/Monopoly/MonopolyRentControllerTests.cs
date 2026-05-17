@@ -4,7 +4,7 @@ namespace Wrecs.Tests.Monopoly;
 
 public class MonopolyRentControllerTests
 {
-    private class TestPlayer(string name) : ICommercialAgent, ISpatialEntity, ITakeTurns
+    private class TestPlayer(string name) : ICommercialAgent, ISpatial1DEntity, ITakeTurns
     {
         public int Id { get; } = EntityId.Next();
         public string Name { get; } = name;
@@ -28,8 +28,8 @@ public class MonopolyRentControllerTests
             (landlord, null)
         );
 
-        var spatialSystem = new SpatialSystem();
-        spatialSystem.InitEntities(
+        var spatial1dSystem = new Spatial1DSystem();
+        spatial1dSystem.InitEntities(
             (tenant, new PositionSnapshot(3)),   // Tenant on Baltic Avenue
             (landlord, new PositionSnapshot(0))
         );
@@ -48,7 +48,7 @@ public class MonopolyRentControllerTests
 
         var controller = new MonopolyRentController(boardConfig);
         controller.Inject(turnSystem);
-        controller.Inject(spatialSystem);
+        controller.Inject(spatial1dSystem);
         controller.Inject(moneySystem);
         controller.Inject(inventorySystem);
 

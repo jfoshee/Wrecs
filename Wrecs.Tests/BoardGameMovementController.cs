@@ -2,12 +2,12 @@ using Wrecs.Systems;
 
 namespace Wrecs.Tests;
 
-class BoardGameMovementController(IGameDice dice, int boardSize) : IPrepareSharedUpdates, IRequire<TurnSystem>, IRequire<SpatialSystem>
+class BoardGameMovementController(IGameDice dice, int boardSize) : IPrepareSharedUpdates, IRequire<TurnSystem>, IRequire<Spatial1DSystem>
 {
     private TurnSystem _turnSystem = null!;
-    private SpatialSystem _spatialSystem = null!;
+    private Spatial1DSystem _spatial1dSystem = null!;
     public void Inject(TurnSystem dependency) => _turnSystem = dependency;
-    public void Inject(SpatialSystem dependency) => _spatialSystem = dependency;
+    public void Inject(Spatial1DSystem dependency) => _spatial1dSystem = dependency;
 
     public IEnumerable<UpdateSet> PrepareSharedUpdates()
     {
@@ -17,7 +17,7 @@ class BoardGameMovementController(IGameDice dice, int boardSize) : IPrepareShare
 
         var currentPlayer = _turnSystem.GetCurrentPlayer();
         int roll = dice.Roll();
-        var currentPosition = _spatialSystem.GetState(currentPlayer).Position;
+        var currentPosition = _spatial1dSystem.GetState(currentPlayer).Position;
         var newPosition = (currentPosition + roll) % boardSize;
         yield return new UpdateSet([new EntityUpdate<PositionSnapshot>(currentPlayer, new PositionSnapshot(newPosition))]);
     }

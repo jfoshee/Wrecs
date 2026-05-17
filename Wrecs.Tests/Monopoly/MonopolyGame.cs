@@ -2,14 +2,14 @@ using Wrecs.Systems;
 
 namespace Wrecs.Tests.Monopoly;
 
-public interface IMonopolyEntity : ISpatialEntity, ITakeTurns, ICommercialEntity;
+public interface IMonopolyEntity : ISpatial1DEntity, ITakeTurns, ICommercialEntity;
 
 public class MonopolyGame : Sim
 {
     private MonopolyJailSystem JailSystem { get; } = new();
     private readonly IOutput output;
 
-    // requires 1 spatial tick = 1 turn = 1 commercial tick
+    // requires 1 spatial1d tick = 1 turn = 1 commercial tick
     public IMonopolyEntity Player1 { get; internal set; }
     public IMonopolyEntity Player2 { get; }
     public RealEstateAgent RealEstateAgent { get; } = new();
@@ -30,7 +30,7 @@ public class MonopolyGame : Sim
         AddSystem(new SystemLogger<MoneySystem>(this.output));
         AddSystem(new SystemLogger<InventorySystem>(this.output));
         AddSystem(new SystemLogger<OfferSystem>(this.output));
-        AddSystem(new SystemLogger<SpatialSystem>(this.output));
+        AddSystem(new SystemLogger<Spatial1DSystem>(this.output));
         AddSystem(new SystemLogger<MonopolyJailSystem>(this.output));
 
         Player1 = new MonopolyPlayer("Player 1");

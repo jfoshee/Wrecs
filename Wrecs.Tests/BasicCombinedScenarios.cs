@@ -2,7 +2,7 @@ using Wrecs.Systems;
 
 namespace Wrecs.Tests;
 
-class BasicComboAgent : ICommercialAgent, ISpatialAgent
+class BasicComboAgent : ICommercialAgent, ISpatial1DAgent
 {
     public int Id { get; } = EntityId.Next();
 
@@ -23,7 +23,7 @@ class BasicComboAgent : ICommercialAgent, ISpatialAgent
     }
 }
 
-// Scenarios that combine spatial and commercial
+// Scenarios that combine spatial1d and commercial
 public class BasicCombinedScenarios
 {
     [Fact(DisplayName = "Agent receives from Proximity-aware Resource Source")]
