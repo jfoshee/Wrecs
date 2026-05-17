@@ -1,8 +1,5 @@
 using Wrecs.Core;
-using Wrecs.Systems;
 using Wrecs.Systems.Commercial;
-
-using Position = int;
 
 namespace Wrecs;
 
@@ -86,14 +83,6 @@ public class Sim
         var inventoryState = _systems.OfType<InventorySystem>().First().GetState(entity);
         return new CommercialSnapshot(moneyState, inventoryState);
     }
-
-    public IReadOnlyDictionary<int, CommercialSnapshot> GetStateSnapshot()
-    {
-        return _entities.OfType<ICommercialEntity>()
-                        .ToDictionary(e => e.Id, e => GetCommercialState(e));
-    }
-
-    public IReadOnlyDictionary<int, string> GetAgentNames() => _entities.OfType<ICommercialAgent>().ToDictionary(a => a.Id, a => a.Name);
 
     private void EnsureDependenciesInjected()
     {
