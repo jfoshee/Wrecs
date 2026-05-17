@@ -23,7 +23,7 @@ public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem
     IReadOnlyList<IEntity> GetEntities();
     TStateSnapshot GetState(IEntity entity);
 
-    // Default interface methods to apply generic types
+    // Default interface method to apply generic types
     void ISystem.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
     {
         // An entity is relevant to this system if it implements the marker interface or has an initial state for this system
@@ -37,34 +37,9 @@ public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem
     }
 }
 
-public interface IEntityUpdate
-{
-    IEntity Entity { get; }
-    // IStateSnapshot State { get; }
-}
-
-// public record EntityUpdate<TSystem, TStateSnapshot>(IEntity Entity, TStateSnapshot State) : IEntityUpdate
-//     where TSystem : ISystem
-//     where TStateSnapshot : IStateSnapshot<TSystem>;
-
-public record EntityUpdate<TStateSnapshot>(IEntity Entity, TStateSnapshot State) : IEntityUpdate
-    where TStateSnapshot : IStateSnapshot;
-
 /// <summary>
-/// A set of updates that should be handled atomically.
-/// Either the entire set of updates should be applied, or none of them.
+/// A System that can accept updates from external sources
 /// </summary>
-public record UpdateSet(IEnumerable<IEntityUpdate> Updates);
-
-public interface IPrepareSharedUpdates
-{
-    /// <summary>
-    /// Prepares a set of updates that may involve multiple Systems.
-    /// Each UpdateSet represents a group of updates that should be applied atomically.
-    /// </summary>
-    IEnumerable<UpdateSet> PrepareSharedUpdates();
-}
-
 public interface IAcceptUpdates : ISystem
 {
     void ApplyUpdates(IEnumerable<IEntityUpdate> updates);
