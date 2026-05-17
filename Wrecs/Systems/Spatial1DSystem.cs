@@ -24,7 +24,7 @@ public interface ISpatial1DAgent : ISpatial1DEntity
     Vector GetStep(Position currentPosition);
 }
 
-public class Spatial1DSystem : ISystem<ISpatial1DEntity, PositionSnapshot>, IAcceptUpdates<PositionSnapshot>
+public class Spatial1DSystem : ISystem<ISpatial1DEntity, PositionSnapshot>, IAcceptUpdates<PositionSnapshot>, ISpatialSystem
 {
     private List<IEntity> _entities = [];
     private IEnumerable<ISpatial1DAgent> Agents => _entities.OfType<ISpatial1DAgent>();
@@ -66,13 +66,13 @@ public class Spatial1DSystem : ISystem<ISpatial1DEntity, PositionSnapshot>, IAcc
             _entityPositions[agent] += step;
     }
 
-    public double GetDistance(Position p1, Position p2)
-    {
-        return Math.Abs(p1 - p2);
-    }
-
-    public double GetDistance(IEntity e1, IEntity e2)
+    public float GetDistance(IEntity e1, IEntity e2)
     {
         return GetDistance(_entityPositions[e1], _entityPositions[e2]);
+    }
+
+    private static float GetDistance(Position p1, Position p2)
+    {
+        return Math.Abs(p1 - p2);
     }
 }
