@@ -5,7 +5,7 @@ class CommercialSim : Sim
     public CommercialSim()
     {
         AddSystem(new MoneySystem());
-        // AddSystem(new InventorySystem());
+        AddSystem(new InventorySystem());
         AddSystem(new OfferSystem());
     }
 }

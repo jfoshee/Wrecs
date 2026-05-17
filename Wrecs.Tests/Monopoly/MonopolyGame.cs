@@ -24,6 +24,7 @@ public class MonopolyGame : Sim
 
         // Add required systems for Monopoly:
         AddSystem(new MoneySystem());
+        AddSystem(new InventorySystem());
         AddSystem(new OfferSystem());
         // 3 Phases per turn: Movement, Offer, Decision
         AddSystem(new TurnSystem(phasesPerTurn: 3));
