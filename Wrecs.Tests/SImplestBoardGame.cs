@@ -20,6 +20,7 @@ public class SimplestBoardGame
         var player2 = new PlayerEntity("Player 2");
         var sim = new Sim();
         sim.AddSystem(turnSystem);
+        sim.AddSystem(new Spatial1DSystem());
         sim.InitControllers(boardGameMovementController);
         sim.InitEntities(
             (player1, []),
@@ -46,6 +47,7 @@ public class SimplestBoardGame
         var player2 = new PlayerEntity("Player 2");
         var sim = new Sim();
         sim.AddSystem(turnSystem);
+        sim.AddSystem(new Spatial1DSystem());
         sim.InitControllers(boardGameMovementController);
         sim.InitEntities(
             (player1, []),

@@ -11,22 +11,21 @@ public class ProximityResourceSource(int resourcesGranted, int intervalTicks, do
     private ICommercialAgent? _nearbyAgent = null;
     private int _nearbyTimeTicks = 0;
 
-    private Spatial1DSystem _spatial1d = null!;
-    public void Inject(Spatial1DSystem dependency)
-    {
-        _spatial1d = dependency;
-    }
+    private Spatial1DSystem? _spatial1d = null!;
+    public void Inject(Spatial1DSystem dependency) => _spatial1d = dependency;
 
     public IEnumerable<ResourceFlow> CreateFlows(FlowContext context)
     {
-        var spatial1d = _spatial1d;
+        if (_spatial1d is null)
+            throw new InvalidOperationException($"{nameof(Spatial1DSystem)} is required for {nameof(ProximityResourceSource)}");
+
         var agents = context.Entities.OfType<ICommercialAgent>();
         // If we aren't already tracking a nearby agent, look for one within proximity
         if (_nearbyAgent is null)
         {
             foreach (var agent in agents)
             {
-                var agentDistance = spatial1d.GetDistance(this, agent);
+                var agentDistance = _spatial1d.GetDistance(this, agent);
                 if (agentDistance <= proximity)
                 {
                     _nearbyAgent = (ICommercialAgent?)agent;

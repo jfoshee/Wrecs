@@ -8,11 +8,7 @@ namespace Wrecs;
 
 public class Sim
 {
-    private Spatial1DSystem Spatial1DSystem => _systems.OfType<Spatial1DSystem>().First();
-    private readonly List<ISystem> _systems =
-    [
-        new Spatial1DSystem(),
-    ];
+    private readonly List<ISystem> _systems = [];
     private readonly List<IEntity> _entities = [];
     private readonly List<IPrepareSharedUpdates> _controllers = [];
     private bool _dependenciesInjected = false;
@@ -97,7 +93,7 @@ public class Sim
                         .ToDictionary(e => e.Id, e => GetCommercialState(e));
     }
 
-    public Position GetPosition(IEntity entity) => Spatial1DSystem.GetState(entity).Position;
+    public Position GetPosition(IEntity entity) => GetSystem<Spatial1DSystem>().GetState(entity).Position;
     public IReadOnlyDictionary<int, string> GetAgentNames() => _entities.OfType<ICommercialAgent>().ToDictionary(a => a.Id, a => a.Name);
 
     private void EnsureDependenciesInjected()

@@ -26,6 +26,7 @@ public class MonopolyGame : Sim
         AddSystem(new MoneySystem());
         AddSystem(new InventorySystem());
         AddSystem(new OfferSystem());
+        AddSystem(new Spatial1DSystem());
         // 3 Phases per turn: Movement, Offer, Decision
         AddSystem(new TurnSystem(phasesPerTurn: 3));
         AddSystem(JailSystem);

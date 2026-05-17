@@ -54,6 +54,7 @@ public class SimInitTest
     public void InitializingSpatial1DEntities()
     {
         var sim = new Sim();
+        sim.AddSystem(new Spatial1DSystem());
         var inheritsSpatial1DEntity = new InheritsSpatial1DEntity();
         var hasInitialPositionEntity = new BasicEntity();
         var nonSpatial1DEntity = new BasicEntity();
@@ -73,6 +74,7 @@ public class SimInitTest
     public void ControllersMoveEntities()
     {
         var sim = new Sim();
+        sim.AddSystem(new Spatial1DSystem());
         var inheritsSpatial1DEntity = new InheritsSpatial1DEntity();
         var hasInitialPositionEntity = new BasicEntity();
         var nonSpatial1DEntity = new BasicEntity();
