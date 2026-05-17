@@ -43,9 +43,9 @@ public class MonopolyTest(ITestOutputHelper output)
         mockDice.Setup(d => d.Roll()).Returns(3); // Always land on Baltic Avenue
         game.Init(mockDice.Object);
         // Starting state: Player 1 has $1500 and 0 properties, RealEstateAgent has all properties including Baltic Avenue
-        game.GetCommercialState(game.RealEstateAgent).GetResourceBalance("Baltic Avenue").Should().Be(1);
-        game.GetCommercialState(game.Player1).MoneyBalance.Should().Be(1500);
-        game.GetCommercialState(game.Player1).GetResourceBalance("Baltic Avenue").Should().Be(0);
+        game.GetResourceBalance(game.RealEstateAgent, "Baltic Avenue").Should().Be(1);
+        game.GetMoneyBalance(game.Player1).Should().Be(1500);
+        game.GetResourceBalance(game.Player1, "Baltic Avenue").Should().Be(0);
 
         game.Tick(); // Player 1 moves to Baltic
         game.GetPosition(game.Player1).Should().Be(3);
@@ -54,11 +54,11 @@ public class MonopolyTest(ITestOutputHelper output)
         game.Tick(); // Player 1 takes it
 
         // Player should have bought Baltic Avenue from the RealEstateAgent
-        game.GetCommercialState(game.Player1).GetResourceBalance("Baltic Avenue").Should().Be(1);
-        game.GetCommercialState(game.Player1).MoneyBalance.Should().Be(1500 - 60);
+        game.GetResourceBalance(game.Player1, "Baltic Avenue").Should().Be(1);
+        game.GetMoneyBalance(game.Player1).Should().Be(1500 - 60);
 
         // Real Estate Agent should no longer have Baltic Avenue in inventory
-        game.GetCommercialState(game.RealEstateAgent).GetResourceBalance("Baltic Avenue").Should().Be(0);
+        game.GetResourceBalance(game.RealEstateAgent, "Baltic Avenue").Should().Be(0);
     }
 
     // TODO: Player cannot buy property after he moves off of it. (Offers must "expire" after one turn)
@@ -81,8 +81,8 @@ public class MonopolyTest(ITestOutputHelper output)
 
         game.Tick(); // Agent makes offer
         game.Tick(); // Player 1 takes offer
-        game.GetCommercialState(game.Player1).GetResourceBalance("Baltic Avenue").Should().Be(1);
-        game.GetCommercialState(game.Player1).MoneyBalance.Should().Be(1500 - 60);
+        game.GetResourceBalance(game.Player1, "Baltic Avenue").Should().Be(1);
+        game.GetMoneyBalance(game.Player1).Should().Be(1500 - 60);
         game.GetPosition(game.Player2).Should().Be(0);
 
         // Player 2 moves to Baltic and pays rent
@@ -92,8 +92,8 @@ public class MonopolyTest(ITestOutputHelper output)
 
         // Rent is 10% of property price: 60 / 10 = 6
         game.Tick(); // Rent is processed
-        game.GetCommercialState(game.Player2).MoneyBalance.Should().Be(1500 - 6);
-        game.GetCommercialState(game.Player1).MoneyBalance.Should().Be(1500 - 60 + 6);
+        game.GetMoneyBalance(game.Player2).Should().Be(1500 - 6);
+        game.GetMoneyBalance(game.Player1).Should().Be(1500 - 60 + 6);
     }
 
     [Fact(DisplayName = "Player 1 lands on Go To Jail after five rolls of 6")]
@@ -172,7 +172,7 @@ public class MonopolyTest(ITestOutputHelper output)
 
         game.Tick(); // Player 1 receives offer to pay fine
         game.Tick(); // Player 1 pays $50 to get out of jail
-        game.GetCommercialState(game.Player1).MoneyBalance.Should().Be(1500 - 50);
+        game.GetMoneyBalance(game.Player1).Should().Be(1500 - 50);
 
         game.Tick(); // Player 2 moves
         game.Tick(); // Player 2 receives offers

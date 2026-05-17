@@ -12,7 +12,7 @@ class CommercialSim : Sim
 
 class CommercialSimHarness
 {
-    private readonly Sim _sim = new CommercialSim();
+    private readonly CommercialSim _sim = new();
 
     // Simplifies initialization for tests that only care about commercial state.
     // Expects initial state to be a single CommercialSnapshot for each entity, if provided

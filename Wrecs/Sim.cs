@@ -1,5 +1,4 @@
 using Wrecs.Core;
-using Wrecs.Systems.Commercial;
 
 namespace Wrecs;
 
@@ -76,13 +75,6 @@ public class Sim
 
     public T GetSystem<T>() where T : ISystem =>
         _systems.OfType<T>().Single();
-
-    public CommercialSnapshot GetCommercialState(IEntity entity)
-    {
-        var moneyState = _systems.OfType<MoneySystem>().First().GetState(entity);
-        var inventoryState = _systems.OfType<InventorySystem>().First().GetState(entity);
-        return new CommercialSnapshot(moneyState, inventoryState);
-    }
 
     private void EnsureDependenciesInjected()
     {

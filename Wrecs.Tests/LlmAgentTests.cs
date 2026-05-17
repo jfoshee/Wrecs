@@ -30,12 +30,10 @@ public class LlmAgentTests(ITestOutputHelper output)
         sim.Tick();
 
         // Verify LLM took the offer
-        var llmState = sim.GetCommercialState(llmAgent);
-        llmState.MoneyBalance.Should().Be(99);
-        llmState.ResourceBalance.Should().Be(10);
-        var sellerState = sim.GetCommercialState(seller);
-        sellerState.MoneyBalance.Should().Be(1);
-        sellerState.ResourceBalance.Should().Be(40);
+        sim.GetMoneyBalance(llmAgent).Should().Be(99);
+        sim.GetResourceBalance(llmAgent, "Resource").Should().Be(10);
+        sim.GetMoneyBalance(seller).Should().Be(1);
+        sim.GetResourceBalance(seller, "Resource").Should().Be(40);
     }
 
     [Fact(DisplayName = "LLM agent takes obvious buy offer", Skip = "slow")]
@@ -57,12 +55,10 @@ public class LlmAgentTests(ITestOutputHelper output)
         sim.Tick();
 
         // Verify LLM took the offer
-        var llmState = sim.GetCommercialState(llmAgent);
-        llmState.MoneyBalance.Should().Be(100);
-        llmState.ResourceBalance.Should().Be(99);
-        var buyerState = sim.GetCommercialState(buyer);
-        buyerState.MoneyBalance.Should().Be(400);
-        buyerState.ResourceBalance.Should().Be(1);
+        sim.GetMoneyBalance(llmAgent).Should().Be(100);
+        sim.GetResourceBalance(llmAgent, "Resource").Should().Be(99);
+        sim.GetMoneyBalance(buyer).Should().Be(400);
+        sim.GetResourceBalance(buyer, "Resource").Should().Be(1);
     }
 
     [Fact(DisplayName = "LLM agent makes sell offer that gets taken", Skip = "slow")]
