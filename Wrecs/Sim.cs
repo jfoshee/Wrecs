@@ -93,7 +93,6 @@ public class Sim
                         .ToDictionary(e => e.Id, e => GetCommercialState(e));
     }
 
-    public Position GetPosition(IEntity entity) => GetSystem<Spatial1DSystem>().GetState(entity).Position;
     public IReadOnlyDictionary<int, string> GetAgentNames() => _entities.OfType<ICommercialAgent>().ToDictionary(a => a.Id, a => a.Name);
 
     private void EnsureDependenciesInjected()
