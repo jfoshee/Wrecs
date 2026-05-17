@@ -1,9 +1,21 @@
 namespace Wrecs.Tests;
 
+class CommercialSim : Sim
+{
+    public CommercialSim()
+    {
+        // AddSystem(new MoneySystem());
+        // AddSystem(new InventorySystem());
+        AddSystem(new OfferSystem());
+    }
+}
+
 class CommercialSimHarness
 {
-    private readonly Sim _sim = new();
+    private readonly Sim _sim = new CommercialSim();
 
+    // Simplifies initialization for tests that only care about commercial state.
+    // Expects initial state to be a single CommercialSnapshot for each entity, if provided
     public void InitEntities(params (IEntity entity, CommercialSnapshot? initialState)[] initialEntities)
     {
         _sim.InitEntities([.. initialEntities.Select(initialEntity =>

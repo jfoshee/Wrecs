@@ -5,7 +5,7 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Typed resource trade: gold for money")]
     public void TypedResourceTrade_GoldForMoney()
     {
-        var sim = new Sim();
+        var sim = new CommercialSim();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
         IStateSnapshot[] initSellerState =
@@ -43,9 +43,9 @@ public class TypedResourceScenarios
     }
 
     [Fact(DisplayName = "Cannot sell typed resource you don't have")]
-    public void CannotSellTypedResource_YouDontHave()
+    public void CannotSellTypedResource_YouDoNotHave()
     {
-        var sim = new Sim();
+        var sim = new CommercialSim();
         var buyer = new AlwaysBuyingTaker();
         // Seller has gold but not silver; trying to sell silver
         var seller = MockAgent();
@@ -73,7 +73,7 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Gold and unitless resources are separate")]
     public void GoldAndUnitless_AreSeparate()
     {
-        var sim = new Sim();
+        var sim = new CommercialSim();
         var buyer = new AlwaysBuyingTaker();
         // Seller has unitless resources but not gold; tries to sell gold
         var seller = MockAgent();
@@ -130,7 +130,7 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Buy offer for typed resource")]
     public void BuyOffer_ForTypedResource()
     {
-        var sim = new Sim();
+        var sim = new CommercialSim();
         var seller = new AlwaysSellingTaker();
         var buyer = MockAgent();
         IStateSnapshot[] initBuyerState =
@@ -178,7 +178,7 @@ public class TypedResourceScenarios
     [Fact(DisplayName = "Mixed unitless and typed resources coexist")]
     public void MixedUnitlessAndTyped_Coexist()
     {
-        var sim = new Sim();
+        var sim = new CommercialSim();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
         IStateSnapshot[] initSellerState =

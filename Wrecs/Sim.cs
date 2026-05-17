@@ -14,7 +14,6 @@ public class Sim
         new Spatial1DSystem(),
         new MoneySystem(),
         new InventorySystem(),
-        new OfferSystem(),
     ];
     private readonly List<IEntity> _entities = [];
     private readonly List<IPrepareSharedUpdates> _controllers = [];

@@ -45,7 +45,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Agents, One Sell Offer, One Buyer")]
     public void TwoAgentsOneSellOfferOneBuyer()
     {
-        var sim = new Sim();
+        var sim = new CommercialSim();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
         IStateSnapshot[] initSellerState =
@@ -71,7 +71,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Agents, One Buy Offer, One Seller")]
     public void TwoAgentsOneBuyOfferOneSeller()
     {
-        var sim = new Sim();
+        var sim = new CommercialSim();
         var seller = new AlwaysSellingTaker();
         var buyer = MockAgent();
         IStateSnapshot[] initBuyerState =
@@ -95,7 +95,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Two Agents, Two Offers, No Takers")]
     public void TwoOffersNoTakers()
     {
-        var sim = new Sim();
+        var sim = new CommercialSim();
         var buyer = MockAgent();
         IStateSnapshot[] initBuyerState =
         [
@@ -134,7 +134,7 @@ public class BasicScenarios
     [Fact(DisplayName = "Consumed offer has no effect on next tick")]
     public void ConsumedOfferHasNoEffectOnNextTick()
     {
-        var sim = new Sim();
+        var sim = new CommercialSim();
         var buyer = new AlwaysBuyingTaker();
         var seller = MockAgent();
         IStateSnapshot[] initSellerState = [

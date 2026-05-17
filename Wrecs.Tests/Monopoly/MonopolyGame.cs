@@ -22,6 +22,8 @@ public class MonopolyGame : Sim
     {
         this.output = output ?? new NullOutput();
 
+        // Add required systems for Monopoly:
+        AddSystem(new OfferSystem());
         // 3 Phases per turn: Movement, Offer, Decision
         AddSystem(new TurnSystem(phasesPerTurn: 3));
         AddSystem(JailSystem);
