@@ -7,6 +7,7 @@ public class Sim
     private readonly List<ISystem> _systems = [];
     private readonly List<IEntity> _entities = [];
     private readonly List<IPrepareSharedUpdates> _controllers = [];
+    private readonly List<IEvent> _eventQueue = [];
     private bool _dependenciesInjected = false;
 
     public void AddSystem(ISystem system)
@@ -57,6 +58,25 @@ public class Sim
         {
             // Each controller is called exactly once per tick; its updates may span multiple systems
             sharedUpdates.AddRange(controller.PrepareSharedUpdates());
+        }
+
+        // Get events to raise
+        _eventQueue.Clear();
+        var raisers = _systems.OfType<IRaise>();
+        foreach (var raiser in raisers)
+        {
+            var events = raiser.GetEvents();
+            _eventQueue.AddRange(events);
+        }
+
+        // Raise Events => Call handlers
+        var handlers = _systems.OfType<IHandle>();
+        foreach (var e in _eventQueue)
+        {
+            foreach (var handler in handlers)
+            {
+                handler.Handle(e);
+            }
         }
 
         // HACK: Put all shared updates into one big bucket
