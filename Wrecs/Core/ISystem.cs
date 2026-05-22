@@ -11,11 +11,14 @@ public interface ISystem
     /// Applies any internal updates to this System's own state for this Tick.
     /// </summary>
     void ApplyInternalUpdates();
+}
 
+public interface IHasEntities
+{
     void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState);
 }
 
-public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem
+public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem, IHasEntities
     where TMarkerInterface : IEntity
     where TStateSnapshot : struct
 {
@@ -24,7 +27,7 @@ public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem
     TStateSnapshot GetState(IEntity entity);
 
     // Default interface method to apply generic types
-    void ISystem.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
+    void IHasEntities.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
     {
         // An entity is relevant to this system if it implements the marker interface or has an initial state for this system
         var matchingEntities = entitiesWithState

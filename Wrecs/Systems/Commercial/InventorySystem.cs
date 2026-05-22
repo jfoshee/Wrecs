@@ -74,7 +74,7 @@ public class InventorySystem : ISystem<IInventoryEntity, InventorySnapshot>, IAc
         }
     }
 
-    void ISystem.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
+    void IHasEntities.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
     {
         var matchingEntities = entitiesWithState
             .Select(e => (e.entity, initialState:

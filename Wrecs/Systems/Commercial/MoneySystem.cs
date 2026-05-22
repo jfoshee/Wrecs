@@ -29,7 +29,7 @@ public class MoneySystem : ISystem<IMoneyEntity, MoneySnapshot>, IAcceptUpdates<
         }
     }
 
-    void ISystem.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
+    void IHasEntities.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
     {
         var matchingEntities = entitiesWithState
             .Select(e => (e.entity, initialState:

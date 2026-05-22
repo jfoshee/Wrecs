@@ -33,7 +33,7 @@ public class Sim
         }
 
         // Initialize each system with matching entities
-        foreach (var system in _systems)
+        foreach (var system in _systems.OfType<IHasEntities>())
         {
             system.InitEntities(entitiesWithState);
         }

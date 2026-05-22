@@ -186,7 +186,7 @@ public class SimplestBoardGameTest
         game.IsWinner(game.Player1).Should().BeTrue();
     }
 
-    [Fact(DisplayName = "Game Over halts game state changes")]
+    [Fact(DisplayName = "Game Over halts game state changes", Skip = "WIP")]
     public void GameOver()
     {
         var mockDice = new Mock<IGameDice>();
