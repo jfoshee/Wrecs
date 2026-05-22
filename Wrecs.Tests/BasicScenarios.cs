@@ -204,7 +204,7 @@ public class BasicScenarios
         var interestController = new InterestController(interestRate: 0.10);
         sim.InitEntities((agent1, new(MoneyBalance: 100, ResourceBalance: 0)),
                          (agent2, new(MoneyBalance: 200, ResourceBalance: 0)));
-        sim.InitControllers(interestController);
+        sim.AddSystem(interestController);
 
         sim.Tick();
 
@@ -228,7 +228,7 @@ public class BasicScenarios
         var miningController = new MiningController(miner, resourcesPerTick: 5);
         sim.InitEntities((miner, new(MoneyBalance: 0, ResourceBalance: 10)),
                          (trader, new(MoneyBalance: 50, ResourceBalance: 0)));
-        sim.InitControllers(miningController);
+        sim.AddSystem(miningController);
 
         sim.Tick();
 

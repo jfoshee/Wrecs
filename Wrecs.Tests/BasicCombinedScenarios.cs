@@ -33,7 +33,7 @@ public class BasicCombinedScenarios
         var source = new ProximityResourceSource(10, 1, 0);
         var sim = new CommercialSim();
         sim.AddSystem(new Spatial1DSystem());
-        sim.InitControllers(new ResourceSourcesController([source]));
+        sim.AddSystem(new ResourceSourcesController([source]));
         sim.InitEntities(
             (agent, [new CommercialSnapshot(0, 0), new PositionSnapshot(0)]),  // no money, sitting at origin
             (source, [new PositionSnapshot(5)])  // sitting at position = +5

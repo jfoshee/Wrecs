@@ -126,7 +126,7 @@ public class ControllerTests
 
         var controllerA = new ControllerA();
         var controllerB = new ControllerB();
-        sim.InitControllers(controllerA, controllerB);
+        sim.AddSystems(controllerA, controllerB);
 
         sim.Tick();
 
@@ -150,7 +150,7 @@ public class ControllerTests
         sim.InitEntities((entity, [new StateA(10), new StateB("Test")]));
 
         var combinedController = new CombinedController();
-        sim.InitControllers(combinedController);
+        sim.AddSystem(combinedController);
 
         sim.Tick();
 

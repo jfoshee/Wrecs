@@ -130,7 +130,7 @@ public class MoneySystemTests
         var entity = new MoneyEntity(1);
 
         sim.InitEntities((entity, [new MoneySnapshot(100)]));
-        sim.InitControllers(new AddMoneyController(50));
+        sim.AddSystems(new AddMoneyController(50));
 
         sim.Tick();
 

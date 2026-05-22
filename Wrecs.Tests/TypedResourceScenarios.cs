@@ -100,7 +100,7 @@ public class TypedResourceScenarios
         var miner = new DoNothingAgent();
         var goldMine = new FixedGrantSource(miner, money: 0, resources: 10, resourceType: "gold");
         sim.InitEntities((miner, default));
-        sim.InitControllers(new MoneySourcesController(goldMine), new ResourceSourcesController(goldMine));
+        sim.AddSystems(new MoneySourcesController(goldMine), new ResourceSourcesController(goldMine));
 
         sim.Tick();
         sim.Tick();
@@ -118,7 +118,7 @@ public class TypedResourceScenarios
         var goldMine = new FixedGrantSource(miner, money: 0, resources: 10, resourceType: "gold");
         var silverMine = new FixedGrantSource(miner, money: 0, resources: 25, resourceType: "silver");
         sim.InitEntities((miner, default));
-        sim.InitControllers(new MoneySourcesController(goldMine, silverMine), new ResourceSourcesController(goldMine, silverMine));
+        sim.AddSystems(new MoneySourcesController(goldMine, silverMine), new ResourceSourcesController(goldMine, silverMine));
 
         sim.Tick();
 

@@ -193,7 +193,7 @@ public class InventorySystemTests
         var entity = new InventoryEntity(1);
 
         sim.InitEntities((entity, [new InventorySnapshot([("wood", 5)])]));
-        sim.InitControllers(new AddItemController("wood", 3));
+        sim.AddSystems(new AddItemController("wood", 3));
 
         sim.Tick();
 

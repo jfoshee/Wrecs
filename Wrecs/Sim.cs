@@ -6,20 +6,12 @@ public class Sim
 {
     private readonly List<ISystem> _systems = [];
     private readonly List<IEntity> _entities = [];
-    private readonly List<IPrepareSharedUpdates> _controllers = [];
     private readonly List<IEvent> _eventQueue = [];
     private bool _dependenciesInjected = false;
 
     public void AddSystem(ISystem system)
     {
         _systems.Add(system);
-        _dependenciesInjected = false;
-    }
-
-    public void InitControllers(params IPrepareSharedUpdates[] controllers)
-    {
-        _controllers.Clear();
-        _controllers.AddRange(controllers);
         _dependenciesInjected = false;
     }
 
@@ -54,16 +46,10 @@ public class Sim
             var updateSet = system.PrepareSharedUpdates();
             sharedUpdates.AddRange(updateSet);
         }
-        foreach (var controller in _controllers)
-        {
-            var updateSet = controller.PrepareSharedUpdates();
-            sharedUpdates.AddRange(updateSet);
-        }
 
         // Get events to raise
         _eventQueue.Clear();
-        var raisers = _systems.OfType<IRaise>()
-                              .Concat(_controllers.OfType<IRaise>()); // HACK: controllers can raise events
+        var raisers = _systems.OfType<IRaise>();
         foreach (var raiser in raisers)
         {
             var events = raiser.GetEvents();
@@ -104,8 +90,7 @@ public class Sim
         _dependenciesInjected = true;
 
         var targets = _systems.OfType<IRequire>()
-                              .Concat(_entities.OfType<IRequire>()) // TODO: Should we allow injecting into entities? currently required for sources/sinks (flows).
-                              .Concat(_controllers.OfType<IRequire>());
+                              .Concat(_entities.OfType<IRequire>()); // TODO: Should we allow injecting into entities? currently required for sources/sinks (flows).
 
         foreach (var target in targets)
         {

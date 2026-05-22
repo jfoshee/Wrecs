@@ -27,7 +27,8 @@ class CommercialSimHarness
         })]);
     }
 
-    public void InitControllers(params IPrepareSharedUpdates[] controllers) => _sim.InitControllers(controllers);
+    public void AddSystem(ISystem system) => _sim.AddSystem(system);
+    public void AddSystems(params ISystem[] systems) => _sim.AddSystems(systems);
 
     public CommercialSnapshot GetCommercialState(IEntity entity) => _sim.GetCommercialState(entity);
 

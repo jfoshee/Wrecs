@@ -72,7 +72,7 @@ class SimplestBoardGame
 
         dice ??= new GameDice(1);
         var boardGameMovementController = new BoardGameMovementController(dice, boardSize: 10);
-        Sim.InitControllers(boardGameMovementController);
+        Sim.AddSystems(boardGameMovementController);
 
         Player1 = new("Player 1");
         Player2 = new("Player 2");

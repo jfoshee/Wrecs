@@ -9,7 +9,7 @@ public class FixedGrantSourceTests
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: 16, resources: 0);
         sim.InitEntities((agent, default));
-        sim.InitControllers(new MoneySourcesController(source), new ResourceSourcesController(source));
+        sim.AddSystems(new MoneySourcesController(source), new ResourceSourcesController(source));
 
         sim.Tick();
 
@@ -25,7 +25,7 @@ public class FixedGrantSourceTests
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: 0, resources: 42);
         sim.InitEntities((agent, default));
-        sim.InitControllers(new MoneySourcesController(source), new ResourceSourcesController(source));
+        sim.AddSystems(new MoneySourcesController(source), new ResourceSourcesController(source));
 
         sim.Tick();
 
@@ -41,7 +41,7 @@ public class FixedGrantSourceTests
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: 10, resources: 0);
         sim.InitEntities((agent, default));
-        sim.InitControllers(new MoneySourcesController(source), new ResourceSourcesController(source));
+        sim.AddSystems(new MoneySourcesController(source), new ResourceSourcesController(source));
 
         sim.Tick();
         sim.Tick();
@@ -58,7 +58,7 @@ public class FixedGrantSourceTests
         var agent = new DoNothingAgent();
         var source = new FixedGrantSource(agent, money: 0, resources: 300);
         sim.InitEntities((agent, default));
-        sim.InitControllers(new MoneySourcesController(source), new ResourceSourcesController(source));
+        sim.AddSystems(new MoneySourcesController(source), new ResourceSourcesController(source));
 
         sim.Tick();
         sim.Tick();
@@ -76,7 +76,7 @@ public class FixedGrantSourceTests
         var source1 = new FixedGrantSource(agent, money: 10, resources: 0);
         var source2 = new FixedGrantSource(agent, money: 5, resources: 0);
         sim.InitEntities((agent, default));
-        sim.InitControllers(new MoneySourcesController(source1, source2), new ResourceSourcesController(source1, source2));
+        sim.AddSystems(new MoneySourcesController(source1, source2), new ResourceSourcesController(source1, source2));
 
         sim.Tick();
 
@@ -93,7 +93,7 @@ public class FixedGrantSourceTests
         var source1 = new FixedGrantSource(agent, money: 0, resources: 300);
         var source2 = new FixedGrantSource(agent, money: 0, resources: 20);
         sim.InitEntities((agent, default));
-        sim.InitControllers(new MoneySourcesController(source1, source2), new ResourceSourcesController(source1, source2));
+        sim.AddSystems(new MoneySourcesController(source1, source2), new ResourceSourcesController(source1, source2));
 
         sim.Tick();
 
@@ -112,7 +112,7 @@ public class FixedGrantSourceTests
         var source2 = new FixedGrantSource(agent2, money: 7, resources: 0);
         sim.InitEntities((agent1, default),
                        (agent2, default));
-        sim.InitControllers(new MoneySourcesController(source1, source2), new ResourceSourcesController(source1, source2));
+        sim.AddSystems(new MoneySourcesController(source1, source2), new ResourceSourcesController(source1, source2));
 
         sim.Tick();
 
@@ -135,7 +135,7 @@ public class FixedGrantSourceTests
         var source2 = new FixedGrantSource(agent2, money: 0, resources: 11);
         sim.InitEntities((agent1, default),
                        (agent2, default));
-        sim.InitControllers(new MoneySourcesController(source1, source2), new ResourceSourcesController(source1, source2));
+        sim.AddSystems(new MoneySourcesController(source1, source2), new ResourceSourcesController(source1, source2));
 
         sim.Tick();
 
