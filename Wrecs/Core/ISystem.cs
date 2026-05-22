@@ -19,9 +19,14 @@ public interface IHasEntities
     IReadOnlyList<IEntity> GetEntities();
 }
 
-public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem, IHasEntities
+public interface IHasEntityState
+{
+    IStateSnapshot GetState(IEntity entity);
+}
+
+public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem, IHasEntities, IHasEntityState
     where TMarkerInterface : IEntity
-    where TStateSnapshot : struct
+    where TStateSnapshot : struct, IStateSnapshot
 {
     void InitEntities(params (IEntity entity, TStateSnapshot? initialState)[] initialEntities);
     TStateSnapshot GetTypedState(IEntity entity);
@@ -38,6 +43,8 @@ public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem, IHasEntiti
 
         InitEntities(matchingEntities);
     }
+
+    IStateSnapshot IHasEntityState.GetState(IEntity entity) => (IStateSnapshot)GetTypedState(entity);
 }
 
 /// <summary>
