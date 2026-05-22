@@ -10,7 +10,10 @@ class PlayerEntity(string name) : IEntity, ISpatial1DEntity, ITakeTurns
 
 readonly record struct EndGameSnapshot(bool IsGameOver, bool IsWinner) : IStateSnapshot<SimpleEndGameSystem>;
 interface ISimpleEndGamePlayer : IEntity;
-class SimpleEndGameSystem : ISystem<ISimpleEndGamePlayer, EndGameSnapshot>
+struct SimpleEndGameEvent : IEvent;
+class SimpleEndGameSystem : ISystem<ISimpleEndGamePlayer, EndGameSnapshot>,
+    IRaise<SimpleEndGameEvent>,
+    IHandle<BoardGamePlayerWrappedEvent>
 {
     IEntity[] _entities = [];
     private IEntity? _winner;
@@ -26,20 +29,28 @@ class SimpleEndGameSystem : ISystem<ISimpleEndGamePlayer, EndGameSnapshot>
 
     public EndGameSnapshot GetState(IEntity entity)
     {
-        if (_winner == null)
+        if (_winner is null)
             return new EndGameSnapshot(IsGameOver: false, IsWinner: false);
         return new EndGameSnapshot(IsGameOver: true, IsWinner: entity == _winner);
     }
 
-    public void PrepareInternalUpdates()
+    public void PrepareInternalUpdates() { }
+
+    public void ApplyInternalUpdates() { }
+
+    // Raise event when game is over
+    public IEnumerable<SimpleEndGameEvent> GetTypedEvents()
     {
+        // TODO: only first time
+        if (_winner is not null)
+            yield return new();
     }
 
-    public void ApplyInternalUpdates()
+    public void HandleTyped(BoardGamePlayerWrappedEvent e)
     {
+        // The first player to wrap around the board wins
+        _winner = e.Player;
     }
-
-    // TODO: Raise event when game is over
 }
 
 class SimplestBoardGame
@@ -126,19 +137,19 @@ public class SimplestBoardGameTest
         game.GetCurrentPlayer().Should().Be(game.Player2);
     }
 
-    [Fact(DisplayName = "Player 1 Wins Rolling Two Sixes", Skip = "Not implemented yet")]
+    [Fact(DisplayName = "Player 1 Wins Rolling Two Sixes")]
     public void Player1WinsRollingTwoSixes()
     {
         var mockDice = new Mock<IGameDice>();
-        // Player 1 rolls a 6, then a 6 again on their next turn
+        // Player 1 rolls a 5, then a 5 again on their next turn
         mockDice.SetupSequence(d => d.Roll())
-            .Returns(6) // Player 1's first turn
+            .Returns(5) // Player 1's first turn
             .Returns(1) // Player 2's first turn
-            .Returns(6); // Player 1's second turn
+            .Returns(5); // Player 1's second turn
         var game = new SimplestBoardGame(mockDice.Object);
 
 
-        game.Tick(); // Player 1 moves to 6
+        game.Tick(); // Player 1 moves to 5
         game.Tick(); // Player 2 moves to 1
 
         // Assert neither player has won yet
@@ -161,5 +172,6 @@ public class SimplestBoardGameTest
         game.GetCurrentPlayer().Should().Be(game.Player1);
         game.IsGameOver().Should().BeTrue();
         game.IsWinner(game.Player1).Should().BeTrue();
+        // TODO: The end game event should not be raised again
     }
 }

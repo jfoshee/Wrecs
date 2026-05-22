@@ -62,7 +62,8 @@ public class Sim
 
         // Get events to raise
         _eventQueue.Clear();
-        var raisers = _systems.OfType<IRaise>();
+        var raisers = _systems.OfType<IRaise>()
+                              .Concat(_controllers.OfType<IRaise>()); // HACK: controllers can raise events
         foreach (var raiser in raisers)
         {
             var events = raiser.GetEvents();
