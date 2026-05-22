@@ -3,9 +3,8 @@ using System.Linq.Expressions;
 namespace Wrecs.Core;
 
 public class SystemLogger<TSystem>(IOutput output) : ISystem, IRequire<TSystem>
-    where TSystem : class, ISystem
+    where TSystem : class, ISystem, IHasEntities
 {
-    private static readonly Func<TSystem, IReadOnlyList<IEntity>> _getEntities = CreateGetEntities();
     private static readonly Func<TSystem, IEntity, IStateSnapshot> _getState = CreateGetState();
 
     private TSystem? _system;
@@ -23,7 +22,7 @@ public class SystemLogger<TSystem>(IOutput output) : ISystem, IRequire<TSystem>
         var system = _system ?? throw new InvalidOperationException($"{nameof(SystemLogger<>)} requires an injected {typeof(TSystem).Name}.");
         output.WriteLine($"--- {typeof(TSystem).Name} Tick {_tickCount} ---");
 
-        foreach (var entity in _getEntities(system))
+        foreach (var entity in system.GetEntities())
         {
             output.WriteLine($"{entity.Name} ({entity.Id}): {_getState(system, entity)}");
         }
@@ -38,17 +37,6 @@ public class SystemLogger<TSystem>(IOutput output) : ISystem, IRequire<TSystem>
         typeof(TSystem).GetInterfaces()
             .SingleOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISystem<,>))
         ?? throw new InvalidOperationException($"{typeof(TSystem).Name} must implement {typeof(ISystem<,>).Name} to be used with {nameof(SystemLogger<TSystem>)}.");
-
-    private static Func<TSystem, IReadOnlyList<IEntity>> CreateGetEntities()
-    {
-        var systemInterface = GetStateSystemInterface();
-        var systemParameter = Expression.Parameter(typeof(TSystem), "system");
-        var getEntitiesCall = Expression.Call(
-            Expression.Convert(systemParameter, systemInterface),
-            systemInterface.GetMethod(nameof(ISystem<IEntity, int>.GetEntities))!);
-
-        return Expression.Lambda<Func<TSystem, IReadOnlyList<IEntity>>>(getEntitiesCall, systemParameter).Compile();
-    }
 
     private static Func<TSystem, IEntity, IStateSnapshot> CreateGetState()
     {

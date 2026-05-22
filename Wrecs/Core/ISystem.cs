@@ -16,6 +16,7 @@ public interface ISystem
 public interface IHasEntities
 {
     void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState);
+    IReadOnlyList<IEntity> GetEntities();
 }
 
 public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem, IHasEntities
@@ -23,7 +24,6 @@ public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem, IHasEntiti
     where TStateSnapshot : struct
 {
     void InitEntities(params (IEntity entity, TStateSnapshot? initialState)[] initialEntities);
-    IReadOnlyList<IEntity> GetEntities();
     TStateSnapshot GetState(IEntity entity);
 
     // Default interface method to apply generic types
