@@ -7,7 +7,7 @@ public static class ISystemExtensions
         /// <summary>
         /// Performs a full "tick" for this individual system,
         /// invoking <see cref="IPrepareInternalUpdates.PrepareInternalUpdates"/>
-        /// and <see cref="ISystem.ApplyInternalUpdates"/> in sequence.
+        /// and <see cref="IApplyInternalUpdates.ApplyInternalUpdates"/> in sequence.
         /// </summary>
         public void Tick()
         {
@@ -17,7 +17,10 @@ public static class ISystemExtensions
             {
                 preparer.PrepareInternalUpdates();
             }
-            system.ApplyInternalUpdates();
+            if (system is IApplyInternalUpdates applier)
+            {
+                applier.ApplyInternalUpdates();
+            }
         }
     }
 }

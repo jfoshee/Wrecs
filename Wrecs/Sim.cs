@@ -84,7 +84,7 @@ public class Sim
         var allUpdates = sharedUpdates.SelectMany(cu => cu.Updates);
 
         // Update Phase
-        foreach (var system in _systems)
+        foreach (var system in _systems.OfType<IApplyInternalUpdates>())
         {
             system.ApplyInternalUpdates();
             if (system is IAcceptUpdates acceptUpdatesSystem)

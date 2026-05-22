@@ -2,10 +2,6 @@ namespace Wrecs.Core;
 
 public interface ISystem
 {
-    /// <summary>
-    /// Applies any internal updates to this System's own state for this Tick.
-    /// </summary>
-    void ApplyInternalUpdates();
 }
 
 public interface IHasEntities
@@ -28,7 +24,16 @@ public interface IPrepareInternalUpdates
     void PrepareInternalUpdates();
 }
 
-public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem, IHasEntities, IHasEntityState, IPrepareInternalUpdates
+public interface IApplyInternalUpdates
+{
+    /// <summary>
+    /// Applies any internal updates to this System's own state for this Tick.
+    /// </summary>
+    void ApplyInternalUpdates();
+}
+
+public interface ISystem<TMarkerInterface, TStateSnapshot> :
+    ISystem, IHasEntities, IHasEntityState, IPrepareInternalUpdates, IApplyInternalUpdates
     where TMarkerInterface : IEntity
     where TStateSnapshot : struct, IStateSnapshot
 {
