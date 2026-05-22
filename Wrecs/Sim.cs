@@ -45,7 +45,7 @@ public class Sim
 
         // Preparation Phase
         List<UpdateSet> sharedUpdates = [];
-        foreach (var system in _systems)
+        foreach (var system in _systems.OfType<IPrepareInternalUpdates>())
         {
             system.PrepareInternalUpdates();
             if (system is IPrepareSharedUpdates sharedUpdateSystem)

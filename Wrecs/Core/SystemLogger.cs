@@ -1,8 +1,6 @@
-using System.Linq.Expressions;
-
 namespace Wrecs.Core;
 
-public class SystemLogger<TSystem>(IOutput output) : ISystem, IRequire<TSystem>
+public class SystemLogger<TSystem>(IOutput output) : ISystem, IPrepareInternalUpdates, IRequire<TSystem>
     where TSystem : class, ISystem, IHasEntities, IHasEntityState
 {
     private TSystem? _system;

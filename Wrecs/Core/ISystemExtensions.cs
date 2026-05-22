@@ -6,13 +6,17 @@ public static class ISystemExtensions
     {
         /// <summary>
         /// Performs a full "tick" for this individual system,
-        /// invoking <see cref="ISystem.PrepareInternalUpdates"/> and <see cref="ISystem.ApplyInternalUpdates"/> in sequence.
+        /// invoking <see cref="IPrepareInternalUpdates.PrepareInternalUpdates"/>
+        /// and <see cref="ISystem.ApplyInternalUpdates"/> in sequence.
         /// </summary>
         public void Tick()
         {
             ArgumentNullException.ThrowIfNull(system);
 
-            system.PrepareInternalUpdates();
+            if (system is IPrepareInternalUpdates preparer)
+            {
+                preparer.PrepareInternalUpdates();
+            }
             system.ApplyInternalUpdates();
         }
     }
