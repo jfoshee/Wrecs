@@ -48,16 +48,16 @@ public class Sim
         foreach (var system in _systems.OfType<IPrepareInternalUpdates>())
         {
             system.PrepareInternalUpdates();
-            if (system is IPrepareSharedUpdates sharedUpdateSystem)
-            {
-                var updateSet = sharedUpdateSystem.PrepareSharedUpdates();
-                sharedUpdates.AddRange(updateSet);
-            }
+        }
+        foreach (var system in _systems.OfType<IPrepareSharedUpdates>())
+        {
+            var updateSet = system.PrepareSharedUpdates();
+            sharedUpdates.AddRange(updateSet);
         }
         foreach (var controller in _controllers)
         {
-            // Each controller is called exactly once per tick; its updates may span multiple systems
-            sharedUpdates.AddRange(controller.PrepareSharedUpdates());
+            var updateSet = controller.PrepareSharedUpdates();
+            sharedUpdates.AddRange(updateSet);
         }
 
         // Get events to raise
@@ -87,10 +87,10 @@ public class Sim
         foreach (var system in _systems.OfType<IApplyInternalUpdates>())
         {
             system.ApplyInternalUpdates();
-            if (system is IAcceptUpdates acceptUpdatesSystem)
-            {
-                acceptUpdatesSystem.ApplyUpdates(allUpdates);
-            }
+        }
+        foreach (var system in _systems.OfType<IAcceptUpdates>())
+        {
+            system.ApplyUpdates(allUpdates);
         }
     }
 
