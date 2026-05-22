@@ -1,8 +1,8 @@
 namespace Wrecs.Core;
 
-public static class ISystemExtensions
+public static class SystemExtensions
 {
-    extension(ISystem? system)
+    extension(IInternalUpdateSystem? system)
     {
         /// <summary>
         /// Performs a full "tick" for this individual system,
@@ -13,14 +13,8 @@ public static class ISystemExtensions
         {
             ArgumentNullException.ThrowIfNull(system);
 
-            if (system is IPrepareInternalUpdates preparer)
-            {
-                preparer.PrepareInternalUpdates();
-            }
-            if (system is IApplyInternalUpdates applier)
-            {
-                applier.ApplyInternalUpdates();
-            }
+            system.PrepareInternalUpdates();
+            system.ApplyInternalUpdates();
         }
     }
 }

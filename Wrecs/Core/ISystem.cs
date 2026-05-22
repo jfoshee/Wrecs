@@ -32,8 +32,12 @@ public interface IApplyInternalUpdates
     void ApplyInternalUpdates();
 }
 
+public interface IInternalUpdateSystem : ISystem, IPrepareInternalUpdates, IApplyInternalUpdates
+{
+}
+
 public interface ISystem<TMarkerInterface, TStateSnapshot> :
-    ISystem, IHasEntities, IHasEntityState, IPrepareInternalUpdates, IApplyInternalUpdates
+    IInternalUpdateSystem, IHasEntities, IHasEntityState
     where TMarkerInterface : IEntity
     where TStateSnapshot : struct, IStateSnapshot
 {
