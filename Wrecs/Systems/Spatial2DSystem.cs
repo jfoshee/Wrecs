@@ -30,7 +30,7 @@ public class Spatial2DSystem : ISystem<ISpatial2DEntity, Position2DSnapshot>, IA
     private readonly Dictionary<IEntity, Vector2> _entityPositions = [];
     private Dictionary<ISpatial2DAgent, Vector2> _pendingSteps = [];
 
-    public Position2DSnapshot GetState(IEntity entity) => new(_entityPositions[entity]);
+    public Position2DSnapshot GetTypedState(IEntity entity) => new(_entityPositions[entity]);
 
     public IReadOnlyList<IEntity> GetEntities() => _entities;
 

@@ -34,7 +34,7 @@ public abstract class ResourceFlowsController<TResourceFlowOrigin>(IEnumerable<T
         var updates = new List<IEntityUpdate>();
         foreach (var (entity, flows) in pendingFlows)
         {
-            var current = _inventorySystem.GetState(entity);
+            var current = _inventorySystem.GetTypedState(entity);
             var inventory = current.Inventory.ToDictionary(i => i.Type, i => i.Amount);
 
             var approved = new List<ResourceFlow>();

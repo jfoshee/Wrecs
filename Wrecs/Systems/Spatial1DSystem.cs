@@ -32,7 +32,7 @@ public class Spatial1DSystem : ISystem<ISpatial1DEntity, PositionSnapshot>, IAcc
     private readonly Dictionary<IEntity, Position> _entityPositions = [];
     private Dictionary<ISpatial1DAgent, Vector> _pendingSteps = [];
 
-    public PositionSnapshot GetState(IEntity entity) => new(_entityPositions[entity]);
+    public PositionSnapshot GetTypedState(IEntity entity) => new(_entityPositions[entity]);
 
     public IReadOnlyList<IEntity> GetEntities() => _entities;
 

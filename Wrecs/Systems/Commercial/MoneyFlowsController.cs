@@ -34,7 +34,7 @@ public abstract class MoneyFlowsController<TMoneyFlowOrigin>(IEnumerable<TMoneyF
         var updates = new List<IEntityUpdate>();
         foreach (var (entity, flows) in pendingFlows)
         {
-            var current = _moneySystem.GetState(entity);
+            var current = _moneySystem.GetTypedState(entity);
             var money = current.MoneyBalance;
 
             var approved = new List<MoneyFlow>();

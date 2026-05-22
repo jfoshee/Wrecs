@@ -26,7 +26,7 @@ public class RealEstateAgent(MonopolyProperty?[] boardConfig) : ICommercialAgent
         if (currentPlayer is not ICommercialAgent buyer)
             return new DoNothingDecision();
 
-        var playerPosition = _spatial1dSystem.GetState(currentPlayer).Position;
+        var playerPosition = _spatial1dSystem.GetTypedState(currentPlayer).Position;
 
         // Look up property at that position (array index = position)
         if (playerPosition < 0 || playerPosition >= boardConfig.Length)

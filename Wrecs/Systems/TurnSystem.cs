@@ -54,7 +54,7 @@ public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>
 
     public IReadOnlyList<IEntity> GetEntities() => _entities;
 
-    public TurnSnapshot GetState(IEntity entity)
+    public TurnSnapshot GetTypedState(IEntity entity)
     {
         var index = _entities.IndexOf(entity);
         return new TurnSnapshot(index == _currentTurnIndex, _currentPhase);

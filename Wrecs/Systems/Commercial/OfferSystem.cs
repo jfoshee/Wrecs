@@ -52,7 +52,7 @@ public class OfferSystem :
 
     public IReadOnlyList<IEntity> GetEntities() => _entities;
 
-    public OfferListSnapshot GetState(IEntity entity)
+    public OfferListSnapshot GetTypedState(IEntity entity)
     {
         var state = _stateMap.GetValueOrDefault(entity);
         return Snapshot(state);
@@ -163,7 +163,7 @@ public class OfferSystem :
     }
 
     private CommercialSnapshot BuildCommercialSnapshot(IEntity entity) =>
-        new(_moneySystem!.GetState(entity), _inventorySystem!.GetState(entity));
+        new(_moneySystem!.GetTypedState(entity), _inventorySystem!.GetTypedState(entity));
 
     private static IEnumerable<IEntityUpdate> Execute(Offer offer,
                                                       ICommercialAgent counterparty,

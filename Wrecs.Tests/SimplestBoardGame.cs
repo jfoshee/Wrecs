@@ -29,7 +29,7 @@ class SimpleEndGameSystem : ISystem<ISimpleEndGamePlayer, EndGameSnapshot>,
 
     public IReadOnlyList<IEntity> GetEntities() => _entities;
 
-    public EndGameSnapshot GetState(IEntity entity)
+    public EndGameSnapshot GetTypedState(IEntity entity)
     {
         if (_winner is null)
             return new EndGameSnapshot(IsGameOver: false, IsWinner: false);
@@ -87,7 +87,7 @@ class SimplestBoardGame
     public int GetPosition(IEntity player)
     {
         var spatialSystem = Sim.GetSystem<Spatial1DSystem>();
-        return spatialSystem.GetState(player).Position;
+        return spatialSystem.GetTypedState(player).Position;
     }
 
     public IEntity GetCurrentPlayer()
@@ -99,13 +99,13 @@ class SimplestBoardGame
     public bool IsGameOver()
     {
         var endGameSystem = Sim.GetSystem<SimpleEndGameSystem>();
-        return endGameSystem.GetState(Player1).IsGameOver;
+        return endGameSystem.GetTypedState(Player1).IsGameOver;
     }
 
     public bool IsWinner(IEntity player)
     {
         var endGameSystem = Sim.GetSystem<SimpleEndGameSystem>();
-        return endGameSystem.GetState(player).IsWinner;
+        return endGameSystem.GetTypedState(player).IsWinner;
     }
 }
 

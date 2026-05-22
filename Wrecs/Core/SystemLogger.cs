@@ -45,7 +45,7 @@ public class SystemLogger<TSystem>(IOutput output) : ISystem, IRequire<TSystem>
         var entityParameter = Expression.Parameter(typeof(IEntity), "entity");
         var getStateCall = Expression.Call(
             Expression.Convert(systemParameter, systemInterface),
-            systemInterface.GetMethod(nameof(ISystem<IEntity, int>.GetState))!,
+            systemInterface.GetMethod(nameof(ISystem<IEntity, int>.GetTypedState))!,
             entityParameter);
 
         return Expression.Lambda<Func<TSystem, IEntity, IStateSnapshot>>(

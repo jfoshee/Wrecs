@@ -24,7 +24,7 @@ public interface ISystem<TMarkerInterface, TStateSnapshot> : ISystem, IHasEntiti
     where TStateSnapshot : struct
 {
     void InitEntities(params (IEntity entity, TStateSnapshot? initialState)[] initialEntities);
-    TStateSnapshot GetState(IEntity entity);
+    TStateSnapshot GetTypedState(IEntity entity);
 
     // Default interface method to apply generic types
     void IHasEntities.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)

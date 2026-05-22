@@ -29,7 +29,7 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
     {
         // Get current player and their position
         var currentPlayer = _turnSystem.GetCurrentPlayer();
-        var playerPosition = _spatial1dSystem.GetState(currentPlayer).Position;
+        var playerPosition = _spatial1dSystem.GetTypedState(currentPlayer).Position;
 
         // Look up property at that position
         if (playerPosition < 0 || playerPosition >= boardConfig.Length)
@@ -42,7 +42,7 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
         IEntity? owner = null;
         foreach (var entity in _inventorySystem.GetEntities())
         {
-            if (_inventorySystem.GetState(entity).GetAmount(property.Name) > 0)
+            if (_inventorySystem.GetTypedState(entity).GetAmount(property.Name) > 0)
             {
                 owner = entity;
                 break;
@@ -59,7 +59,7 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
         var rent = property.Price / 10;
 
         // Check if tenant can afford rent
-        var tenantMoney = _moneySystem.GetState(currentPlayer).MoneyBalance;
+        var tenantMoney = _moneySystem.GetTypedState(currentPlayer).MoneyBalance;
         if (tenantMoney < rent)
             rent = tenantMoney; // Pay what they can
 
@@ -67,7 +67,7 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
             yield break;
 
         var tenantNewBalance = tenantMoney - rent;  // Tenant pays
-        var ownerNewBalance = _moneySystem.GetState(owner).MoneyBalance + rent;  // Landlord receives
+        var ownerNewBalance = _moneySystem.GetTypedState(owner).MoneyBalance + rent;  // Landlord receives
 
         yield return new UpdateSet([
             new EntityUpdate<MoneySnapshot>(currentPlayer, new MoneySnapshot(tenantNewBalance)),

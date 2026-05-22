@@ -97,7 +97,7 @@ public class InventorySystemTests
 
         system.InitEntities((entity, null));
 
-        system.GetState(entity).Inventory.Should().BeEmpty();
+        system.GetTypedState(entity).Inventory.Should().BeEmpty();
     }
 
     [Fact(DisplayName = "Entity initial state sets inventory")]
@@ -109,7 +109,7 @@ public class InventorySystemTests
 
         system.InitEntities((entity, initial));
 
-        system.GetState(entity).Should().Be(initial);
+        system.GetTypedState(entity).Should().Be(initial);
     }
 
     [Fact(DisplayName = "Multiple entities are tracked independently")]
@@ -123,8 +123,8 @@ public class InventorySystemTests
 
         system.InitEntities((entityA, stateA), (entityB, stateB));
 
-        system.GetState(entityA).Should().Be(stateA);
-        system.GetState(entityB).Should().Be(stateB);
+        system.GetTypedState(entityA).Should().Be(stateA);
+        system.GetTypedState(entityB).Should().Be(stateB);
     }
 
     [Fact(DisplayName = "Reinitializing clears previous entities")]
@@ -165,8 +165,8 @@ public class InventorySystemTests
         system.InitEntities((entity, new InventorySnapshot([("wood", 10)])));
         system.ApplyUpdates([new EntityUpdate<InventorySnapshot>(entity, new InventorySnapshot([("stone", 7)]))]);
 
-        system.GetState(entity).GetAmount("stone").Should().Be(7);
-        system.GetState(entity).GetAmount("wood").Should().Be(0);
+        system.GetTypedState(entity).GetAmount("stone").Should().Be(7);
+        system.GetTypedState(entity).GetAmount("wood").Should().Be(0);
     }
 
     [Fact(DisplayName = "ApplyUpdates only affects specified entities")]
@@ -180,8 +180,8 @@ public class InventorySystemTests
         system.InitEntities((entityA, new InventorySnapshot([("wood", 2)])), (entityB, stateB));
         system.ApplyUpdates([new EntityUpdate<InventorySnapshot>(entityA, new InventorySnapshot([]))]);
 
-        system.GetState(entityA).Inventory.Should().BeEmpty();
-        system.GetState(entityB).Should().Be(stateB);
+        system.GetTypedState(entityA).Inventory.Should().BeEmpty();
+        system.GetTypedState(entityB).Should().Be(stateB);
     }
 
     [Fact(DisplayName = "Controller adds items on tick")]
@@ -197,7 +197,7 @@ public class InventorySystemTests
 
         sim.Tick();
 
-        inventorySystem.GetState(entity).GetAmount("wood").Should().Be(8);
+        inventorySystem.GetTypedState(entity).GetAmount("wood").Should().Be(8);
     }
 
     private class AddItemController(string type, int qty) : IPrepareSharedUpdates, IRequire<InventorySystem>
@@ -210,7 +210,7 @@ public class InventorySystemTests
             var entities = _inventorySystem!.GetEntities();
             var updates = entities.Select(entity =>
             {
-                var current = _inventorySystem.GetState(entity);
+                var current = _inventorySystem.GetTypedState(entity);
                 var updated = current.Inventory
                     .Where(i => i.Type != type)
                     .Append((type, current.GetAmount(type) + qty));

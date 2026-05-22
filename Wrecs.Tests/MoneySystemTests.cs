@@ -40,7 +40,7 @@ public class MoneySystemTests
 
         system.InitEntities((entity, null));
 
-        system.GetState(entity).MoneyBalance.Should().Be(0);
+        system.GetTypedState(entity).MoneyBalance.Should().Be(0);
     }
 
     [Fact(DisplayName = "Entity initial state sets balance")]
@@ -51,7 +51,7 @@ public class MoneySystemTests
 
         system.InitEntities((entity, new MoneySnapshot(500)));
 
-        system.GetState(entity).MoneyBalance.Should().Be(500);
+        system.GetTypedState(entity).MoneyBalance.Should().Be(500);
     }
 
     [Fact(DisplayName = "Multiple entities are tracked independently")]
@@ -63,8 +63,8 @@ public class MoneySystemTests
 
         system.InitEntities((entityA, new MoneySnapshot(100)), (entityB, new MoneySnapshot(200)));
 
-        system.GetState(entityA).MoneyBalance.Should().Be(100);
-        system.GetState(entityB).MoneyBalance.Should().Be(200);
+        system.GetTypedState(entityA).MoneyBalance.Should().Be(100);
+        system.GetTypedState(entityB).MoneyBalance.Should().Be(200);
     }
 
     [Fact(DisplayName = "Reinitializing clears previous entities")]
@@ -78,7 +78,7 @@ public class MoneySystemTests
         system.InitEntities((entityB, new MoneySnapshot(50)));
 
         system.GetEntities().Should().ContainSingle().Which.Should().Be(entityB);
-        system.GetState(entityB).MoneyBalance.Should().Be(50);
+        system.GetTypedState(entityB).MoneyBalance.Should().Be(50);
     }
 
     [Fact(DisplayName = "State snapshot is keyed by entity ID")]
@@ -104,7 +104,7 @@ public class MoneySystemTests
         system.InitEntities((entity, new MoneySnapshot(100)));
         system.ApplyUpdates([new EntityUpdate<MoneySnapshot>(entity, new MoneySnapshot(999))]);
 
-        system.GetState(entity).MoneyBalance.Should().Be(999);
+        system.GetTypedState(entity).MoneyBalance.Should().Be(999);
     }
 
     [Fact(DisplayName = "ApplyUpdates only affects specified entities")]
@@ -117,8 +117,8 @@ public class MoneySystemTests
         system.InitEntities((entityA, new MoneySnapshot(100)), (entityB, new MoneySnapshot(200)));
         system.ApplyUpdates([new EntityUpdate<MoneySnapshot>(entityA, new MoneySnapshot(42))]);
 
-        system.GetState(entityA).MoneyBalance.Should().Be(42);
-        system.GetState(entityB).MoneyBalance.Should().Be(200);
+        system.GetTypedState(entityA).MoneyBalance.Should().Be(42);
+        system.GetTypedState(entityB).MoneyBalance.Should().Be(200);
     }
 
     [Fact(DisplayName = "Controller increases balance on tick")]
@@ -134,7 +134,7 @@ public class MoneySystemTests
 
         sim.Tick();
 
-        moneySystem.GetState(entity).MoneyBalance.Should().Be(150);
+        moneySystem.GetTypedState(entity).MoneyBalance.Should().Be(150);
     }
 
     private class AddMoneyController(int amount) : IPrepareSharedUpdates, IRequire<MoneySystem>
@@ -147,7 +147,7 @@ public class MoneySystemTests
             var entities = _moneySystem!.GetEntities();
             var updates = entities.Select(e =>
             {
-                var currentBalance = _moneySystem.GetState(e).MoneyBalance;
+                var currentBalance = _moneySystem.GetTypedState(e).MoneyBalance;
                 var newBalance = currentBalance + amount;
                 return (IEntityUpdate)new EntityUpdate<MoneySnapshot>(e, new MoneySnapshot(newBalance));
             });

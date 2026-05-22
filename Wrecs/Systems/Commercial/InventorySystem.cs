@@ -50,7 +50,7 @@ public class InventorySystem : ISystem<IInventoryEntity, InventorySnapshot>, IAc
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, Dictionary<string, int>> _inventories = [];
 
-    public InventorySnapshot GetState(IEntity entity) =>
+    public InventorySnapshot GetTypedState(IEntity entity) =>
         new(_inventories[entity].Select(kvp => (kvp.Key, kvp.Value)));
 
     public IReadOnlyList<IEntity> GetEntities() => _entities;

@@ -11,7 +11,7 @@ public class MoneySystem : ISystem<IMoneyEntity, MoneySnapshot>, IAcceptUpdates<
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, int> _balances = [];
 
-    public MoneySnapshot GetState(IEntity entity) => new(_balances[entity]);
+    public MoneySnapshot GetTypedState(IEntity entity) => new(_balances[entity]);
 
     public IReadOnlyList<IEntity> GetEntities() => _entities;
 

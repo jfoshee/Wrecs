@@ -33,7 +33,7 @@ class BoardGameMovementController(IGameDice dice, int boardSize) :
 
         var currentPlayer = _turnSystem.GetCurrentPlayer();
         int roll = dice.Roll();
-        var currentPosition = _spatial1dSystem.GetState(currentPlayer).Position;
+        var currentPosition = _spatial1dSystem.GetTypedState(currentPlayer).Position;
         var newPosition = currentPosition + roll;
         if (newPosition >= boardSize)
         {

@@ -20,7 +20,7 @@ public class SystemA : ISystem<TestEntity, StateA>, IAcceptUpdates<StateA>
     }
 
     public IReadOnlyList<IEntity> GetEntities() => _entities;
-    public StateA GetState(IEntity entity) => _states.TryGetValue(entity, out var s) ? s : default;
+    public StateA GetTypedState(IEntity entity) => _states.TryGetValue(entity, out var s) ? s : default;
     public void ApplyUpdates(IEnumerable<EntityUpdate<StateA>> updates)
     {
         foreach (var update in updates)
@@ -47,7 +47,7 @@ public class SystemB : ISystem<TestEntity, StateB>, IAcceptUpdates<StateB>
     }
 
     public IReadOnlyList<IEntity> GetEntities() => _entities;
-    public StateB GetState(IEntity entity) => _states.TryGetValue(entity, out var s) ? s : default;
+    public StateB GetTypedState(IEntity entity) => _states.TryGetValue(entity, out var s) ? s : default;
     public void ApplyUpdates(IEnumerable<EntityUpdate<StateB>> updates)
     {
         foreach (var update in updates)
@@ -69,7 +69,7 @@ public class ControllerA : IPrepareSharedUpdates, IRequire<SystemA>
     {
         PrepareSharedUpdatesCalls++;
         var updates = _systemA!.GetEntities()
-            .Select(e => (IEntityUpdate)new EntityUpdate<StateA>(e, new(_systemA.GetState(e).Value + 1)));
+            .Select(e => (IEntityUpdate)new EntityUpdate<StateA>(e, new(_systemA.GetTypedState(e).Value + 1)));
         yield return new(updates);
     }
 }
@@ -85,7 +85,7 @@ public class ControllerB : IPrepareSharedUpdates, IRequire<SystemB>
     {
         PrepareSharedUpdatesCalls++;
         var updates = _systemB!.GetEntities()
-            .Select(e => (IEntityUpdate)new EntityUpdate<StateB>(e, new(_systemB.GetState(e).Data + "B")));
+            .Select(e => (IEntityUpdate)new EntityUpdate<StateB>(e, new(_systemB.GetTypedState(e).Data + "B")));
         yield return new(updates);
     }
 }
@@ -103,9 +103,9 @@ public class CombinedController : IPrepareSharedUpdates, IRequire<SystemA>, IReq
     {
         PrepareSharedUpdatesCalls++;
         var updatesA = _systemA!.GetEntities()
-            .Select(e => (IEntityUpdate)new EntityUpdate<StateA>(e, new(_systemA.GetState(e).Value + 10)));
+            .Select(e => (IEntityUpdate)new EntityUpdate<StateA>(e, new(_systemA.GetTypedState(e).Value + 10)));
         var updatesB = _systemB!.GetEntities()
-            .Select(e => (IEntityUpdate)new EntityUpdate<StateB>(e, new(_systemB.GetState(e).Data + "C")));
+            .Select(e => (IEntityUpdate)new EntityUpdate<StateB>(e, new(_systemB.GetTypedState(e).Data + "C")));
         yield return new(updatesA.Concat(updatesB));
     }
 }
@@ -130,8 +130,8 @@ public class ControllerTests
 
         sim.Tick();
 
-        systemA.GetState(entity).Value.Should().Be(11);
-        systemB.GetState(entity).Data.Should().Be("TestB");
+        systemA.GetTypedState(entity).Value.Should().Be(11);
+        systemB.GetTypedState(entity).Data.Should().Be("TestB");
 
         controllerA.PrepareSharedUpdatesCalls.Should().Be(1);
         controllerB.PrepareSharedUpdatesCalls.Should().Be(1);
@@ -155,8 +155,8 @@ public class ControllerTests
         sim.Tick();
 
         // Verify state changed in both systems
-        systemA.GetState(entity).Value.Should().Be(20);
-        systemB.GetState(entity).Data.Should().Be("TestC");
+        systemA.GetTypedState(entity).Value.Should().Be(20);
+        systemB.GetTypedState(entity).Data.Should().Be("TestC");
 
         // Key behavior: Should only call PrepareSharedUpdates once per tick, not once per system
         combinedController.PrepareSharedUpdatesCalls.Should().Be(1);

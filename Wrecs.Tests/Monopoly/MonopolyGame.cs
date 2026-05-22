@@ -60,5 +60,5 @@ public class MonopolyGame : Sim
         );
     }
 
-    internal MonopolyJailSnapshot GetJailState(IEntity entity) => JailSystem.GetState(entity);
+    internal MonopolyJailSnapshot GetJailState(IEntity entity) => JailSystem.GetTypedState(entity);
 }
