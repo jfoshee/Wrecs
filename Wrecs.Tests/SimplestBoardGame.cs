@@ -10,9 +10,8 @@ class PlayerEntity(string name) : IEntity, ISpatial1DEntity, ITakeTurns
 
 readonly record struct EndGameSnapshot(bool IsGameOver, bool IsWinner) : IStateSnapshot<SimpleEndGameSystem>;
 interface ISimpleEndGamePlayer : IEntity;
-struct SimpleEndGameEvent : IEvent;
 class SimpleEndGameSystem : ISystem<ISimpleEndGamePlayer, EndGameSnapshot>,
-    IRaise<SimpleEndGameEvent>,
+    IRaise<EndGameEvent>,
     IHandle<BoardGamePlayerWrappedEvent>
 {
     IEntity[] _entities = [];
@@ -41,7 +40,7 @@ class SimpleEndGameSystem : ISystem<ISimpleEndGamePlayer, EndGameSnapshot>,
     public void ApplyInternalUpdates() { }
 
     // Raise event when game is over
-    public IEnumerable<SimpleEndGameEvent> GetTypedEvents()
+    public IEnumerable<EndGameEvent> GetTypedEvents()
     {
         if (_winner is not null && !_gameOverRaised)
         {
@@ -111,10 +110,10 @@ class SimplestBoardGame
 
 public class SimplestBoardGameTest
 {
-    class EndGameEventTracker : ISystem, IHandle<SimpleEndGameEvent>
+    class EndGameEventTracker : ISystem, IHandle<EndGameEvent>
     {
         public int Count { get; private set; }
-        public void HandleTyped(SimpleEndGameEvent e) => Count++;
+        public void HandleTyped(EndGameEvent e) => Count++;
 
         public void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState) { }
         public void ApplyInternalUpdates() { }
@@ -186,7 +185,7 @@ public class SimplestBoardGameTest
         game.IsWinner(game.Player1).Should().BeTrue();
     }
 
-    [Fact(DisplayName = "Game Over halts game state changes", Skip = "WIP")]
+    [Fact(DisplayName = "Game Over halts game state changes")]
     public void GameOver()
     {
         var mockDice = new Mock<IGameDice>();

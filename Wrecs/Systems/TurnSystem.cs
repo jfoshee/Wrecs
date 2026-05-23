@@ -2,6 +2,8 @@ using Wrecs.Core;
 
 namespace Wrecs.Systems;
 
+public struct EndGameEvent : IEvent;
+
 /// <summary>
 /// Marker interface for entities that participate in taking turns.
 /// </summary>
@@ -14,8 +16,9 @@ public interface ITakeTurns : IEntity;
 /// </summary>
 public record struct TurnSnapshot(bool IsMyTurn, int Phase = 0) : IStateSnapshot<TurnSystem>;
 
-public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>
+public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>, IHandle<EndGameEvent>
 {
+    private bool _enabled = true;
     private List<IEntity> _entities = [];
     private int _currentTurnIndex = 0;
     private int _currentPhase;
@@ -64,6 +67,9 @@ public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>
 
     public void ApplyInternalUpdates()
     {
+        if (!_enabled)
+            return;
+
         _currentPhase++;
         if (_currentPhase < PhasesPerTurn)
             return;
@@ -73,4 +79,12 @@ public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>
     }
 
     public IEntity GetCurrentPlayer() => _entities[_currentTurnIndex];
+
+    void IHandle<EndGameEvent>.HandleTyped(EndGameEvent e)
+    {
+        _enabled = false;
+        // Reset state
+        _currentTurnIndex = 0;
+        _currentPhase = 0;
+    }
 }
