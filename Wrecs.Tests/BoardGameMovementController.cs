@@ -31,7 +31,7 @@ class BoardGameMovementController(IGameDice dice, int boardSize) :
         if (_turnSystem.CurrentPhase != 0)
             yield break;
 
-        var currentPlayer = _turnSystem.GetCurrentPlayer();
+        var currentPlayer = _turnSystem.CurrentPlayer;
         int roll = dice.Roll();
         var currentPosition = _spatial1dSystem.GetTypedState(currentPlayer).Position;
         var newPosition = currentPosition + roll;

@@ -22,7 +22,7 @@ public class RealEstateAgent(MonopolyProperty?[] boardConfig) : ICommercialAgent
     public Decision Decide(CommercialSnapshot state, List<Offer> offers)
     {
         // Get current player and their position
-        var currentPlayer = _turnSystem.GetCurrentPlayer();
+        var currentPlayer = _turnSystem.CurrentPlayer;
         if (currentPlayer is not ICommercialAgent buyer)
             return new DoNothingDecision();
 

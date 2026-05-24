@@ -28,7 +28,7 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
     public IEnumerable<UpdateSet> PrepareSharedUpdates()
     {
         // Get current player and their position
-        var currentPlayer = _turnSystem.GetCurrentPlayer();
+        var currentPlayer = _turnSystem.CurrentPlayer;
         var playerPosition = _spatial1dSystem.GetTypedState(currentPlayer).Position;
 
         // Look up property at that position

@@ -17,7 +17,7 @@ public class TurnSystemTests
 
         state.IsMyTurn.Should().BeTrue();
         state.Phase.Should().Be(0);
-        system.GetCurrentPlayer().Should().Be(entity);
+        system.CurrentPlayer.Should().Be(entity);
     }
 
     [Fact(DisplayName = "First entity is current by default")]
@@ -31,7 +31,7 @@ public class TurnSystemTests
         system.GetTypedState(entity1).IsMyTurn.Should().BeTrue();
         system.GetTypedState(entity2).IsMyTurn.Should().BeFalse();
         system.GetTypedState(entity1).Phase.Should().Be(0);
-        system.GetCurrentPlayer().Should().Be(entity1);
+        system.CurrentPlayer.Should().Be(entity1);
     }
 
     [Fact(DisplayName = "Initial state sets current turn")]
@@ -45,7 +45,7 @@ public class TurnSystemTests
         system.GetTypedState(entity1).IsMyTurn.Should().BeFalse();
         system.GetTypedState(entity2).IsMyTurn.Should().BeTrue();
         system.GetTypedState(entity2).Phase.Should().Be(0);
-        system.GetCurrentPlayer().Should().Be(entity2);
+        system.CurrentPlayer.Should().Be(entity2);
     }
 
     [Fact(DisplayName = "Tick advances to next entity")]
@@ -61,7 +61,7 @@ public class TurnSystemTests
         system.GetTypedState(entity1).IsMyTurn.Should().BeFalse();
         system.GetTypedState(entity2).IsMyTurn.Should().BeTrue();
         system.GetTypedState(entity2).Phase.Should().Be(0);
-        system.GetCurrentPlayer().Should().Be(entity2);
+        system.CurrentPlayer.Should().Be(entity2);
     }
 
     [Fact(DisplayName = "Tick wraps around to first entity")]
@@ -78,7 +78,7 @@ public class TurnSystemTests
         system.GetTypedState(entity1).IsMyTurn.Should().BeTrue();
         system.GetTypedState(entity2).IsMyTurn.Should().BeFalse();
         system.GetTypedState(entity1).Phase.Should().Be(0);
-        system.GetCurrentPlayer().Should().Be(entity1);
+        system.CurrentPlayer.Should().Be(entity1);
     }
 
     [Fact(DisplayName = "Multiple ticks cycle through all entities")]
@@ -149,14 +149,14 @@ public class TurnSystemTests
         system.GetTypedState(entity1).IsMyTurn.Should().BeTrue();
         system.GetTypedState(entity1).Phase.Should().Be(1);
         system.GetTypedState(entity2).IsMyTurn.Should().BeFalse();
-        system.GetCurrentPlayer().Should().Be(entity1);
+        system.CurrentPlayer.Should().Be(entity1);
 
         system.Tick();
 
         system.GetTypedState(entity1).IsMyTurn.Should().BeFalse();
         system.GetTypedState(entity2).IsMyTurn.Should().BeTrue();
         system.GetTypedState(entity2).Phase.Should().Be(0);
-        system.GetCurrentPlayer().Should().Be(entity2);
+        system.CurrentPlayer.Should().Be(entity2);
     }
 
     [Fact(DisplayName = "Ticks per turn must be positive")]
