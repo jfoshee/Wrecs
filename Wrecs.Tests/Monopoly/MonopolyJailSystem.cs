@@ -88,7 +88,7 @@ class MonopolyJailController : IPrepareSharedUpdates, IRequire<Spatial1DSystem>
 // TODO: A controller that gets inmates out of jail (e.g. if they possess a PayFineResource)
 
 // Jailer is an agent that makes an offer to allow an inmate to pay $50 to get out of jail.
-class JailerAgent : ICommercialAgent, IRequire<MonopolyJailSystem>
+class JailerAgent : ICommercialAgent, IRequire<MonopolyJailSystem>, IRequire<TurnSystem>
 {
     public int Id { get; } = EntityId.Next();
     public string Name => nameof(JailerAgent);
@@ -96,18 +96,27 @@ class JailerAgent : ICommercialAgent, IRequire<MonopolyJailSystem>
     private MonopolyJailSystem? _jailSystem;
     public void Inject(MonopolyJailSystem dependency) => _jailSystem = dependency;
 
+    private TurnSystem? _turnSystem;
+    public void Inject(TurnSystem dependency) => _turnSystem = dependency;
+
     public Decision Decide(CommercialSnapshot state, List<Offer> offers)
     {
-        // TODO: Only make the offer on the inmate's turn (which phase?)
         // Make offers to all inmates to pay $50 to get out of jail
         var inmates = _jailSystem?.GetInmates() ?? [];
         foreach (var inmate in inmates)
         {
-            var inmateAgent = (ICommercialAgent)inmate;  // HACK: Do we require that all monopoly players are commercial agents? Maybe we should?
-            var offer = new TargetedSellOffer(this, inmateAgent, 50, 1, MonopolyJailSystem.PayFineResource);
-            return new MakeOfferDecision(offer);
-            // yield return offer;
-            // TODO: Handle making multiple offers
+            // Only make the offer on the inmate's turn (which phase?)
+            if (inmate == _turnSystem?.CurrentPlayer && _turnSystem.CurrentPhase == 2)
+            {
+                // HACK: Do we require that all monopoly players are commercial agents? Maybe we should?
+                if (inmate is not ICommercialAgent)
+                    continue;
+                var inmateAgent = (ICommercialAgent)inmate;
+                var offer = new TargetedSellOffer(this, inmateAgent, 50, 1, MonopolyJailSystem.PayFineResource);
+                return new MakeOfferDecision(offer);
+                // yield return offer;
+                // TODO: Handle making multiple offers
+            }
         }
         return new DoNothingDecision();
     }

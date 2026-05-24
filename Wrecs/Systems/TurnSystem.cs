@@ -31,6 +31,7 @@ public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>, IHandle<EndGameEven
     public int PhasesPerTurn { get; }
     public int CurrentPhase => _currentPhase;
     public IEntity CurrentPlayer => _entities[_currentTurnIndex];
+    public IEntity GetCurrentPlayer() => _entities[_currentTurnIndex];
 
     public TurnSystem(int phasesPerTurn = 1)
     {
@@ -77,8 +78,6 @@ public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>, IHandle<EndGameEven
         _currentPhase = 0;
         _currentTurnIndex = (_currentTurnIndex + 1) % _entities.Count;
     }
-
-    public IEntity GetCurrentPlayer() => _entities[_currentTurnIndex];
 
     void IHandle<EndGameEvent>.HandleTyped(EndGameEvent e)
     {

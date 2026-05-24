@@ -166,6 +166,7 @@ public class MonopolyTest(ITestOutputHelper output)
         game.GetPosition(game.Player1).Should().Be(24); // After 4 rounds of rolling 6, Player 1 should be on position 24
 
         game.Tick(); // Player 1 lands on Go To Jail
+        game.Tick();
 
         game.GetPosition(game.Player1).Should().Be(10);
         game.GetJailState(game.Player1).IsInJail.Should().BeTrue();
