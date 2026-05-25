@@ -90,7 +90,7 @@ public class Sim
         _dependenciesInjected = true;
 
         var targets = _systems.OfType<IRequire>()
-                              .Concat(_entities.OfType<IRequire>()); // TODO: Should we allow injecting into entities? currently required for sources/sinks (flows).
+                              .Concat(_entities.OfType<IRequire>()); // TODO: Should we allow injecting into entities? currently required for Monopoly real estate agent and sources/sinks (flows).
 
         foreach (var target in targets)
         {
