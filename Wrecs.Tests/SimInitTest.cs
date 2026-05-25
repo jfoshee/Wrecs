@@ -83,7 +83,7 @@ public class SimInitTest
             (nonSpatial1DEntity, []),
             (hasInitialPositionEntity, [new PositionSnapshot(5)])
         );
-        sim.AddSystems(new MoveAllController());
+        sim.AddSystem(new MoveAllController());
 
         sim.Tick();
 
