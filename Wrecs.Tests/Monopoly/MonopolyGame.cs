@@ -49,7 +49,8 @@ public class MonopolyGame : Sim
         var allProperties = new CommercialSnapshot(0, MonopolyBoard.Properties.OfType<MonopolyProperty>().Select(p => (p.Name, 1)));
         this.AddSystems(
             new MonopolyRentController(),
-            new BoardGameMovementController(dice, boardSize: 40),
+            new DiceMovementController(dice),
+            new WrapAroundSystem1D(size: 40),
             new MonopolyJailController()
         );
         InitEntities(

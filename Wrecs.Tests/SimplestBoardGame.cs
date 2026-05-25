@@ -12,7 +12,7 @@ readonly record struct EndGameSnapshot(bool IsGameOver, bool IsWinner) : IStateS
 interface ISimpleEndGamePlayer : IEntity;
 class SimpleEndGameSystem : ISystem<ISimpleEndGamePlayer, EndGameSnapshot>,
     IRaise<EndGameEvent>,
-    IHandle<BoardGamePlayerWrappedEvent>
+    IHandle<WrapAround1DEvent>
 {
     IEntity[] _entities = [];
     private IEntity? _winner;
@@ -49,15 +49,16 @@ class SimpleEndGameSystem : ISystem<ISimpleEndGamePlayer, EndGameSnapshot>,
         }
     }
 
-    public void HandleTyped(BoardGamePlayerWrappedEvent e)
+    public void HandleTyped(WrapAround1DEvent e)
     {
         // The first player to wrap around the board wins
-        _winner = e.Player;
+        _winner = e.Entity;
     }
 }
 
 class SimplestBoardGame
 {
+    const int BoardSize = 10;
     public Sim Sim { get; } = new();
 
     public PlayerEntity Player1 { get; }
@@ -68,10 +69,9 @@ class SimplestBoardGame
         Sim.AddSystem(new TurnSystem());
         Sim.AddSystem(new Spatial1DSystem());
         Sim.AddSystem(new SimpleEndGameSystem());
-
         dice ??= new GameDice(1);
-        var boardGameMovementController = new BoardGameMovementController(dice, boardSize: 10);
-        Sim.AddSystem(boardGameMovementController);
+        Sim.AddSystem(new DiceMovementController(dice));
+        Sim.AddSystem(new WrapAroundSystem1D(BoardSize));
 
         Player1 = new("Player 1");
         Player2 = new("Player 2");
@@ -157,7 +157,7 @@ public class SimplestBoardGameTest
         mockDice.SetupSequence(d => d.Roll())
             .Returns(5) // Player 1's first turn
             .Returns(1) // Player 2's first turn
-            .Returns(5); // Player 1's second turn
+            .Returns(5).Returns(1); // Player 1's second turn, Player 2's second turn
         var game = new SimplestBoardGame(mockDice.Object);
 
         game.Tick(); // Player 1 moves to 5
@@ -168,18 +168,33 @@ public class SimplestBoardGameTest
         game.IsWinner(game.Player2).Should().BeFalse();
         game.IsGameOver().Should().BeFalse();
 
-        game.Tick(); // Player 1 moves to 10, but board size is 10, so they win
+        // Tick 3: Player 1 moves to 10
+        game.Tick();
+
+        game.GetPosition(game.Player1).Should().Be(10); // Not wrapped yet
+
+        // Tick 4: WrapAroundSystem1D sees Player 1 at 10, wraps them to 0, raises event. Player 2 moves to 2.
+        game.Tick();
 
         // Assert Player 1 is back at position 0
         game.GetPosition(game.Player1).Should().Be(0);
-        // Assert Player 1 is the victor and the game is over
-        game.IsGameOver().Should().BeTrue();
+        game.GetPosition(game.Player2).Should().Be(2);
+
+        // Assert Player 1 is the victor
         game.IsWinner(game.Player1).Should().BeTrue();
+
+        // The game state says it's over, but the event hasn't been raised yet
+        game.IsGameOver().Should().BeTrue();
+
+        // Tick 5: EndGameSystem raises EndGameEvent. TurnSystem halts.
+        game.Tick();
+        game.IsGameOver().Should().BeTrue();
 
         // Assert another Tick does not change the state since the game is over
         game.Tick();
         game.GetPosition(game.Player1).Should().Be(0);
-        game.GetPosition(game.Player2).Should().Be(1);
+        // Player 2 is at 2, not 1
+        game.GetPosition(game.Player2).Should().Be(2);
         game.GetCurrentPlayer().Should().Be(game.Player1);
         game.IsGameOver().Should().BeTrue();
         game.IsWinner(game.Player1).Should().BeTrue();
@@ -193,22 +208,24 @@ public class SimplestBoardGameTest
         mockDice.SetupSequence(d => d.Roll())
             .Returns(5) // Player 1's first turn
             .Returns(1) // Player 2's first turn
-            .Returns(5); // Player 1's second turn
+            .Returns(5).Returns(1); // Player 1's second turn, Player 2's second turn
         var game = new SimplestBoardGame(mockDice.Object);
 
         // Hook a listener to the end game event to verify it is raised exactly once
         var endGameEventTracker = new EndGameEventTracker();
         game.Sim.AddSystem(endGameEventTracker);
 
-        game.Tick(); // Player 1 moves to 5
-        game.Tick(); // Player 2 moves to 1
-        game.Tick(); // Player 1 moves to 10
+        game.Tick(); // P1 moves to 5
+        game.Tick(); // P2 moves to 1
+        game.Tick(); // P1 moves to 10
+        game.Tick(); // Wrap around happens, P1 wins. P2 moves to 2.
+        game.Tick(); // EndGameEvent raised.
 
         for (int i = 0; i < 5; i++)
         {
             game.Tick();
             game.GetPosition(game.Player1).Should().Be(0);
-            game.GetPosition(game.Player2).Should().Be(1);
+            game.GetPosition(game.Player2).Should().Be(2);
             game.GetCurrentPlayer().Should().Be(game.Player1);
             game.IsGameOver().Should().BeTrue();
             game.IsWinner(game.Player1).Should().BeTrue();
