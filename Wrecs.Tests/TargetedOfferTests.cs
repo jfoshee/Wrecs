@@ -11,7 +11,7 @@ class MakesTargetedSellOfferAgent(ICommercialAgent target, int price, int resour
     public string Name => nameof(MakesTargetedSellOfferAgent);
     private bool _hasMadeOffer = false;
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public IEnumerable<Type> GetRequiredSnapshots() => [];
     public Intent GetIntent(IAgentContext context)
     {
         if (_hasMadeOffer)
@@ -31,7 +31,7 @@ class TargetedOfferReceiverAgent : ICommercialAgent
 
     public List<List<Offer>> OffersSeenPerTick { get; } = [];
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot)];
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(OfferListSnapshot)];
     public Intent GetIntent(IAgentContext context)
     {
         var opportunities = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
@@ -54,7 +54,7 @@ class OfferObserverAgent : ICommercialAgent
 
     public List<List<Offer>> OffersSeenPerTick { get; } = [];
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot)];
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(OfferListSnapshot)];
     public Intent GetIntent(IAgentContext context)
     {
         var opportunities = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
@@ -75,7 +75,7 @@ class MakesGeneralAndTargetedOffersAgent(
     public string Name => nameof(MakesGeneralAndTargetedOffersAgent);
     private int _tickCount = 0;
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public IEnumerable<Type> GetRequiredSnapshots() => [];
     public Intent GetIntent(IAgentContext context)
     {
         _tickCount++;

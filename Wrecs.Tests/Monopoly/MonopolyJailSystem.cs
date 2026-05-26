@@ -99,7 +99,7 @@ class JailerAgent : ICommercialAgent, IRequire<MonopolyJailSystem>, IRequire<Tur
     private TurnSystem? _turnSystem;
     public void Inject(TurnSystem dependency) => _turnSystem = dependency;
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public IEnumerable<Type> GetRequiredSnapshots() => []; // TODO: needs turn state
     public Intent GetIntent(IAgentContext context)
     {
         // Make offers to all inmates to pay $50 to get out of jail

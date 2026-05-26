@@ -24,6 +24,7 @@ public class Sandbox1D1Agent
         {
             return new(new Move1DAction(0));
         }
+
         IEnumerable<Type> IAgent.GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot), typeof(PositionSnapshot)];
 
         Intent IAgent.GetIntent(IAgentContext context)

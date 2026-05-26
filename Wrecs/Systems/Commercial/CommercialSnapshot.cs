@@ -10,7 +10,7 @@ public record struct CommercialSnapshot(MoneySnapshot Money, InventorySnapshot I
     public CommercialSnapshot(int MoneyBalance, IEnumerable<(string Type, int Amount)> inventory)
         : this(new MoneySnapshot(MoneyBalance), new InventorySnapshot(inventory)) { }
 
-    public int MoneyBalance => Money.MoneyBalance;
+    public readonly int MoneyBalance => Money.MoneyBalance;
     public readonly int ResourceBalance => Inventory.GetAmount("");
     public readonly int GetResourceBalance(string? resourceType) => Inventory.GetAmount(resourceType ?? "");
 }

@@ -133,7 +133,7 @@ public class MonopolyTest(ITestOutputHelper output)
 
         public string Name => nameof(AlwaysPayingJailFineMonopolyPlayer);
 
-        public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot)];
+        public IEnumerable<Type> GetRequiredSnapshots() => [typeof(OfferListSnapshot)];
         public Intent GetIntent(IAgentContext context)
         {
             var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
