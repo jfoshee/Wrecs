@@ -11,7 +11,7 @@ public class TypedResourceScenarios
         IStateSnapshot[] initSellerState =
         [
             new CommercialSnapshot(100, [("gold", 50)]),
-            new OfferListSnapshot([new(Seller: seller, Buyer: null, Price: 20, Resources: 10, ResourceType: "gold")])
+            new OfferListSnapshot([new SellOffer(Seller: seller, Price: 20, Resources: 10, ResourceType: "gold")])
         ];
         sim.InitEntities(
             (buyer, [new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)]),
@@ -52,7 +52,7 @@ public class TypedResourceScenarios
         IStateSnapshot[] initSellerState =
         [
             new CommercialSnapshot(0, [("gold", 50)]),
-            new OfferListSnapshot([new(Seller: seller, Buyer: null, Price: 20, Resources: 10, ResourceType: "silver")])
+            new OfferListSnapshot([new SellOffer(Seller: seller, Price: 20, Resources: 10, ResourceType: "silver")])
         ];
         sim.InitEntities(
             (buyer, [new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)]),
@@ -80,7 +80,7 @@ public class TypedResourceScenarios
         IStateSnapshot[] initSellerState =
         [
             new CommercialSnapshot(0, ResourceBalance: 50),
-            new OfferListSnapshot([new(Seller: seller, Buyer: null, Price: 20, Resources: 10, ResourceType: "gold")])
+            new OfferListSnapshot([new SellOffer(Seller: seller, Price: 20, Resources: 10, ResourceType: "gold")])
         ];
         sim.InitEntities(
             (buyer, [new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)]),
@@ -136,7 +136,7 @@ public class TypedResourceScenarios
         IStateSnapshot[] initBuyerState =
         [
             new CommercialSnapshot(200, 0),
-            new OfferListSnapshot([new(Seller: null, Buyer: buyer, Price: 50, Resources: 25, ResourceType: "gold")])
+            new OfferListSnapshot([new BuyOffer(buyer, Price: 50, Resources: 25, ResourceType: "gold")])
         ];
         sim.InitEntities(
             (seller, [new CommercialSnapshot(0, [("gold", 100)])]),
@@ -184,7 +184,7 @@ public class TypedResourceScenarios
         IStateSnapshot[] initSellerState =
         [
             new CommercialSnapshot(0, [("", 50), ("gold", 50)]),
-            new OfferListSnapshot([new(Seller: seller, Buyer: null, Price: 20, Resources: 10, ResourceType: "gold")])
+            new OfferListSnapshot([new SellOffer(Seller: seller, Price: 20, Resources: 10, ResourceType: "gold")])
         ];
         sim.InitEntities(
             (buyer, [new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)]),

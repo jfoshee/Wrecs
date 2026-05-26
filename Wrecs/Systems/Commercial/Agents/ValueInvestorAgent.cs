@@ -13,11 +13,11 @@ public sealed class ValueInvestorAgent(
 
     public string Name => "ValueInvestor";
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot)];
     public Intent GetIntent(IAgentContext context)
     {
         var state = context.GetSnapshot<CommercialSnapshot>();
-        var offers = context.Get<List<Offer>>();
+        var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         UpdateFairPrice(offers);
 
         var bestSell = offers

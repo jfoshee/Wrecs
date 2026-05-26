@@ -2,14 +2,13 @@ using Wrecs.Core;
 
 namespace Wrecs.Systems.Commercial;
 
-public record struct OfferSnapshot(ICommercialAgent? Seller, ICommercialAgent? Buyer, int Price, int Resources, string? ResourceType = null);
-
-public record struct OfferListSnapshot(List<OfferSnapshot>? OfferSnapshots) : IStateSnapshot<OfferSystem>
+// TODO: enforce that offers in a snapshot cannot be mutated (so consumers can't change internal System state)
+public record struct OfferListSnapshot(IReadOnlyList<Offer>? Offers) : IStateSnapshot<OfferSystem>
 {
     public override readonly string ToString()
     {
-        // When this struct is defaulted OfferSnapshots is null
-        var snapshots = OfferSnapshots ?? [];
+        // When this struct is defaulted Offers is null
+        var snapshots = Offers ?? [];
         return "[" + string.Join(", ", snapshots.Select(x => x.ToString())) + "]";
     }
 }
@@ -73,7 +72,7 @@ public class OfferSystem :
             var commercialState = BuildCommercialSnapshot(agent);
             var ctx = new AgentContext();
             ctx.AddSnapshot(commercialState);
-            ctx.Add(offersForAgent);
+            ctx.AddSnapshot(new OfferListSnapshot(offersForAgent));
             var intent = agent.GetIntent(ctx);
             var decision = intent?.Actions?.OfType<Decision>().FirstOrDefault() ?? new DoNothingDecision();
             decisions.Add((agent, decision));
@@ -216,40 +215,16 @@ public class OfferSystem :
 
     private static List<Offer> State(OfferListSnapshot snapshot)
     {
-        if (snapshot.OfferSnapshots is null)
+        if (snapshot.Offers is null)
             return [];
-        return [.. snapshot.OfferSnapshots.Select(State)];
-    }
-
-    private static Offer State(OfferSnapshot snapshot)
-    {
-        if (snapshot.Buyer is not null && snapshot.Seller is not null)
-            return new TargetedSellOffer(snapshot.Seller, snapshot.Buyer, snapshot.Price, snapshot.Resources, snapshot.ResourceType);
-        if (snapshot.Buyer is not null)
-            return new BuyOffer(snapshot.Buyer, snapshot.Price, snapshot.Resources, snapshot.ResourceType);
-        if (snapshot.Seller is not null)
-            return new SellOffer(snapshot.Seller, snapshot.Price, snapshot.Resources, snapshot.ResourceType);
-        throw new ArgumentException("Buyer and Seller null", nameof(snapshot));
+        return snapshot.Offers.ToList();
     }
 
     private static OfferListSnapshot Snapshot(List<Offer>? offers)
     {
         if (offers is null)
             return default;
-        return new([.. offers.Select(Snapshot)]);
-    }
-
-    private static OfferSnapshot Snapshot(Offer offer)
-    {
-        if (offer is TargetedSellOffer targetedSellOffer)
-            return new(targetedSellOffer.Seller, targetedSellOffer.Buyer, targetedSellOffer.Price, targetedSellOffer.Resources, targetedSellOffer.ResourceType);
-        if (offer is BuyOffer buyOffer)
-            return new(null, buyOffer.Buyer, buyOffer.Price, buyOffer.Resources, buyOffer.ResourceType);
-        if (offer is SellOffer sellOffer)
-            return new(sellOffer.Seller, null, sellOffer.Price, sellOffer.Resources, sellOffer.ResourceType);
-        if (offer is null)
-            return default;
-        throw new NotImplementedException("Unknown Offer type: " + offer.GetType().Name);
+        return new(offers);
     }
 
     private static readonly Random _random = new();

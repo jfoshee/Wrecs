@@ -51,7 +51,7 @@ public class BasicScenarios
         IStateSnapshot[] initSellerState =
         [
             new CommercialSnapshot(MoneyBalance: 64, ResourceBalance: 27),
-            new OfferListSnapshot([new(seller, null, Price: 7, Resources: 5)])
+            new OfferListSnapshot([new SellOffer(seller, Price: 7, Resources: 5)])
         ];
         sim.InitEntities(
             (buyer, [new CommercialSnapshot(MoneyBalance: 32, ResourceBalance: 9)]),
@@ -77,7 +77,7 @@ public class BasicScenarios
         IStateSnapshot[] initBuyerState =
         [
             new CommercialSnapshot(MoneyBalance: 64, ResourceBalance: 27),
-            new OfferListSnapshot([new(null, Buyer: buyer, Price: 7, Resources: 5)])
+            new OfferListSnapshot([new BuyOffer(buyer, Price: 7, Resources: 5)])
         ];
         sim.InitEntities((seller, [new CommercialSnapshot(MoneyBalance: 32, ResourceBalance: 9)]),
                        (buyer, initBuyerState));
@@ -100,13 +100,13 @@ public class BasicScenarios
         IStateSnapshot[] initBuyerState =
         [
             new CommercialSnapshot(MoneyBalance: 32, ResourceBalance: 9),
-            new OfferListSnapshot([new(Seller: null, Buyer: buyer, Price: 7, Resources: 5)])
+            new OfferListSnapshot([new BuyOffer(Buyer: buyer, Price: 7, Resources: 5)])
         ];
         var seller = MockAgent();
         IStateSnapshot[] initSellerState =
         [
             new CommercialSnapshot(MoneyBalance: 64, ResourceBalance: 27),
-            new OfferListSnapshot([new(Seller: seller, null, Price: 7, Resources: 5)])
+            new OfferListSnapshot([new SellOffer(seller, Price: 7, Resources: 5)])
         ];
         sim.InitEntities(
         [
@@ -139,7 +139,7 @@ public class BasicScenarios
         var seller = MockAgent();
         IStateSnapshot[] initSellerState = [
             new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 50),
-            new OfferListSnapshot([new(Seller: seller, Buyer: null, Price: 10, Resources: 5)])
+            new OfferListSnapshot([new SellOffer(Seller: seller, Price: 10, Resources: 5)])
         ];
         sim.InitEntities((buyer, [new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)]),
                          (seller, initSellerState));

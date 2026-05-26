@@ -133,10 +133,10 @@ public class MonopolyTest(ITestOutputHelper output)
 
         public string Name => nameof(AlwaysPayingJailFineMonopolyPlayer);
 
-        public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+        public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot)];
         public Intent GetIntent(IAgentContext context)
         {
-            var offers = context.Get<List<Offer>>();
+            var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
             var getOutOfJailOffer = offers.FirstOrDefault(offer => offer.ResourceType == MonopolyJailSystem.PayFineResource);
             if (getOutOfJailOffer is not null)
                 return new(new TakeOfferDecision(getOutOfJailOffer));

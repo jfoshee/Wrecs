@@ -31,10 +31,10 @@ class TargetedOfferReceiverAgent : ICommercialAgent
 
     public List<List<Offer>> OffersSeenPerTick { get; } = [];
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot)];
     public Intent GetIntent(IAgentContext context)
     {
-        var opportunities = context.Get<List<Offer>>();
+        var opportunities = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         OffersSeenPerTick.Add([.. opportunities]);
         var targetedOffer = opportunities.OfType<TargetedSellOffer>()
             .FirstOrDefault(o => o.Buyer == this);
@@ -54,10 +54,10 @@ class OfferObserverAgent : ICommercialAgent
 
     public List<List<Offer>> OffersSeenPerTick { get; } = [];
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot)];
     public Intent GetIntent(IAgentContext context)
     {
-        var opportunities = context.Get<List<Offer>>();
+        var opportunities = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         OffersSeenPerTick.Add([.. opportunities]);
         return new(new DoNothingDecision());
     }

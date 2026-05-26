@@ -21,15 +21,16 @@ class BasicComboAgent : ICommercialAgent, ISpatial1DAgent
         NextStep = 0;
         return new(new Move1DAction(step));
     }
-    IEnumerable<Type> IAgent.GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(PositionSnapshot)];
+    IEnumerable<Type> IAgent.GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot), typeof(PositionSnapshot)];
 
     Intent IAgent.GetIntent(IAgentContext context)
     {
         var actions = new List<IIntentAction>();
 
-        if (context.Has<List<Offer>>())
+        if (context.HasSnapshot<OfferListSnapshot>())
         {
-            var intent1 = GetIntent(context.GetSnapshot<CommercialSnapshot>(), context.Get<List<Offer>>());
+            var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
+            var intent1 = GetIntent(context.GetSnapshot<CommercialSnapshot>(), offers);
             actions.AddRange(intent1.Actions);
         }
 

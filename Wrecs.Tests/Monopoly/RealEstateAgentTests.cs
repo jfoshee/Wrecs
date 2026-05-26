@@ -42,7 +42,7 @@ public class RealEstateAgentTests
         // Act
         var context = new AgentContext();
         context.AddSnapshot(agentState);
-        context.Add(new List<Offer>());
+        context.AddSnapshot(new OfferListSnapshot([]));
         var intent = agent.GetIntent(context);
         var decision = intent.Actions.OfType<Decision>().Single();
 
@@ -88,7 +88,7 @@ public class RealEstateAgentTests
         // Act
         var context = new AgentContext();
         context.AddSnapshot(agentState);
-        context.Add(new List<Offer>());
+        context.AddSnapshot(new OfferListSnapshot([]));
         var intent = agent.GetIntent(context);
         var decision = intent.Actions.OfType<Decision>().Single();
 
@@ -125,7 +125,7 @@ public class RealEstateAgentTests
         // Act
         var context = new AgentContext();
         context.AddSnapshot(agentState);
-        context.Add(new List<Offer>());
+        context.AddSnapshot(new OfferListSnapshot([]));
         var intent = agent.GetIntent(context);
         var decision = intent.Actions.OfType<Decision>().Single();
 

@@ -9,8 +9,8 @@ class DoNothingAgent : ICommercialAgent
     public int Id { get; } = EntityId.Next();
     public string Name => nameof(DoNothingAgent);
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
-    public Intent GetIntent(IAgentContext context) => new Intent(new DoNothingDecision());
+    public IEnumerable<Type> GetRequiredSnapshots() => [];
+    public Intent GetIntent(IAgentContext context) => new();
 }
 
 /// <summary>
@@ -22,10 +22,10 @@ class AlwaysBuyingTaker : ICommercialAgent
 
     public string Name => nameof(AlwaysBuyingTaker);
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot)];
     public Intent GetIntent(IAgentContext context)
     {
-        var offers = context.Get<List<Offer>>();
+        var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         var sellOffer = offers.OfType<SellOffer>().FirstOrDefault();
         if (sellOffer is not null)
             return new(new TakeOfferDecision(sellOffer));
@@ -42,10 +42,10 @@ class AlwaysSellingTaker : ICommercialAgent
 
     public string Name => nameof(AlwaysSellingTaker);
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot)];
     public Intent GetIntent(IAgentContext context)
     {
-        var offers = context.Get<List<Offer>>();
+        var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         var buyOffer = offers.OfType<BuyOffer>().FirstOrDefault();
         if (buyOffer is not null)
             return new(new TakeOfferDecision(buyOffer));
@@ -122,7 +122,6 @@ class OffersToSellAllResourcesAgent(int price) : ICommercialAgent
     public Intent GetIntent(IAgentContext context)
     {
         var state = context.GetSnapshot<CommercialSnapshot>();
-        var offers = context.Get<List<Offer>>();
         if (state.ResourceBalance > 0)
             return new(new MakeOfferDecision(new SellOffer(this, Price: price, Resources: state.ResourceBalance)));
         return new(new DoNothingDecision());

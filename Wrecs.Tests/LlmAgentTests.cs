@@ -21,7 +21,7 @@ public class LlmAgentTests(ITestOutputHelper output)
         [
             new CommercialSnapshot(0, ResourceBalance: 50),
             // Very cheap offer - LLM should take it
-            new OfferListSnapshot([new(Seller: seller, Buyer: null, Price: 1, Resources: 10)])
+            new OfferListSnapshot([new SellOffer(Seller: seller, Price: 1, Resources: 10)])
         ];
         var sim = new Sim();
         sim.InitEntities((llmAgent, [new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)]),
@@ -46,7 +46,7 @@ public class LlmAgentTests(ITestOutputHelper output)
         [
             new CommercialSnapshot(500, 0),
             // Very generous buy offer - LLM should take it
-            new OfferListSnapshot([new(Seller: null, Buyer: buyer, Price: 100, Resources: 1)])
+            new OfferListSnapshot([new BuyOffer(buyer, Price: 100, Resources: 1)])
         ];
         var sim = new Sim();
         sim.InitEntities((llmAgent, [new CommercialSnapshot(MoneyBalance: 0, ResourceBalance: 100)]),
