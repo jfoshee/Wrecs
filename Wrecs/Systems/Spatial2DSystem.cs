@@ -19,7 +19,7 @@ public interface ISpatial2DAgent : ISpatial2DEntity
     /// <summary>
     /// Given the agent's current position, returns the vector representing the step the agent wants to take.
     /// </summary>
-    Vector2 GetStep(Vector2 currentPosition);
+    Vector2 GetIntent(Vector2 currentPosition);
 }
 
 public class Spatial2DSystem : ISystem<ISpatial2DEntity, Position2DSnapshot>, IAcceptUpdates<Position2DSnapshot>, ISpatialSystem
@@ -54,7 +54,7 @@ public class Spatial2DSystem : ISystem<ISpatial2DEntity, Position2DSnapshot>, IA
     public void PrepareInternalUpdates()
     {
         // Get steps that all agents want to take
-        _pendingSteps = Agents.ToDictionary(agent => agent, agent => agent.GetStep(_entityPositions[agent]));
+        _pendingSteps = Agents.ToDictionary(agent => agent, agent => agent.GetIntent(_entityPositions[agent]));
     }
 
     public void ApplyInternalUpdates()

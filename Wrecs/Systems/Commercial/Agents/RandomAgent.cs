@@ -9,7 +9,7 @@ public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommerci
 
     public string Name => "Random " + Id;
 
-    public Decision Decide(CommercialSnapshot state, List<Offer> offers)
+    public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
     {
         // Randomly choose an action: 0 = do nothing, 1 = take offer, 2 = make buy offer, 3 = make sell offer
         var action = _random.Next(4);

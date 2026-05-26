@@ -11,7 +11,7 @@ public sealed class SpreadSniperAgent(
 
     public string Name => "SpreadSniper";
 
-    public Decision Decide(CommercialSnapshot state, List<Offer> offers)
+    public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
     {
         var bestSell = offers
             .OfType<SellOffer>()

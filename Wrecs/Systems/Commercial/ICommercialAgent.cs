@@ -8,5 +8,5 @@ public interface ICommercialAgent : ICommercialEntity
     /// <param name="state">The current state of the agent.</param>
     /// <param name="offers">The list of available offers.</param>
     /// <returns>The decision made by the agent.</returns>
-    public Decision Decide(CommercialSnapshot state, List<Offer> offers);
+    public Decision GetIntent(CommercialSnapshot state, List<Offer> offers);
 }

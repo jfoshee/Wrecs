@@ -4,7 +4,7 @@ public record AlwaysBuyingMonopolyPlayer(string Name) : IMonopolyEntity, ICommer
 {
     public int Id { get; } = EntityId.Next();
 
-    public Decision Decide(CommercialSnapshot _, List<Offer> opportunities)
+    public Decision GetIntent(CommercialSnapshot _, List<Offer> opportunities)
     {
         var offer = opportunities.OfType<SellOffer>().FirstOrDefault();
         if (offer is null)

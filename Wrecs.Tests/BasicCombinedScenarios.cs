@@ -10,12 +10,12 @@ class BasicComboAgent : ICommercialAgent, ISpatial1DAgent
 
     public int NextStep { get; set; } = 0;
 
-    public Decision Decide(CommercialSnapshot state, List<Offer> offers)
+    public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
     {
         return new DoNothingDecision();
     }
 
-    public int GetStep(int currentPosition)
+    public int GetIntent(int currentPosition)
     {
         var step = NextStep;
         NextStep = 0;

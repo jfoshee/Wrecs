@@ -12,7 +12,7 @@ public class Sandbox1D1Agent
         public int Id { get; } = EntityId.Next();
         public string Name => nameof(MainAgent);
 
-        public Decision Decide(CommercialSnapshot state, List<Offer> offers)
+        public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
         {
             var goodOffer = offers.OfType<BuyOffer>().FirstOrDefault(o => o.Price >= 10);
             if (goodOffer is not null)
@@ -20,7 +20,7 @@ public class Sandbox1D1Agent
             return new DoNothingDecision();
         }
 
-        public int GetStep(int currentPosition)
+        public int GetIntent(int currentPosition)
         {
             return 0;
         }

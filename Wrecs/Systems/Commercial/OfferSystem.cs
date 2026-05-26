@@ -71,7 +71,7 @@ public class OfferSystem :
                 .Where(o => o is not TargetedSellOffer targeted || targeted.Buyer == agent)
                 .ToList();
             var commercialState = BuildCommercialSnapshot(agent);
-            var decision = agent.Decide(commercialState, offersForAgent);
+            var decision = agent.GetIntent(commercialState, offersForAgent);
             decisions.Add((agent, decision));
         }
 

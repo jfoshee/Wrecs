@@ -11,7 +11,7 @@ class MakesTargetedSellOfferAgent(ICommercialAgent target, int price, int resour
     public string Name => nameof(MakesTargetedSellOfferAgent);
     private bool _hasMadeOffer = false;
 
-    public Decision Decide(CommercialSnapshot _, List<Offer> opportunities)
+    public Decision GetIntent(CommercialSnapshot _, List<Offer> opportunities)
     {
         if (_hasMadeOffer)
             return new DoNothingDecision();
@@ -30,7 +30,7 @@ class TargetedOfferReceiverAgent : ICommercialAgent
 
     public List<List<Offer>> OffersSeenPerTick { get; } = [];
 
-    public Decision Decide(CommercialSnapshot _, List<Offer> opportunities)
+    public Decision GetIntent(CommercialSnapshot _, List<Offer> opportunities)
     {
         OffersSeenPerTick.Add([.. opportunities]);
         var targetedOffer = opportunities.OfType<TargetedSellOffer>()
@@ -51,7 +51,7 @@ class OfferObserverAgent : ICommercialAgent
 
     public List<List<Offer>> OffersSeenPerTick { get; } = [];
 
-    public Decision Decide(CommercialSnapshot _, List<Offer> opportunities)
+    public Decision GetIntent(CommercialSnapshot _, List<Offer> opportunities)
     {
         OffersSeenPerTick.Add([.. opportunities]);
         return new DoNothingDecision();
@@ -70,7 +70,7 @@ class MakesGeneralAndTargetedOffersAgent(
     public string Name => nameof(MakesGeneralAndTargetedOffersAgent);
     private int _tickCount = 0;
 
-    public Decision Decide(CommercialSnapshot _, List<Offer> opportunities)
+    public Decision GetIntent(CommercialSnapshot _, List<Offer> opportunities)
     {
         _tickCount++;
         return _tickCount switch

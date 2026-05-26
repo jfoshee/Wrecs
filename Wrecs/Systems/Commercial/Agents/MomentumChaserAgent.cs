@@ -12,7 +12,7 @@ public sealed class MomentumChaserAgent(
 
     public string Name => "MomentumChaser";
 
-    public Decision Decide(CommercialSnapshot state, List<Offer> offers)
+    public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
     {
         var market = OfferMath.GetMarketSnapshot(offers, this);
 

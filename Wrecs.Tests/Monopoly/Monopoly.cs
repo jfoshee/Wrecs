@@ -133,7 +133,7 @@ public class MonopolyTest(ITestOutputHelper output)
 
         public string Name => nameof(AlwaysPayingJailFineMonopolyPlayer);
 
-        public Decision Decide(CommercialSnapshot state, List<Offer> offers)
+        public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
         {
             var getOutOfJailOffer = offers.FirstOrDefault(offer => offer.ResourceType == MonopolyJailSystem.PayFineResource);
             if (getOutOfJailOffer is not null)

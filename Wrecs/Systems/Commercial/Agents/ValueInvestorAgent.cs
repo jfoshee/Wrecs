@@ -13,7 +13,7 @@ public sealed class ValueInvestorAgent(
 
     public string Name => "ValueInvestor";
 
-    public Decision Decide(CommercialSnapshot state, List<Offer> offers)
+    public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
     {
         UpdateFairPrice(offers);
 
