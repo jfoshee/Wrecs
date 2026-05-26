@@ -11,7 +11,8 @@ class MakesTargetedSellOfferAgent(ICommercialAgent target, int price, int resour
     public string Name => nameof(MakesTargetedSellOfferAgent);
     private bool _hasMadeOffer = false;
 
-    public Intent GetIntent(CommercialSnapshot _, List<Offer> opportunities)
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public Intent GetIntent(IAgentContext context)
     {
         if (_hasMadeOffer)
             return new(new DoNothingDecision());
@@ -30,8 +31,10 @@ class TargetedOfferReceiverAgent : ICommercialAgent
 
     public List<List<Offer>> OffersSeenPerTick { get; } = [];
 
-    public Intent GetIntent(CommercialSnapshot _, List<Offer> opportunities)
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public Intent GetIntent(IAgentContext context)
     {
+        var opportunities = context.Get<List<Offer>>();
         OffersSeenPerTick.Add([.. opportunities]);
         var targetedOffer = opportunities.OfType<TargetedSellOffer>()
             .FirstOrDefault(o => o.Buyer == this);
@@ -51,8 +54,10 @@ class OfferObserverAgent : ICommercialAgent
 
     public List<List<Offer>> OffersSeenPerTick { get; } = [];
 
-    public Intent GetIntent(CommercialSnapshot _, List<Offer> opportunities)
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public Intent GetIntent(IAgentContext context)
     {
+        var opportunities = context.Get<List<Offer>>();
         OffersSeenPerTick.Add([.. opportunities]);
         return new(new DoNothingDecision());
     }
@@ -70,7 +75,8 @@ class MakesGeneralAndTargetedOffersAgent(
     public string Name => nameof(MakesGeneralAndTargetedOffersAgent);
     private int _tickCount = 0;
 
-    public Intent GetIntent(CommercialSnapshot _, List<Offer> opportunities)
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public Intent GetIntent(IAgentContext context)
     {
         _tickCount++;
         return _tickCount switch

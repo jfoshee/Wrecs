@@ -8,7 +8,8 @@ public class MonopolyRentControllerTests
     {
         public int Id { get; } = EntityId.Next();
         public string Name { get; } = name;
-        public Intent GetIntent(CommercialSnapshot state, List<Offer> offers) => new Intent(new DoNothingDecision());
+        public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+        public Intent GetIntent(IAgentContext context) => new Intent(new DoNothingDecision());
     }
 
     [Fact(DisplayName = "Player pays rent when landing on property owned by another player")]

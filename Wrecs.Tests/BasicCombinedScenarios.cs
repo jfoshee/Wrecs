@@ -21,6 +21,26 @@ class BasicComboAgent : ICommercialAgent, ISpatial1DAgent
         NextStep = 0;
         return new(new Move1DAction(step));
     }
+    IEnumerable<Type> IAgent.GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(PositionSnapshot)];
+
+    Intent IAgent.GetIntent(IAgentContext context)
+    {
+        var actions = new List<IIntentAction>();
+
+        if (context.Has<List<Offer>>())
+        {
+            var intent1 = GetIntent(context.GetSnapshot<CommercialSnapshot>(), context.Get<List<Offer>>());
+            actions.AddRange(intent1.Actions);
+        }
+
+        if (context.HasSnapshot<PositionSnapshot>())
+        {
+            var intent2 = GetIntent(context.GetSnapshot<PositionSnapshot>().Position);
+            actions.AddRange(intent2.Actions);
+        }
+
+        return new Intent(actions);
+    }
 }
 
 // Scenarios that combine spatial1d and commercial

@@ -12,8 +12,11 @@ public sealed class MomentumChaserAgent(
 
     public string Name => "MomentumChaser";
 
-    public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public Intent GetIntent(IAgentContext context)
     {
+        var state = context.GetSnapshot<CommercialSnapshot>();
+        var offers = context.Get<List<Offer>>();
         var market = OfferMath.GetMarketSnapshot(offers, this);
 
         if (market.MidPrice is double mid)

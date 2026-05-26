@@ -4,8 +4,10 @@ public record AlwaysBuyingMonopolyPlayer(string Name) : IMonopolyEntity, ICommer
 {
     public int Id { get; } = EntityId.Next();
 
-    public Intent GetIntent(CommercialSnapshot _, List<Offer> opportunities)
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public Intent GetIntent(IAgentContext context)
     {
+        var opportunities = context.Get<List<Offer>>();
         var offer = opportunities.OfType<SellOffer>().FirstOrDefault();
         if (offer is null)
             return new(new DoNothingDecision());

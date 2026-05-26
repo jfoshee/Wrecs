@@ -11,8 +11,11 @@ public sealed class SpreadSniperAgent(
 
     public string Name => "SpreadSniper";
 
-    public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public Intent GetIntent(IAgentContext context)
     {
+        var state = context.GetSnapshot<CommercialSnapshot>();
+        var offers = context.Get<List<Offer>>();
         var bestSell = offers
             .OfType<SellOffer>()
             .Where(x => x.Seller != this)

@@ -80,7 +80,7 @@ public class BasicSpatial1DScenarios
     {
         var mock = new Mock<ISpatial1DAgent>();
         mock.Setup(a => a.Id).Returns(EntityId.Next());
-        mock.Setup(a => a.GetIntent(It.IsAny<int>())).Returns(new Intent(new Move1DAction(1)));
+        mock.Setup(a => a.GetIntent(It.IsAny<IAgentContext>())).Returns(new Intent(new Move1DAction(1)));
         var agent = mock.Object;
 
         var sim = new Spatial1DSystem();
@@ -88,11 +88,11 @@ public class BasicSpatial1DScenarios
 
         sim.Tick();
 
-        mock.Verify(a => a.GetIntent(7), Times.Once);
+        mock.Verify(a => a.GetIntent(It.Is<IAgentContext>(ctx => ctx.GetSnapshot<PositionSnapshot>().Position == 7)), Times.Once);
 
         sim.Tick();
 
-        mock.Verify(a => a.GetIntent(8), Times.Once);
+        mock.Verify(a => a.GetIntent(It.Is<IAgentContext>(ctx => ctx.GetSnapshot<PositionSnapshot>().Position == 8)), Times.Once);
     }
 
     [Fact(DisplayName = "Agent Can Move To Negative Position")]
@@ -112,7 +112,7 @@ public class BasicSpatial1DScenarios
         var id = EntityId.Next();
         var mock = new Mock<ISpatial1DAgent>();
         mock.Setup(a => a.Id).Returns(id);
-        mock.Setup(a => a.GetIntent(It.IsAny<int>())).Returns(new Intent(new Move1DAction(step)));
+        mock.Setup(a => a.GetIntent(It.IsAny<IAgentContext>())).Returns(new Intent(new Move1DAction(step)));
         return mock.Object;
     }
 }

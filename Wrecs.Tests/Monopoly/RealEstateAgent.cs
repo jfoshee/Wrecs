@@ -19,8 +19,11 @@ public class RealEstateAgent(MonopolyProperty?[] boardConfig) : ICommercialAgent
     public void Inject(TurnSystem dependency) => _turnSystem = dependency;
     public void Inject(Spatial1DSystem dependency) => _spatial1dSystem = dependency;
 
-    public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public Intent GetIntent(IAgentContext context)
     {
+        var state = context.GetSnapshot<CommercialSnapshot>();
+        var offers = context.Get<List<Offer>>();
         // Get current player and their position
         var currentPlayer = _turnSystem.CurrentPlayer;
         if (currentPlayer is not ICommercialAgent buyer)

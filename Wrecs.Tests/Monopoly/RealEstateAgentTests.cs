@@ -8,7 +8,8 @@ public class RealEstateAgentTests
     private record TestPlayer(string Name) : ICommercialAgent, ISpatial1DEntity, ITakeTurns
     {
         public int Id { get; } = EntityId.Next();
-        public Intent GetIntent(CommercialSnapshot state, List<Offer> offers) => new Intent(new DoNothingDecision());
+        public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+        public Intent GetIntent(IAgentContext context) => new Intent(new DoNothingDecision());
     }
 
     [Fact(DisplayName = "Agent makes targeted offer when player lands on owned property")]
@@ -39,7 +40,10 @@ public class RealEstateAgentTests
         var agentState = new CommercialSnapshot(0, [("Baltic Avenue", 1)]);
 
         // Act
-        var intent = agent.GetIntent(agentState, []);
+        var context = new AgentContext();
+        context.AddSnapshot(agentState);
+        context.Add(new List<Offer>());
+        var intent = agent.GetIntent(context);
         var decision = intent.Actions.OfType<Decision>().Single();
 
         // Assert
@@ -82,7 +86,10 @@ public class RealEstateAgentTests
         var agentState = new CommercialSnapshot(0, []);
 
         // Act
-        var intent = agent.GetIntent(agentState, []);
+        var context = new AgentContext();
+        context.AddSnapshot(agentState);
+        context.Add(new List<Offer>());
+        var intent = agent.GetIntent(context);
         var decision = intent.Actions.OfType<Decision>().Single();
 
         // Assert
@@ -116,7 +123,10 @@ public class RealEstateAgentTests
         var agentState = new CommercialSnapshot(0, [("Baltic Avenue", 1)]);
 
         // Act
-        var intent = agent.GetIntent(agentState, []);
+        var context = new AgentContext();
+        context.AddSnapshot(agentState);
+        context.Add(new List<Offer>());
+        var intent = agent.GetIntent(context);
         var decision = intent.Actions.OfType<Decision>().Single();
 
         // Assert

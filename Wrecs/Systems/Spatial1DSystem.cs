@@ -18,12 +18,8 @@ public interface ISpatial1DEntity : IEntity;
 
 public record struct Move1DAction(Vector Step) : IIntentAction;
 
-public interface ISpatial1DAgent : ISpatial1DEntity
+public interface ISpatial1DAgent : ISpatial1DEntity, IAgent
 {
-    /// <summary>
-    /// Given the agent's current position, returns the vector representing the step the agent wants to take.
-    /// </summary>
-    Intent GetIntent(Position currentPosition);
 }
 
 public class Spatial1DSystem : ISystem<ISpatial1DEntity, PositionSnapshot>, IAcceptUpdates<PositionSnapshot>, ISpatialSystem
@@ -59,9 +55,14 @@ public class Spatial1DSystem : ISystem<ISpatial1DEntity, PositionSnapshot>, IAcc
     {
         // Get steps that all agents want to take
         _pendingSteps = Agents
-            .Select(agent => (agent, intent: agent.GetIntent(_entityPositions[agent])))
+            .Select(agent =>
+            {
+                var ctx = new AgentContext();
+                ctx.AddSnapshot<PositionSnapshot>(_entityPositions[agent]);
+                return (agent, intent: agent.GetIntent(ctx));
+            })
             .Where(x => x.intent?.Actions?.OfType<Move1DAction>().Any() == true)
-            .ToDictionary(x => x.agent, x => x.intent.Actions.OfType<Move1DAction>().First().Step);
+            .ToDictionary(x => x.agent, x => x.intent!.Actions.OfType<Move1DAction>().First().Step);
     }
 
     public void ApplyInternalUpdates()

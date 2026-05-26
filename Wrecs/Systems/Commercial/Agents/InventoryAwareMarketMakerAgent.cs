@@ -11,8 +11,11 @@ public sealed class InventoryAwareMarketMakerAgent(
     public int Id { get; } = EntityId.Next();
     public string Name => "Inventory-Aware Market-Maker " + Id;
 
-    public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public Intent GetIntent(IAgentContext context)
     {
+        var state = context.GetSnapshot<CommercialSnapshot>();
+        var offers = context.Get<List<Offer>>();
         var market = OfferMath.GetMarketSnapshot(offers, this);
         var mid = market.MidPrice ?? anchorPrice;
 

@@ -99,7 +99,8 @@ class JailerAgent : ICommercialAgent, IRequire<MonopolyJailSystem>, IRequire<Tur
     private TurnSystem? _turnSystem;
     public void Inject(TurnSystem dependency) => _turnSystem = dependency;
 
-    public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
+    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
+    public Intent GetIntent(IAgentContext context)
     {
         // Make offers to all inmates to pay $50 to get out of jail
         var inmates = _jailSystem?.GetInmates() ?? [];
