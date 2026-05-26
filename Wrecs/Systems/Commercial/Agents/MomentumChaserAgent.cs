@@ -12,7 +12,7 @@ public sealed class MomentumChaserAgent(
 
     public string Name => "MomentumChaser";
 
-    public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
+    public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
     {
         var market = OfferMath.GetMarketSnapshot(offers, this);
 
@@ -51,33 +51,33 @@ public sealed class MomentumChaserAgent(
             && state.ResourceBalance < maxInventory
             && state.MoneyBalance - bestSell.Price >= minCashReserve)
         {
-            return new TakeOfferDecision(bestSell);
+            return new(new TakeOfferDecision(bestSell));
         }
 
         if (trend < -1.0
             && bestBuy is not null
             && state.ResourceBalance >= bestBuy.Resources)
         {
-            return new TakeOfferDecision(bestBuy);
+            return new(new TakeOfferDecision(bestBuy));
         }
 
         return PassiveQuote(state, market);
     }
 
-    private Decision PassiveQuote(CommercialSnapshot state, OfferMath.MarketSnapshot market)
+    private Intent PassiveQuote(CommercialSnapshot state, OfferMath.MarketSnapshot market)
     {
         var mid = market.MidPrice ?? 5.0;
 
         if (state.ResourceBalance > 0)
         {
-            return new MakeOfferDecision(new SellOffer(this, Math.Max(1, (int)Math.Ceiling(mid + 1)), 1));
+            return new(new MakeOfferDecision(new SellOffer(this, Math.Max(1, (int)Math.Ceiling(mid + 1)), 1)));
         }
 
         if (state.MoneyBalance > minCashReserve + mid)
         {
-            return new MakeOfferDecision(new BuyOffer(this, Math.Max(1, (int)Math.Floor(mid - 1)), 1));
+            return new(new MakeOfferDecision(new BuyOffer(this, Math.Max(1, (int)Math.Floor(mid - 1)), 1)));
         }
 
-        return new DoNothingDecision();
+        return new(new DoNothingDecision());
     }
 }

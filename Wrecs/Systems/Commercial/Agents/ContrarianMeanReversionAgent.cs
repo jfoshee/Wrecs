@@ -14,7 +14,7 @@ public sealed class ContrarianMeanReversionAgent(
     public string Name => "ContrarianMeanReversion";
 
 
-    public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
+    public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
     {
         var market = OfferMath.GetMarketSnapshot(offers, this);
 
@@ -30,7 +30,7 @@ public sealed class ContrarianMeanReversionAgent(
 
         if (midPrices.Count < 4)
         {
-            return new DoNothingDecision();
+            return new(new DoNothingDecision());
         }
 
         var prices = midPrices.ToArray();
@@ -51,7 +51,7 @@ public sealed class ContrarianMeanReversionAgent(
             && state.MoneyBalance - bestSell.Price >= minCashReserve
             && OfferMath.UnitPrice(bestSell) <= mean)
         {
-            return new TakeOfferDecision(bestSell);
+            return new(new TakeOfferDecision(bestSell));
         }
 
         var bestBuy = offers
@@ -65,19 +65,19 @@ public sealed class ContrarianMeanReversionAgent(
             && state.ResourceBalance >= bestBuy.Resources
             && OfferMath.UnitPrice(bestBuy) >= mean)
         {
-            return new TakeOfferDecision(bestBuy);
+            return new(new TakeOfferDecision(bestBuy));
         }
 
         if (zScore > 0.5 && state.ResourceBalance > 0)
         {
-            return new MakeOfferDecision(new SellOffer(this, Math.Max(1, (int)Math.Ceiling(mean)), 1));
+            return new(new MakeOfferDecision(new SellOffer(this, Math.Max(1, (int)Math.Ceiling(mean)), 1)));
         }
 
         if (zScore < -0.5 && state.MoneyBalance > minCashReserve + mean)
         {
-            return new MakeOfferDecision(new BuyOffer(this, Math.Max(1, (int)Math.Floor(mean)), 1));
+            return new(new MakeOfferDecision(new BuyOffer(this, Math.Max(1, (int)Math.Floor(mean)), 1)));
         }
 
-        return new DoNothingDecision();
+        return new(new DoNothingDecision());
     }
 }

@@ -12,17 +12,17 @@ public class Sandbox1D1Agent
         public int Id { get; } = EntityId.Next();
         public string Name => nameof(MainAgent);
 
-        public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
+        public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
         {
             var goodOffer = offers.OfType<BuyOffer>().FirstOrDefault(o => o.Price >= 10);
             if (goodOffer is not null)
-                return new TakeOfferDecision(goodOffer);
-            return new DoNothingDecision();
+                return new(new TakeOfferDecision(goodOffer));
+            return new(new DoNothingDecision());
         }
 
-        public int GetIntent(int currentPosition)
+        public Intent GetIntent(int currentPosition)
         {
-            return 0;
+            return new(new Move1DAction(0));
         }
     }
 

@@ -1,6 +1,8 @@
+using Wrecs.Core;
+
 namespace Wrecs.Systems.Commercial;
 
-public abstract class Decision
+public abstract class Decision : IIntentAction
 {
 }
 

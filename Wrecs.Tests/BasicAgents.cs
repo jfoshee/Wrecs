@@ -9,7 +9,7 @@ class DoNothingAgent : ICommercialAgent
     public int Id { get; } = EntityId.Next();
     public string Name => nameof(DoNothingAgent);
 
-    public Decision GetIntent(CommercialSnapshot _, List<Offer> opportunities) => new DoNothingDecision();
+    public Intent GetIntent(CommercialSnapshot _, List<Offer> opportunities) => new Intent(new DoNothingDecision());
 }
 
 /// <summary>
@@ -21,12 +21,12 @@ class AlwaysBuyingTaker : ICommercialAgent
 
     public string Name => nameof(AlwaysBuyingTaker);
 
-    public Decision GetIntent(CommercialSnapshot _, List<Offer> offers)
+    public Intent GetIntent(CommercialSnapshot _, List<Offer> offers)
     {
         var sellOffer = offers.OfType<SellOffer>().FirstOrDefault();
         if (sellOffer is not null)
-            return new TakeOfferDecision(sellOffer);
-        return new DoNothingDecision();
+            return new(new TakeOfferDecision(sellOffer));
+        return new(new DoNothingDecision());
     }
 }
 
@@ -39,12 +39,12 @@ class AlwaysSellingTaker : ICommercialAgent
 
     public string Name => nameof(AlwaysSellingTaker);
 
-    public Decision GetIntent(CommercialSnapshot _, List<Offer> offers)
+    public Intent GetIntent(CommercialSnapshot _, List<Offer> offers)
     {
         var buyOffer = offers.OfType<BuyOffer>().FirstOrDefault();
         if (buyOffer is not null)
-            return new TakeOfferDecision(buyOffer);
-        return new DoNothingDecision();
+            return new(new TakeOfferDecision(buyOffer));
+        return new(new DoNothingDecision());
     }
 }
 
@@ -57,9 +57,9 @@ class AlwaysSellingMaker(int price, int resources) : ICommercialAgent
 
     public string Name => nameof(AlwaysSellingMaker);
 
-    public Decision GetIntent(CommercialSnapshot _, List<Offer> offers)
+    public Intent GetIntent(CommercialSnapshot _, List<Offer> offers)
     {
-        return new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources));
+        return new(new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources)));
     }
 }
 
@@ -73,12 +73,12 @@ class MakesSellOfferAgent(int price, int resources, string? resourceType = null)
 
     public string Name => nameof(MakesSellOfferAgent);
 
-    public Decision GetIntent(CommercialSnapshot _, List<Offer> offers)
+    public Intent GetIntent(CommercialSnapshot _, List<Offer> offers)
     {
         if (_hasMadeOffer)
-            return new DoNothingDecision();
+            return new(new DoNothingDecision());
         _hasMadeOffer = true;
-        return new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources, ResourceType: resourceType));
+        return new(new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources, ResourceType: resourceType)));
     }
 }
 
@@ -92,12 +92,12 @@ class MakesBuyOfferAgent(int price, int resources) : ICommercialAgent
 
     public string Name => nameof(MakesBuyOfferAgent);
 
-    public Decision GetIntent(CommercialSnapshot _, List<Offer> offers)
+    public Intent GetIntent(CommercialSnapshot _, List<Offer> offers)
     {
         if (_hasMadeOffer)
-            return new DoNothingDecision();
+            return new(new DoNothingDecision());
         _hasMadeOffer = true;
-        return new MakeOfferDecision(new BuyOffer(this, Price: price, Resources: resources));
+        return new(new MakeOfferDecision(new BuyOffer(this, Price: price, Resources: resources)));
     }
 }
 
@@ -110,10 +110,10 @@ class OffersToSellAllResourcesAgent(int price) : ICommercialAgent
 
     public string Name => nameof(OffersToSellAllResourcesAgent);
 
-    public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
+    public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
     {
         if (state.ResourceBalance > 0)
-            return new MakeOfferDecision(new SellOffer(this, Price: price, Resources: state.ResourceBalance));
-        return new DoNothingDecision();
+            return new(new MakeOfferDecision(new SellOffer(this, Price: price, Resources: state.ResourceBalance)));
+        return new(new DoNothingDecision());
     }
 }

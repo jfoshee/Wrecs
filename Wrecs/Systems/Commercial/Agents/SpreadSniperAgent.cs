@@ -11,7 +11,7 @@ public sealed class SpreadSniperAgent(
 
     public string Name => "SpreadSniper";
 
-    public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
+    public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
     {
         var bestSell = offers
             .OfType<SellOffer>()
@@ -32,7 +32,7 @@ public sealed class SpreadSniperAgent(
         {
             if (state.MoneyBalance - bestSell.Price >= minCashReserve)
             {
-                return new TakeOfferDecision(bestSell);
+                return new(new TakeOfferDecision(bestSell));
             }
         }
 
@@ -41,7 +41,7 @@ public sealed class SpreadSniperAgent(
             && bestSell is not null
             && OfferMath.UnitPrice(bestBuy) >= OfferMath.UnitPrice(bestSell) + minProfitPerUnit)
         {
-            return new TakeOfferDecision(bestBuy);
+            return new(new TakeOfferDecision(bestBuy));
         }
 
         if (bestSell is not null
@@ -53,7 +53,7 @@ public sealed class SpreadSniperAgent(
 
             if (OfferMath.UnitPrice(bestSell) < targetResaleUnit)
             {
-                return new TakeOfferDecision(bestSell);
+                return new(new TakeOfferDecision(bestSell));
             }
         }
 
@@ -65,7 +65,7 @@ public sealed class SpreadSniperAgent(
 
             if (OfferMath.UnitPrice(bestBuy) > targetAcquireUnit)
             {
-                return new TakeOfferDecision(bestBuy);
+                return new(new TakeOfferDecision(bestBuy));
             }
         }
 
@@ -75,7 +75,7 @@ public sealed class SpreadSniperAgent(
             && state.ResourceBalance < maxInventory)
         {
             var bridgeBid = Math.Max(1, (bestSell.Price + bestBuy.Price) / 2 - 1);
-            return new MakeOfferDecision(new BuyOffer(this, bridgeBid, 1));
+            return new(new MakeOfferDecision(new BuyOffer(this, bridgeBid, 1)));
         }
 
         if (bestSell is not null
@@ -83,9 +83,9 @@ public sealed class SpreadSniperAgent(
             && state.ResourceBalance > 0)
         {
             var bridgeAsk = Math.Max(1, (bestSell.Price + bestBuy.Price) / 2 + 1);
-            return new MakeOfferDecision(new SellOffer(this, bridgeAsk, 1));
+            return new(new MakeOfferDecision(new SellOffer(this, bridgeAsk, 1)));
         }
 
-        return new DoNothingDecision();
+        return new(new DoNothingDecision());
     }
 }

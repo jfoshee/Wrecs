@@ -11,12 +11,12 @@ class MakesTargetedSellOfferAgent(ICommercialAgent target, int price, int resour
     public string Name => nameof(MakesTargetedSellOfferAgent);
     private bool _hasMadeOffer = false;
 
-    public Decision GetIntent(CommercialSnapshot _, List<Offer> opportunities)
+    public Intent GetIntent(CommercialSnapshot _, List<Offer> opportunities)
     {
         if (_hasMadeOffer)
-            return new DoNothingDecision();
+            return new(new DoNothingDecision());
         _hasMadeOffer = true;
-        return new MakeOfferDecision(new TargetedSellOffer(this, target, price, resources));
+        return new(new MakeOfferDecision(new TargetedSellOffer(this, target, price, resources)));
     }
 }
 
@@ -30,14 +30,14 @@ class TargetedOfferReceiverAgent : ICommercialAgent
 
     public List<List<Offer>> OffersSeenPerTick { get; } = [];
 
-    public Decision GetIntent(CommercialSnapshot _, List<Offer> opportunities)
+    public Intent GetIntent(CommercialSnapshot _, List<Offer> opportunities)
     {
         OffersSeenPerTick.Add([.. opportunities]);
         var targetedOffer = opportunities.OfType<TargetedSellOffer>()
             .FirstOrDefault(o => o.Buyer == this);
         if (targetedOffer is not null)
-            return new TakeOfferDecision(targetedOffer);
-        return new DoNothingDecision();
+            return new(new TakeOfferDecision(targetedOffer));
+        return new(new DoNothingDecision());
     }
 }
 
@@ -51,10 +51,10 @@ class OfferObserverAgent : ICommercialAgent
 
     public List<List<Offer>> OffersSeenPerTick { get; } = [];
 
-    public Decision GetIntent(CommercialSnapshot _, List<Offer> opportunities)
+    public Intent GetIntent(CommercialSnapshot _, List<Offer> opportunities)
     {
         OffersSeenPerTick.Add([.. opportunities]);
-        return new DoNothingDecision();
+        return new(new DoNothingDecision());
     }
 }
 
@@ -70,14 +70,14 @@ class MakesGeneralAndTargetedOffersAgent(
     public string Name => nameof(MakesGeneralAndTargetedOffersAgent);
     private int _tickCount = 0;
 
-    public Decision GetIntent(CommercialSnapshot _, List<Offer> opportunities)
+    public Intent GetIntent(CommercialSnapshot _, List<Offer> opportunities)
     {
         _tickCount++;
         return _tickCount switch
         {
-            1 => new MakeOfferDecision(new SellOffer(this, generalPrice, generalResources)),
-            2 => new MakeOfferDecision(new TargetedSellOffer(this, target, targetedPrice, targetedResources)),
-            _ => new DoNothingDecision()
+            1 => new Intent(new MakeOfferDecision(new SellOffer(this, generalPrice, generalResources))),
+            2 => new Intent(new MakeOfferDecision(new TargetedSellOffer(this, target, targetedPrice, targetedResources))),
+            _ => new Intent(new DoNothingDecision())
         };
     }
 }

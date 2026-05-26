@@ -11,7 +11,7 @@ public sealed class InventoryAwareMarketMakerAgent(
     public int Id { get; } = EntityId.Next();
     public string Name => "Inventory-Aware Market-Maker " + Id;
 
-    public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
+    public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
     {
         var market = OfferMath.GetMarketSnapshot(offers, this);
         var mid = market.MidPrice ?? anchorPrice;
@@ -33,7 +33,7 @@ public sealed class InventoryAwareMarketMakerAgent(
             && state.ResourceBalance < targetInventory + inventoryTolerance
             && OfferMath.UnitPrice(attractiveSell) <= bidUnit)
         {
-            return new TakeOfferDecision(attractiveSell);
+            return new(new TakeOfferDecision(attractiveSell));
         }
 
         var attractiveBuy = offers
@@ -47,29 +47,29 @@ public sealed class InventoryAwareMarketMakerAgent(
             && state.ResourceBalance > targetInventory - inventoryTolerance
             && OfferMath.UnitPrice(attractiveBuy) >= askUnit)
         {
-            return new TakeOfferDecision(attractiveBuy);
+            return new(new TakeOfferDecision(attractiveBuy));
         }
 
         if (state.ResourceBalance > targetInventory + inventoryTolerance)
         {
-            return new MakeOfferDecision(new SellOffer(this, (int)askUnit, 1));
+            return new(new MakeOfferDecision(new SellOffer(this, (int)askUnit, 1)));
         }
 
         if (state.MoneyBalance >= bidUnit && state.ResourceBalance < targetInventory - inventoryTolerance)
         {
-            return new MakeOfferDecision(new BuyOffer(this, (int)bidUnit, 1));
+            return new(new MakeOfferDecision(new BuyOffer(this, (int)bidUnit, 1)));
         }
 
         if (state.MoneyBalance >= bidUnit && state.ResourceBalance <= targetInventory)
         {
-            return new MakeOfferDecision(new BuyOffer(this, (int)bidUnit, 1));
+            return new(new MakeOfferDecision(new BuyOffer(this, (int)bidUnit, 1)));
         }
 
         if (state.ResourceBalance > 0)
         {
-            return new MakeOfferDecision(new SellOffer(this, (int)askUnit, 1));
+            return new(new MakeOfferDecision(new SellOffer(this, (int)askUnit, 1)));
         }
 
-        return new DoNothingDecision();
+        return new(new DoNothingDecision());
     }
 }

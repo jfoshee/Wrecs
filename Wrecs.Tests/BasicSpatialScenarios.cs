@@ -80,7 +80,7 @@ public class BasicSpatial1DScenarios
     {
         var mock = new Mock<ISpatial1DAgent>();
         mock.Setup(a => a.Id).Returns(EntityId.Next());
-        mock.Setup(a => a.GetIntent(It.IsAny<int>())).Returns(1);
+        mock.Setup(a => a.GetIntent(It.IsAny<int>())).Returns(new Intent(new Move1DAction(1)));
         var agent = mock.Object;
 
         var sim = new Spatial1DSystem();
@@ -112,7 +112,7 @@ public class BasicSpatial1DScenarios
         var id = EntityId.Next();
         var mock = new Mock<ISpatial1DAgent>();
         mock.Setup(a => a.Id).Returns(id);
-        mock.Setup(a => a.GetIntent(It.IsAny<int>())).Returns(step);
+        mock.Setup(a => a.GetIntent(It.IsAny<int>())).Returns(new Intent(new Move1DAction(step)));
         return mock.Object;
     }
 }

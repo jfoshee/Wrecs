@@ -14,12 +14,14 @@ public readonly record struct Position2DSnapshot(Vector2 Position) : IStateSnaps
 /// </summary>
 public interface ISpatial2DEntity : IEntity;
 
+public record struct Move2DAction(Vector2 Step) : IIntentAction;
+
 public interface ISpatial2DAgent : ISpatial2DEntity
 {
     /// <summary>
     /// Given the agent's current position, returns the vector representing the step the agent wants to take.
     /// </summary>
-    Vector2 GetIntent(Vector2 currentPosition);
+    Intent GetIntent(Vector2 currentPosition);
 }
 
 public class Spatial2DSystem : ISystem<ISpatial2DEntity, Position2DSnapshot>, IAcceptUpdates<Position2DSnapshot>, ISpatialSystem
@@ -54,7 +56,10 @@ public class Spatial2DSystem : ISystem<ISpatial2DEntity, Position2DSnapshot>, IA
     public void PrepareInternalUpdates()
     {
         // Get steps that all agents want to take
-        _pendingSteps = Agents.ToDictionary(agent => agent, agent => agent.GetIntent(_entityPositions[agent]));
+        _pendingSteps = Agents
+            .Select(agent => (agent, intent: agent.GetIntent(_entityPositions[agent])))
+            .Where(x => x.intent?.Actions?.OfType<Move2DAction>().Any() == true)
+            .ToDictionary(x => x.agent, x => x.intent.Actions.OfType<Move2DAction>().First().Step);
     }
 
     public void ApplyInternalUpdates()

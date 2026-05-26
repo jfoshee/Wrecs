@@ -10,7 +10,7 @@ public sealed class LlmAgent(IChatClient chatClient, IOutput? output = null) : I
 
     public string Name => $"LLM-{Id}";
 
-    public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
+    public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
     {
         var availableOffers = offers
             .Where(o => o.Author != this && !o.Used)
@@ -80,7 +80,7 @@ public sealed class LlmAgent(IChatClient chatClient, IOutput? output = null) : I
         return ParseDecision(response.Text ?? "", offers.Where(o => o.Author != this && !o.Used).ToList());
     }
 
-    private Decision ParseDecision(string responseText, List<Offer> availableOffers)
+    private Intent ParseDecision(string responseText, List<Offer> availableOffers)
     {
         try
         {
@@ -99,15 +99,15 @@ public sealed class LlmAgent(IChatClient chatClient, IOutput? output = null) : I
             return action switch
             {
                 "take" when root.TryGetProperty("offerIndex", out var idx) && idx.GetInt32() < availableOffers.Count
-                    => new TakeOfferDecision(availableOffers[idx.GetInt32()]),
-                "buy" => new MakeOfferDecision(new BuyOffer(this, root.GetProperty("price").GetInt32(), root.GetProperty("resources").GetInt32())),
-                "sell" => new MakeOfferDecision(new SellOffer(this, root.GetProperty("price").GetInt32(), root.GetProperty("resources").GetInt32())),
+                    => new Intent(new TakeOfferDecision(availableOffers[idx.GetInt32()])),
+                "buy" => new Intent(new MakeOfferDecision(new BuyOffer(this, root.GetProperty("price").GetInt32(), root.GetProperty("resources").GetInt32()))),
+                "sell" => new Intent(new MakeOfferDecision(new SellOffer(this, root.GetProperty("price").GetInt32(), root.GetProperty("resources").GetInt32()))),
                 _ => throw new Exception("Failed to parse JSON: \n" + responseText)
             };
         }
         catch
         {
-            return new DoNothingDecision();
+            return new(new DoNothingDecision());
         }
     }
 }

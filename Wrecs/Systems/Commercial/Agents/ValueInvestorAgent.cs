@@ -13,7 +13,7 @@ public sealed class ValueInvestorAgent(
 
     public string Name => "ValueInvestor";
 
-    public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
+    public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
     {
         UpdateFairPrice(offers);
 
@@ -28,7 +28,7 @@ public sealed class ValueInvestorAgent(
             && state.MoneyBalance - bestSell.Price >= minCashReserve
             && UnitPrice(bestSell) <= fairPrice * 0.9)
         {
-            return new TakeOfferDecision(bestSell);
+            return new(new TakeOfferDecision(bestSell));
         }
 
         var bestBuy = offers
@@ -41,22 +41,22 @@ public sealed class ValueInvestorAgent(
             && state.ResourceBalance >= bestBuy.Resources
             && UnitPrice(bestBuy) >= fairPrice * 1.1)
         {
-            return new TakeOfferDecision(bestBuy);
+            return new(new TakeOfferDecision(bestBuy));
         }
 
         if (state.ResourceBalance > 0)
         {
             var askPrice = Math.Max(1, (int)Math.Ceiling(fairPrice * 1.08));
-            return new MakeOfferDecision(new SellOffer(this, askPrice, 1));
+            return new(new MakeOfferDecision(new SellOffer(this, askPrice, 1)));
         }
 
         if (state.MoneyBalance > minCashReserve + Math.Max(1, (int)Math.Floor(fairPrice)))
         {
             var bidPrice = Math.Max(1, (int)Math.Floor(fairPrice * 0.92));
-            return new MakeOfferDecision(new BuyOffer(this, bidPrice, 1));
+            return new(new MakeOfferDecision(new BuyOffer(this, bidPrice, 1)));
         }
 
-        return new DoNothingDecision();
+        return new(new DoNothingDecision());
     }
 
     private void UpdateFairPrice(List<Offer> offers)

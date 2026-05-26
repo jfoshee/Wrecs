@@ -99,7 +99,7 @@ class JailerAgent : ICommercialAgent, IRequire<MonopolyJailSystem>, IRequire<Tur
     private TurnSystem? _turnSystem;
     public void Inject(TurnSystem dependency) => _turnSystem = dependency;
 
-    public Decision GetIntent(CommercialSnapshot state, List<Offer> offers)
+    public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
     {
         // Make offers to all inmates to pay $50 to get out of jail
         var inmates = _jailSystem?.GetInmates() ?? [];
@@ -113,11 +113,11 @@ class JailerAgent : ICommercialAgent, IRequire<MonopolyJailSystem>, IRequire<Tur
                     continue;
                 var inmateAgent = (ICommercialAgent)inmate;
                 var offer = new TargetedSellOffer(this, inmateAgent, 50, 1, MonopolyJailSystem.PayFineResource);
-                return new MakeOfferDecision(offer);
+                return new(new MakeOfferDecision(offer));
                 // yield return offer;
                 // TODO: Handle making multiple offers
             }
         }
-        return new DoNothingDecision();
+        return new(new DoNothingDecision());
     }
 }
