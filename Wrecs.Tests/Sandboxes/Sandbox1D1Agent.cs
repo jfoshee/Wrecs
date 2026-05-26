@@ -12,38 +12,19 @@ public class Sandbox1D1Agent
         public int Id { get; } = EntityId.Next();
         public string Name => nameof(MainAgent);
 
-        public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
-        {
-            var goodOffer = offers.OfType<BuyOffer>().FirstOrDefault(o => o.Price >= 10);
-            if (goodOffer is not null)
-                return new(new TakeOfferDecision(goodOffer));
-            return new(new DoNothingDecision());
-        }
-
-        public Intent GetIntent(int currentPosition)
-        {
-            return new(new Move1DAction(0));
-        }
-
-        IEnumerable<Type> IAgent.GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot), typeof(PositionSnapshot)];
+        IEnumerable<Type> IAgent.GetRequiredSnapshots() => [typeof(OfferListSnapshot)];
 
         Intent IAgent.GetIntent(IAgentContext context)
         {
-            var actions = new List<IIntentAction>();
-
             if (context.HasSnapshot<OfferListSnapshot>())
             {
                 var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
-                var intent1 = GetIntent(context.GetSnapshot<CommercialSnapshot>(), offers);
-                actions.AddRange(intent1.Actions);
+                var goodOffer = offers.OfType<BuyOffer>().FirstOrDefault(o => o.Price >= 10);
+                if (goodOffer is not null)
+                    return new(new TakeOfferDecision(goodOffer));
+                return new(new DoNothingDecision());
             }
-            if (context.HasSnapshot<PositionSnapshot>())
-            {
-                var intent2 = GetIntent(context.GetSnapshot<PositionSnapshot>().Position);
-                actions.AddRange(intent2.Actions);
-            }
-
-            return new Intent(actions);
+            return new Intent();
         }
     }
 
