@@ -10,11 +10,13 @@ public class Sandbox1D1Agent
     class MainAgent : ICommercialAgent, ISpatial1DAgent
     {
         public int Id { get; } = EntityId.Next();
-
         public string Name => nameof(MainAgent);
 
         public Decision Decide(CommercialSnapshot state, List<Offer> offers)
         {
+            var goodOffer = offers.OfType<BuyOffer>().FirstOrDefault(o => o.Price >= 10);
+            if (goodOffer is not null)
+                return new TakeOfferDecision(goodOffer);
             return new DoNothingDecision();
         }
 
@@ -26,17 +28,31 @@ public class Sandbox1D1Agent
 
     class World
     {
+        const int WorldSize = 10;
         private readonly Sim _sim = new();
 
         public World()
         {
-            _sim.AddSystem(new Spatial1DSystem());
+            _sim.AddSystems(
+                new Spatial1DSystem(),
+                new WrapAroundSystem1D(size: WorldSize)
+            );
 
             var mainAgent = new MainAgent();
+            var goldSource = new ProximityResourceSource(resourcesGranted: 10, intervalTicks: 5, proximity: 1);
             _sim.InitEntities(
-                (mainAgent, [new CommercialSnapshot(MoneyBalance: 100, ResourceBalance: 0)])
+                (mainAgent, [new CommercialSnapshot(MoneyBalance: 100)]),
+                (goldSource, [])
             );
-            // _sim.AddSystem(new ProximityResourceSource(resourcesGranted: 10, intervalTicks: 2, proximity: 1));
         }
+
+        public void Tick() => _sim.Tick();
+    }
+
+    [Fact(DisplayName = "Sandbox 1D, 1 Agent")]
+    public void Run()
+    {
+        var world = new World();
+        world.Tick();
     }
 }
