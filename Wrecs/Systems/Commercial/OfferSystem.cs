@@ -14,11 +14,15 @@ public record struct OfferListSnapshot(IReadOnlyList<Offer>? Offers) : IStateSna
 }
 
 public record struct RemoveOfferOperation(Offer? Offer) : IStateSnapshot<OfferSystem>;
+public record struct AddOfferOperation(Offer Offer) : IStateSnapshot<OfferSystem>;
 
 public class OfferSystem :
     ISystem<ICommercialAgent, OfferListSnapshot>,
-    IPrepareSharedUpdates,
+    IBuildAgentContext,
+    ITranslateIntent<TakeOfferDecision>,
+    ITranslateIntent<MakeOfferDecision>,
     IAcceptUpdates<RemoveOfferOperation>,
+    IAcceptUpdates<AddOfferOperation>,
     IRequire<MoneySystem>,
     IRequire<InventorySystem>
 {
@@ -26,7 +30,7 @@ public class OfferSystem :
     private readonly Dictionary<IEntity, List<Offer>> _stateMap = [];
     private MoneySystem? _moneySystem;
     private InventorySystem? _inventorySystem;
-    private List<(ICommercialAgent Agent, Decision Decision)> _pendingDecisions = [];
+    private List<Offer>? _cachedAllOffers;
 
     private readonly List<ITradePolicy> _tradePolicies = [
         new OfferSingleUsePolicy(),
@@ -59,56 +63,53 @@ public class OfferSystem :
 
     public void PrepareInternalUpdates()
     {
-        var allOffers = _stateMap.Values.SelectMany(x => x).ToList();
-
-        // Decision making phase
-        var decisions = new List<(ICommercialAgent Agent, Decision Decision)>();
-        foreach (var agent in _entities.OfType<ICommercialAgent>())
-        {
-            // Filter offers: include general offers + targeted offers for this agent
-            var offersForAgent = allOffers
-                .Where(o => o is not TargetedSellOffer targeted || targeted.Buyer == agent)
-                .ToList();
-            var commercialState = BuildCommercialSnapshot(agent);
-            var ctx = new AgentContext();
-            ctx.AddSnapshot(commercialState);
-            ctx.AddSnapshot(new OfferListSnapshot(offersForAgent));
-            var intent = agent.GetIntent(ctx);
-            var decision = intent?.Actions?.OfType<Decision>().FirstOrDefault() ?? new DoNothingDecision();
-            decisions.Add((agent, decision));
-        }
-
-        _pendingDecisions = Shuffle(decisions);
-    }
-
-    public IEnumerable<UpdateSet> PrepareSharedUpdates()
-    {
-        // Take-offer decisions need to be processed here because they affect multiple systems
-        List<UpdateSet> updateSets = [];
-        foreach (var (agent, decision) in _pendingDecisions)
-        {
-            if (decision is TakeOfferDecision takeOfferDecision)
-            {
-                var offer = takeOfferDecision.Offer;
-                var updateSet = ProcessOffer(agent, offer);
-                updateSets.Add(updateSet);
-            }
-        }
-        return updateSets;
+        // Cache all current offers for use during centralized agent invocation (PopulateContext)
+        _cachedAllOffers = _stateMap.Values.SelectMany(x => x).ToList();
     }
 
     public void ApplyInternalUpdates()
     {
-        // Make-offer decisions can be handled here because they only affect the offer system's own state
-        foreach (var (agent, decision) in _pendingDecisions)
-        {
-            if (decision is MakeOfferDecision makeOfferDecision)
-            {
-                var newOffer = makeOfferDecision.Offer;
-                AddOffer(agent, newOffer);
-            }
-        }
+        _cachedAllOffers = null;
     }
+
+    public void PopulateContext(IAgent agent, AgentContext context)
+    {
+        // TODO: use agent.GetRequiredSnapshots
+        if (agent is not ICommercialAgent commercialAgent)
+            return;
+        var allOffers = _cachedAllOffers ?? [];
+        // Filter offers: include general offers + targeted offers for this agent
+        var offersForAgent = allOffers
+            .Where(o => o is not TargetedSellOffer targeted || targeted.Buyer == commercialAgent)
+            .ToList();
+        context.AddSnapshot(BuildCommercialSnapshot(commercialAgent));
+        context.AddSnapshot(new OfferListSnapshot(offersForAgent));
+    }
+
+    public UpdateSet TranslateIntent(IAgent agent, TakeOfferDecision action)
+    {
+        if (agent is not ICommercialAgent commercialAgent)
+            return new UpdateSet([]);
+        return ProcessOffer(commercialAgent, action.Offer);
+    }
+
+    public UpdateSet TranslateIntent(IAgent agent, MakeOfferDecision action)
+    {
+        if (agent is not ICommercialAgent commercialAgent)
+            return new UpdateSet([]);
+        return new UpdateSet([new EntityUpdate<AddOfferOperation>(commercialAgent, new(action.Offer))]);
+    }
+
+    // Explicit implementations required because OfferSystem implements ITranslateIntent<T> twice
+    bool ITranslateIntent.CanTranslate(IIntentAction action) =>
+        action is TakeOfferDecision || action is MakeOfferDecision;
+
+    UpdateSet ITranslateIntent.Translate(IAgent agent, IIntentAction action) => action switch
+    {
+        TakeOfferDecision take => TranslateIntent(agent, take),
+        MakeOfferDecision make => TranslateIntent(agent, make),
+        _ => new UpdateSet([])
+    };
 
     public void ApplyUpdates(IEnumerable<EntityUpdate<RemoveOfferOperation>> updates)
     {
@@ -118,6 +119,20 @@ public class OfferSystem :
             if (operation.Offer is not null)
                 RemoveOffer(operation.Offer.Author, operation.Offer);
         }
+    }
+
+    public void ApplyUpdates(IEnumerable<EntityUpdate<AddOfferOperation>> updates)
+    {
+        foreach (var update in updates)
+            AddOffer(update.State.Offer.Author, update.State.Offer);
+    }
+
+    // Explicit implementation required because OfferSystem implements IAcceptUpdates<T> twice
+    void IAcceptUpdates.ApplyUpdates(IEnumerable<IEntityUpdate> updates)
+    {
+        var all = updates.ToList();
+        ApplyUpdates(all.OfType<EntityUpdate<RemoveOfferOperation>>());
+        ApplyUpdates(all.OfType<EntityUpdate<AddOfferOperation>>());
     }
 
     private void AddOffer(ICommercialAgent agent, Offer offer)
@@ -227,13 +242,4 @@ public class OfferSystem :
         return new(offers);
     }
 
-    private static readonly Random _random = new();
-
-    /// <summary>
-    /// Randomly shuffle the order of decisions to ensure fairness in processing and avoid bias based on agent order.
-    /// </summary>
-    private static List<(ICommercialAgent Agent, Decision Decision)> Shuffle(List<(ICommercialAgent Agent, Decision Decision)> decisions)
-    {
-        return [.. decisions.OrderBy(_ => _random.Next())];
-    }
 }

@@ -47,6 +47,25 @@ public class Sim
             sharedUpdates.AddRange(updateSet);
         }
 
+        // Agent invocation phase: Sim builds each agent's context and dispatches intent actions to translators
+        // TODO: shuffle agents for fairness (currently processes in registration order)
+        foreach (var agent in _entities.OfType<IAgent>())
+        {
+            var ctx = new AgentContext();
+            foreach (var builder in _systems.OfType<IBuildAgentContext>())
+                builder.PopulateContext(agent, ctx);
+            var intent = agent.GetIntent(ctx);
+            if (intent is null) continue;
+            foreach (var action in intent.Actions)
+            {
+                foreach (var translator in _systems.OfType<ITranslateIntent>())
+                {
+                    if (translator.CanTranslate(action))
+                        sharedUpdates.Add(translator.Translate(agent, action));
+                }
+            }
+        }
+
         // Get events to raise
         _eventQueue.Clear();
         var raisers = _systems.OfType<IRaise>();
