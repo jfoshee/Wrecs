@@ -2,7 +2,7 @@ using Wrecs.Systems;
 
 namespace Wrecs.Tests;
 
-class PlayerEntity(string name) : IEntity, ISpatial1DEntity, ITakeTurns
+public class PlayerEntity(string name) : IEntity, ISpatial1DEntity, ITakeTurns
 {
     public int Id { get; } = EntityId.Next();
     public string Name => name;
@@ -56,9 +56,9 @@ class SimpleEndGameSystem : ISystem<ISimpleEndGamePlayer, EndGameSnapshot>,
     }
 }
 
-class SimplestBoardGame
+public class SimplestBoardGame
 {
-    const int BoardSize = 10;
+    public const int BoardSize = 10;
     public Sim Sim { get; } = new();
 
     public PlayerEntity Player1 { get; }
@@ -83,6 +83,14 @@ class SimplestBoardGame
 
     public void Tick() => Sim.Tick();
 
+    public void Reset()
+    {
+        Sim.InitEntities(
+            (Player1, []),
+            (Player2, [])
+        );
+    }
+
     public int GetPosition(IEntity player)
     {
         var spatialSystem = Sim.GetSystem<Spatial1DSystem>();
@@ -105,6 +113,12 @@ class SimplestBoardGame
     {
         var endGameSystem = Sim.GetSystem<SimpleEndGameSystem>();
         return endGameSystem.GetTypedState(player).IsWinner;
+    }
+
+    public string? WinnerName()
+    {
+        if (!IsGameOver()) return null;
+        return IsWinner(Player1) ? Player1.Name : Player2.Name;
     }
 }
 

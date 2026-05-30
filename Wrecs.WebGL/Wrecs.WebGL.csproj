@@ -17,4 +17,7 @@
   <ItemGroup>
     <PackageReference Include="ThoughtStuff.GLSourceGen" Version="1.0.1" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Wrecs.Tests\Wrecs.Tests.csproj" />
+  </ItemGroup>
 </Project>
