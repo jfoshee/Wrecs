@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="Wrecs.Tests/Wrecs.Tests.csproj" />
   <Project Path="Wrecs/Wrecs.csproj" />
+  <Project Path="Wrecs.WebGL/Wrecs.WebGL.csproj" />
 </Solution>
