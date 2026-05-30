@@ -58,14 +58,15 @@ class SimpleEndGameSystem : ISystem<ISimpleEndGamePlayer, EndGameSnapshot>,
 
 public class SimplestBoardGame
 {
-    public const int BoardSize = 10;
     public Sim Sim { get; } = new();
 
     public PlayerEntity Player1 { get; }
     public PlayerEntity Player2 { get; }
+    public int BoardSize { get; }
 
-    public SimplestBoardGame(IGameDice? dice = null)
+    public SimplestBoardGame(IGameDice? dice = null, int boardSize = 10)
     {
+        BoardSize = boardSize;
         Sim.AddSystem(new TurnSystem());
         Sim.AddSystem(new Spatial1DSystem());
         Sim.AddSystem(new SimpleEndGameSystem());

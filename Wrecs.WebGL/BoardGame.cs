@@ -10,7 +10,7 @@ namespace Wrecs.WebGL;
 
 sealed partial class BoardGame : IGame, IDisposable
 {
-    private readonly SimplestBoardGame _game = new();
+    private readonly SimplestBoardGame _game = new(default, boardSize: 50);
     private JSObject? _shaderProgram;
     private JSObject? _vertexBuffer;
     private JSObject? _instanceBuffer;
@@ -18,8 +18,6 @@ sealed partial class BoardGame : IGame, IDisposable
     private readonly List<JSObject> _buffers = [];
     private List<int[]> _frameSetIndices = [[0]];
     private readonly List<int> _vertexAttributeLocations = [];
-    // private int _fpsMin = 24;
-    // private int _fpsMax = 24;
 
     public string? OverlayText
     {
@@ -64,8 +62,6 @@ sealed partial class BoardGame : IGame, IDisposable
             blueArrow.ToArray(),
             blueArrow.Reverse().ToArray()
         ];
-        // _fpsMin = 24;
-        // _fpsMax = 120;
 
         // Setup Sprite Sheet parameters as shader Uniforms
         var uSpriteSheetColumnCountLocation = GL.GetUniformLocation(_shaderProgram, "u_SpriteSheetColumnCount");
@@ -211,7 +207,7 @@ sealed partial class BoardGame : IGame, IDisposable
             // var transform = Matrix3x2.CreateRotation(_particles[i].Rotation) *
             //                 Matrix3x2.CreateScale(_particles[i].Scale) *
             //                 Matrix3x2.CreateTranslation(_particles[i].Position);
-            var position = new Vector2(_game.GetPosition(players[i]) / (float)SimplestBoardGame.BoardSize * 2 - 1, 0);
+            var position = new Vector2(_game.GetPosition(players[i]) / (float)_game.BoardSize * 2 - 1, 0);
             var transform = Matrix3x2.CreateTranslation(position);
             instanceData[i] = new InstanceData(transform, frameIndex);
         }
