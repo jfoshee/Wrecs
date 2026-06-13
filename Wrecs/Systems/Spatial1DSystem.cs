@@ -5,10 +5,10 @@ namespace Wrecs.Systems;
 using Position = int;
 using Vector = int;
 
-public record struct PositionSnapshot(Position Position) : IStateSnapshot<Spatial1DSystem>
+public record struct Position1DSnapshot(Position Position) : IStateSnapshot<Spatial1DSystem>
 {
-    public static implicit operator int(PositionSnapshot snapshot) => snapshot.Position;
-    public static implicit operator PositionSnapshot(int position) => new(position);
+    public static implicit operator int(Position1DSnapshot snapshot) => snapshot.Position;
+    public static implicit operator Position1DSnapshot(int position) => new(position);
 }
 
 /// <summary>
@@ -22,7 +22,7 @@ public interface ISpatial1DAgent : ISpatial1DEntity, IAgent
 {
 }
 
-public class Spatial1DSystem : ISystem<ISpatial1DEntity, PositionSnapshot>, IAcceptUpdates<PositionSnapshot>, ISpatialSystem
+public class Spatial1DSystem : ISystem<ISpatial1DEntity, Position1DSnapshot>, IAcceptUpdates<Position1DSnapshot>, ISpatialSystem
 {
     private List<IEntity> _entities = [];
     private IEnumerable<ISpatial1DAgent> Agents => _entities.OfType<ISpatial1DAgent>();
@@ -30,11 +30,11 @@ public class Spatial1DSystem : ISystem<ISpatial1DEntity, PositionSnapshot>, IAcc
     private readonly Dictionary<IEntity, Position> _entityPositions = [];
     private Dictionary<ISpatial1DAgent, Vector> _pendingSteps = [];
 
-    public PositionSnapshot GetTypedState(IEntity entity) => new(_entityPositions[entity]);
+    public Position1DSnapshot GetTypedState(IEntity entity) => new(_entityPositions[entity]);
 
     public IReadOnlyList<IEntity> GetEntities() => _entities;
 
-    public void InitEntities(params (IEntity entity, PositionSnapshot? initialState)[] initialEntities)
+    public void InitEntities(params (IEntity entity, Position1DSnapshot? initialState)[] initialEntities)
     {
         _entities = [.. initialEntities.Select(e => e.entity)];
         foreach (var (entity, initialState) in initialEntities)
@@ -43,7 +43,7 @@ public class Spatial1DSystem : ISystem<ISpatial1DEntity, PositionSnapshot>, IAcc
         }
     }
 
-    public void ApplyUpdates(IEnumerable<EntityUpdate<PositionSnapshot>> updates)
+    public void ApplyUpdates(IEnumerable<EntityUpdate<Position1DSnapshot>> updates)
     {
         foreach (var update in updates)
         {
@@ -58,7 +58,7 @@ public class Spatial1DSystem : ISystem<ISpatial1DEntity, PositionSnapshot>, IAcc
             .Select(agent =>
             {
                 var ctx = new AgentContext();
-                ctx.AddSnapshot<PositionSnapshot>(_entityPositions[agent]);
+                ctx.AddSnapshot<Position1DSnapshot>(_entityPositions[agent]);
                 return (agent, intent: agent.GetIntent(ctx));
             })
             .Where(x => x.intent?.Actions?.OfType<Move1DAction>().Any() == true)

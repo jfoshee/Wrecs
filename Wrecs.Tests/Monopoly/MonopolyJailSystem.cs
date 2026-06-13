@@ -79,7 +79,7 @@ class MonopolyJailController : IPrepareSharedUpdates, IRequire<Spatial1DSystem>
         {
             yield return new UpdateSet([
                 new EntityUpdate<MonopolyJailSnapshot>(entity, new MonopolyJailSnapshot(true, 3)),  // Send them to jail for 3 turns
-                new EntityUpdate<PositionSnapshot>(entity, new PositionSnapshot(10)),               // Move them to the Jail tile which is at position 10
+                new EntityUpdate<Position1DSnapshot>(entity, new Position1DSnapshot(10)),               // Move them to the Jail tile which is at position 10
             ]);
         }
     }

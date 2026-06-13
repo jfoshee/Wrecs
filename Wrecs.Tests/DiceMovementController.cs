@@ -29,6 +29,6 @@ class DiceMovementController(IGameDice dice) :
         var currentPosition = _spatial1dSystem.GetTypedState(currentPlayer).Position;
         var newPosition = currentPosition + roll;
 
-        yield return new UpdateSet([new EntityUpdate<PositionSnapshot>(currentPlayer, new PositionSnapshot(newPosition))]);
+        yield return new UpdateSet([new EntityUpdate<Position1DSnapshot>(currentPlayer, new Position1DSnapshot(newPosition))]);
     }
 }

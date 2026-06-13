@@ -12,19 +12,26 @@ public class Sandbox1D1Agent
         public int Id { get; } = EntityId.Next();
         public string Name => nameof(MainAgent);
 
-        IEnumerable<Type> IAgent.GetRequiredSnapshots() => [typeof(OfferListSnapshot)];
+        IEnumerable<Type> IAgent.GetRequiredSnapshots() => [typeof(OfferListSnapshot), typeof(Position1DSnapshot)];
 
         Intent IAgent.GetIntent(IAgentContext context)
         {
+            var actions = new List<IIntentAction>();
             if (context.HasSnapshot<OfferListSnapshot>())
             {
                 var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
                 var goodOffer = offers.OfType<BuyOffer>().FirstOrDefault(o => o.Price >= 10);
                 if (goodOffer is not null)
-                    return new(new TakeOfferDecision(goodOffer));
-                return new(new DoNothingDecision());
+                    actions.Add(new TakeOfferDecision(goodOffer));
+                else
+                    actions.Add(new DoNothingDecision());
             }
-            return new Intent();
+            if (context.HasSnapshot<Position1DSnapshot>())
+            {
+                var position = context.GetSnapshot<Position1DSnapshot>().Position;
+                actions.Add(new Move1DAction(1));  // Move right
+            }
+            return new Intent(actions);
         }
     }
 
@@ -55,6 +62,8 @@ public class Sandbox1D1Agent
     public void Run()
     {
         var world = new World();
-        world.Tick();
+        var ticks = 10;
+        for (int i = 0; i < ticks; i++)
+            world.Tick();
     }
 }

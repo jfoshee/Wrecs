@@ -21,7 +21,7 @@ class BasicComboAgent : ICommercialAgent, ISpatial1DAgent
         NextStep = 0;
         return new(new Move1DAction(step));
     }
-    IEnumerable<Type> IAgent.GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot), typeof(PositionSnapshot)];
+    IEnumerable<Type> IAgent.GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot), typeof(Position1DSnapshot)];
 
     Intent IAgent.GetIntent(IAgentContext context)
     {
@@ -34,9 +34,9 @@ class BasicComboAgent : ICommercialAgent, ISpatial1DAgent
             actions.AddRange(intent1.Actions);
         }
 
-        if (context.HasSnapshot<PositionSnapshot>())
+        if (context.HasSnapshot<Position1DSnapshot>())
         {
-            var intent2 = GetIntent(context.GetSnapshot<PositionSnapshot>().Position);
+            var intent2 = GetIntent(context.GetSnapshot<Position1DSnapshot>().Position);
             actions.AddRange(intent2.Actions);
         }
 
@@ -56,8 +56,8 @@ public class BasicCombinedScenarios
         sim.AddSystem(new Spatial1DSystem());
         sim.AddSystem(new ResourceSourcesController([source]));
         sim.InitEntities(
-            (agent, [new CommercialSnapshot(0, 0), new PositionSnapshot(0)]),  // no money, sitting at origin
-            (source, [new PositionSnapshot(5)])  // sitting at position = +5
+            (agent, [new CommercialSnapshot(0, 0), new Position1DSnapshot(0)]),  // no money, sitting at origin
+            (source, [new Position1DSnapshot(5)])  // sitting at position = +5
         );
 
         sim.Tick();

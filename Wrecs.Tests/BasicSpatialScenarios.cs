@@ -88,11 +88,11 @@ public class BasicSpatial1DScenarios
 
         sim.Tick();
 
-        mock.Verify(a => a.GetIntent(It.Is<IAgentContext>(ctx => ctx.GetSnapshot<PositionSnapshot>().Position == 7)), Times.Once);
+        mock.Verify(a => a.GetIntent(It.Is<IAgentContext>(ctx => ctx.GetSnapshot<Position1DSnapshot>().Position == 7)), Times.Once);
 
         sim.Tick();
 
-        mock.Verify(a => a.GetIntent(It.Is<IAgentContext>(ctx => ctx.GetSnapshot<PositionSnapshot>().Position == 8)), Times.Once);
+        mock.Verify(a => a.GetIntent(It.Is<IAgentContext>(ctx => ctx.GetSnapshot<Position1DSnapshot>().Position == 8)), Times.Once);
     }
 
     [Fact(DisplayName = "Agent Can Move To Negative Position")]

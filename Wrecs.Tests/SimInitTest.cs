@@ -22,7 +22,7 @@ public class SimInitTest
         public IEnumerable<UpdateSet> PrepareSharedUpdates()
         {
             var updates = _spatial1dSystem!.GetEntities()
-                .Select(e => (IEntityUpdate)new EntityUpdate<PositionSnapshot>(e, new(_spatial1dSystem.GetTypedState(e).Position + 1)));
+                .Select(e => (IEntityUpdate)new EntityUpdate<Position1DSnapshot>(e, new(_spatial1dSystem.GetTypedState(e).Position + 1)));
             yield return new(updates);
         }
     }
@@ -62,7 +62,7 @@ public class SimInitTest
         sim.InitEntities(
             (inheritsSpatial1DEntity, []),
             (nonSpatial1DEntity, []),
-            (hasInitialPositionEntity, [new PositionSnapshot(5)])
+            (hasInitialPositionEntity, [new Position1DSnapshot(5)])
         );
 
         sim.GetPosition(inheritsSpatial1DEntity).Should().Be(0);
@@ -81,7 +81,7 @@ public class SimInitTest
         sim.InitEntities(
             (inheritsSpatial1DEntity, []),
             (nonSpatial1DEntity, []),
-            (hasInitialPositionEntity, [new PositionSnapshot(5)])
+            (hasInitialPositionEntity, [new Position1DSnapshot(5)])
         );
         sim.AddSystem(new MoveAllController());
 

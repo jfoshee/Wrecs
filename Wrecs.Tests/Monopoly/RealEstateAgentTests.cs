@@ -30,7 +30,7 @@ public class RealEstateAgentTests
         var spatial1dSystem = new Spatial1DSystem();
         spatial1dSystem.InitEntities(
             (agent, null),
-            (player, new PositionSnapshot(3))   // Player on Baltic Avenue
+            (player, new Position1DSnapshot(3))   // Player on Baltic Avenue
         );
 
         agent.Inject(turnSystem);
@@ -76,7 +76,7 @@ public class RealEstateAgentTests
         var spatial1dSystem = new Spatial1DSystem();
         spatial1dSystem.InitEntities(
             (agent, null),
-            (player, new PositionSnapshot(3))  // Player on Baltic Avenue
+            (player, new Position1DSnapshot(3))  // Player on Baltic Avenue
         );
 
         agent.Inject(turnSystem);
@@ -113,7 +113,7 @@ public class RealEstateAgentTests
         var spatial1dSystem = new Spatial1DSystem();
         spatial1dSystem.InitEntities(
             (agent, null),
-            (player, new PositionSnapshot(0))  // Player at GO (position 0, no property)
+            (player, new Position1DSnapshot(0))  // Player at GO (position 0, no property)
         );
 
         agent.Inject(turnSystem);
