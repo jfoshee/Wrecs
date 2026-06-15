@@ -40,7 +40,9 @@ public class TurnSystemTests
         var system = new TurnSystem();
         var entity1 = new TestTurnEntity(1, "Entity1");
         var entity2 = new TestTurnEntity(2, "Entity2");
-        system.InitEntities((entity1, new TurnSnapshot(false)), (entity2, new TurnSnapshot(true, Phase: 0)));
+        var sim = new Sim();
+        sim.AddSystem(system);
+        sim.InitEntities((entity1, []), (entity2, [new TurnSnapshot(true, Phase: 0)]));
 
         system.GetTypedState(entity1).IsMyTurn.Should().BeFalse();
         system.GetTypedState(entity2).IsMyTurn.Should().BeTrue();
@@ -54,9 +56,11 @@ public class TurnSystemTests
         var system = new TurnSystem();
         var entity1 = new TestTurnEntity(1, "Entity1");
         var entity2 = new TestTurnEntity(2, "Entity2");
-        system.InitEntities((entity1, null), (entity2, null));
+        var sim = new Sim();
+        sim.AddSystem(system);
+        sim.InitEntities((entity1, []), (entity2, []));
 
-        system.Tick();
+        sim.Tick();
 
         system.GetTypedState(entity1).IsMyTurn.Should().BeFalse();
         system.GetTypedState(entity2).IsMyTurn.Should().BeTrue();
@@ -70,10 +74,12 @@ public class TurnSystemTests
         var system = new TurnSystem();
         var entity1 = new TestTurnEntity(1, "Entity1");
         var entity2 = new TestTurnEntity(2, "Entity2");
-        system.InitEntities((entity1, null), (entity2, null));
+        var sim = new Sim();
+        sim.AddSystem(system);
+        sim.InitEntities((entity1, []), (entity2, []));
 
-        system.Tick(); // entity2's turn
-        system.Tick(); // wrap back to entity1
+        sim.Tick(); // entity2's turn
+        sim.Tick(); // wrap back to entity1
 
         system.GetTypedState(entity1).IsMyTurn.Should().BeTrue();
         system.GetTypedState(entity2).IsMyTurn.Should().BeFalse();
@@ -88,20 +94,22 @@ public class TurnSystemTests
         var entity1 = new TestTurnEntity(1, "Entity1");
         var entity2 = new TestTurnEntity(2, "Entity2");
         var entity3 = new TestTurnEntity(3, "Entity3");
-        system.InitEntities((entity1, null), (entity2, null), (entity3, null));
+        var sim = new Sim();
+        sim.AddSystem(system);
+        sim.InitEntities((entity1, []), (entity2, []), (entity3, []));
 
         // Initial state - entity1's turn
         system.GetTypedState(entity1).IsMyTurn.Should().BeTrue();
 
-        system.Tick(); // entity2's turn
+        sim.Tick(); // entity2's turn
         system.GetTypedState(entity2).IsMyTurn.Should().BeTrue();
         system.GetTypedState(entity2).Phase.Should().Be(0);
 
-        system.Tick(); // entity3's turn
+        sim.Tick(); // entity3's turn
         system.GetTypedState(entity3).IsMyTurn.Should().BeTrue();
         system.GetTypedState(entity3).Phase.Should().Be(0);
 
-        system.Tick(); // wrap back to entity1
+        sim.Tick(); // wrap back to entity1
         system.GetTypedState(entity1).IsMyTurn.Should().BeTrue();
         system.GetTypedState(entity1).Phase.Should().Be(0);
     }
@@ -113,13 +121,14 @@ public class TurnSystemTests
         var entities = Enumerable.Range(1, 5)
             .Select(i => new TestTurnEntity(i, $"Entity{i}"))
             .ToArray();
-        system.InitEntities([.. entities.Select(e => ((IEntity)e, (TurnSnapshot?)null))]);
-
+        var sim = new Sim();
+        sim.AddSystem(system);
+        sim.InitEntities([.. entities.Select(e => ((IEntity)e, Array.Empty<IStateSnapshot>()))]);
         for (int tick = 0; tick < 10; tick++)
         {
             var entitiesWithTurn = entities.Where(e => system.GetTypedState(e).IsMyTurn).ToList();
             entitiesWithTurn.Should().HaveCount(1);
-            system.Tick();
+            sim.Tick();
         }
     }
 
@@ -127,10 +136,12 @@ public class TurnSystemTests
     public void SingleEntityTurnPersistsAfterTick()
     {
         var system = new TurnSystem();
+        var sim = new Sim();
+        sim.AddSystem(system);
         var entity = new TestTurnEntity(1, "Entity1");
-        system.InitEntities((entity, null));
+        sim.InitEntities((entity, []));
 
-        system.Tick();
+        sim.Tick();
 
         system.GetTypedState(entity).IsMyTurn.Should().BeTrue();
         system.GetTypedState(entity).Phase.Should().Be(0);
@@ -140,18 +151,20 @@ public class TurnSystemTests
     public void CurrentPlayerPersistsUntilTicksPerTurnAreConsumed()
     {
         var system = new TurnSystem(phasesPerTurn: 2);
+        var sim = new Sim();
+        sim.AddSystem(system);
         var entity1 = new TestTurnEntity(1, "Entity1");
         var entity2 = new TestTurnEntity(2, "Entity2");
-        system.InitEntities((entity1, null), (entity2, null));
+        sim.InitEntities((entity1, []), (entity2, []));
 
-        system.Tick();
+        sim.Tick();
 
         system.GetTypedState(entity1).IsMyTurn.Should().BeTrue();
         system.GetTypedState(entity1).Phase.Should().Be(1);
         system.GetTypedState(entity2).IsMyTurn.Should().BeFalse();
         system.CurrentPlayer.Should().Be(entity1);
 
-        system.Tick();
+        sim.Tick();
 
         system.GetTypedState(entity1).IsMyTurn.Should().BeFalse();
         system.GetTypedState(entity2).IsMyTurn.Should().BeTrue();

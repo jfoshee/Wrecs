@@ -22,13 +22,17 @@ public interface ISpatial1DAgent : ISpatial1DEntity, IAgent
 {
 }
 
-public class Spatial1DSystem : ISystem<ISpatial1DEntity, Position1DSnapshot>, IAcceptUpdates<Position1DSnapshot>, ISpatialSystem
+public class Spatial1DSystem :
+    ISystem<ISpatial1DEntity, Position1DSnapshot>,
+    IBuildAgentContext,
+    ITranslateIntent<Move1DAction>,
+    IAcceptUpdates<Position1DSnapshot>,
+    ISpatialSystem
 {
     private List<IEntity> _entities = [];
     private IEnumerable<ISpatial1DAgent> Agents => _entities.OfType<ISpatial1DAgent>();
 
     private readonly Dictionary<IEntity, Position> _entityPositions = [];
-    private Dictionary<ISpatial1DAgent, Vector> _pendingSteps = [];
 
     public Position1DSnapshot GetTypedState(IEntity entity) => new(_entityPositions[entity]);
 
@@ -51,26 +55,29 @@ public class Spatial1DSystem : ISystem<ISpatial1DEntity, Position1DSnapshot>, IA
         }
     }
 
-    public void PrepareInternalUpdates()
+    public void PopulateContext(IAgent agent, AgentContext context)
     {
-        // Get steps that all agents want to take
-        _pendingSteps = Agents
-            .Select(agent =>
-            {
-                var ctx = new AgentContext();
-                ctx.AddSnapshot<Position1DSnapshot>(_entityPositions[agent]);
-                return (agent, intent: agent.GetIntent(ctx));
-            })
-            .Where(x => x.intent?.Actions?.OfType<Move1DAction>().Any() == true)
-            .ToDictionary(x => x.agent, x => x.intent!.Actions.OfType<Move1DAction>().First().Step);
+        if (_entities.Contains(agent))
+        {
+            var agentPosition = _entityPositions[agent];
+            context.AddSnapshot(new Position1DSnapshot(agentPosition));
+        }
     }
 
-    public void ApplyInternalUpdates()
+    public UpdateSet TranslateIntent(IAgent agent, Move1DAction action)
     {
-        // Update Agents based on their steps
-        foreach (var (agent, step) in _pendingSteps)
-            _entityPositions[agent] += step;
+        if (_entities.Contains(agent))
+        {
+            var currentPosition = _entityPositions[agent];
+            var newPosition = currentPosition + action.Step;
+            return new([new EntityUpdate<Position1DSnapshot>(agent, new Position1DSnapshot(newPosition))]);
+        }
+        return new([]);
     }
+
+    public void PrepareInternalUpdates() { }
+
+    public void ApplyInternalUpdates() { }
 
     public float GetDistance(IEntity e1, IEntity e2)
     {

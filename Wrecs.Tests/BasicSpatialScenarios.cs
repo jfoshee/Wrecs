@@ -7,72 +7,84 @@ public class BasicSpatial1DScenarios
     [Fact(DisplayName = "No Agents, Tick Does Nothing")]
     public void NoAgentsTickDoesNothing()
     {
-        var sim = new Spatial1DSystem();
+        var s1 = new Spatial1DSystem();
+        var sim = new Sim();
+        sim.AddSystem(s1);
         sim.Tick();
     }
 
     [Fact(DisplayName = "One Stationary Agent Stays Put")]
     public void OneStationaryAgentStaysPut()
     {
-        var sim = new Spatial1DSystem();
+        var s1 = new Spatial1DSystem();
+        var sim = new Sim();
+        sim.AddSystem(s1);
         var agent = MockSpatial1DAgent(step: 0);
-        sim.InitEntities((agent, 5));
+        sim.InitEntities((agent, [new Position1DSnapshot(5)]));
 
         sim.Tick();
 
-        sim.GetTypedState(agent).Position.Should().Be(5);
+        s1.GetTypedState(agent).Position.Should().Be(5);
     }
 
     [Fact(DisplayName = "One Agent Moves Right")]
     public void OneAgentMovesRight()
     {
-        var sim = new Spatial1DSystem();
+        var s1 = new Spatial1DSystem();
+        var sim = new Sim();
+        sim.AddSystem(s1);
         var agent = MockSpatial1DAgent(step: 1);
-        sim.InitEntities((agent, 0));
+        sim.InitEntities((agent, []));
 
         sim.Tick();
 
-        sim.GetTypedState(agent).Position.Should().Be(1);
+        s1.GetTypedState(agent).Position.Should().Be(1);
     }
 
     [Fact(DisplayName = "One Agent Moves Left")]
     public void OneAgentMovesLeft()
     {
-        var sim = new Spatial1DSystem();
+        var s1 = new Spatial1DSystem();
+        var sim = new Sim();
+        sim.AddSystem(s1);
         var agent = MockSpatial1DAgent(step: -1);
-        sim.InitEntities((agent, 10));
+        sim.InitEntities((agent, [new Position1DSnapshot(10)]));
 
         sim.Tick();
 
-        sim.GetTypedState(agent).Position.Should().Be(9);
+        s1.GetTypedState(agent).Position.Should().Be(9);
     }
 
     [Fact(DisplayName = "Agent Accumulates Position Over Multiple Ticks")]
     public void AgentAccumulatesPositionOverMultipleTicks()
     {
-        var sim = new Spatial1DSystem();
+        var s1 = new Spatial1DSystem();
+        var sim = new Sim();
+        sim.AddSystem(s1);
         var agent = MockSpatial1DAgent(step: 3);
-        sim.InitEntities((agent, 0));
+        sim.InitEntities((agent, []));
 
         sim.Tick();
         sim.Tick();
         sim.Tick();
 
-        sim.GetTypedState(agent).Position.Should().Be(9);
+        s1.GetTypedState(agent).Position.Should().Be(9);
     }
 
     [Fact(DisplayName = "Two Agents Move Independently")]
     public void TwoAgentsMoveIndependently()
     {
-        var sim = new Spatial1DSystem();
+        var s1 = new Spatial1DSystem();
+        var sim = new Sim();
+        sim.AddSystem(s1);
         var agent1 = MockSpatial1DAgent(step: 2);
         var agent2 = MockSpatial1DAgent(step: -1);
-        sim.InitEntities((agent1, 0), (agent2, 10));
+        sim.InitEntities((agent1, []), (agent2, [new Position1DSnapshot(10)]));
 
         sim.Tick();
 
-        sim.GetTypedState(agent1).Position.Should().Be(2);
-        sim.GetTypedState(agent2).Position.Should().Be(9);
+        s1.GetTypedState(agent1).Position.Should().Be(2);
+        s1.GetTypedState(agent2).Position.Should().Be(9);
     }
 
     [Fact(DisplayName = "Agent Receives Current Position In GetStep")]
@@ -83,8 +95,10 @@ public class BasicSpatial1DScenarios
         mock.Setup(a => a.GetIntent(It.IsAny<IAgentContext>())).Returns(new Intent(new Move1DAction(1)));
         var agent = mock.Object;
 
-        var sim = new Spatial1DSystem();
-        sim.InitEntities((agent, 7));
+        var s1 = new Spatial1DSystem();
+        var sim = new Sim();
+        sim.AddSystem(s1);
+        sim.InitEntities((agent, [new Position1DSnapshot(7)]));
 
         sim.Tick();
 
@@ -98,13 +112,15 @@ public class BasicSpatial1DScenarios
     [Fact(DisplayName = "Agent Can Move To Negative Position")]
     public void AgentCanMoveToNegativePosition()
     {
-        var sim = new Spatial1DSystem();
+        var s1 = new Spatial1DSystem();
+        var sim = new Sim();
+        sim.AddSystem(s1);
         var agent = MockSpatial1DAgent(step: -5);
-        sim.InitEntities((agent, 2));
+        sim.InitEntities((agent, [new Position1DSnapshot(2)]));
 
         sim.Tick();
 
-        sim.GetTypedState(agent).Position.Should().Be(-3);
+        s1.GetTypedState(agent).Position.Should().Be(-3);
     }
 
     private static ISpatial1DAgent MockSpatial1DAgent(int step)
