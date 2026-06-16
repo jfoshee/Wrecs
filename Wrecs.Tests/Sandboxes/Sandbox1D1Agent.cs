@@ -12,7 +12,7 @@ public class Sandbox1D1Agent
         public int Id { get; } = EntityId.Next();
         public string Name => nameof(MainAgent);
 
-        IEnumerable<Type> IAgent.GetRequiredSnapshots() => [typeof(OfferListSnapshot), typeof(Position1DSnapshot)];
+        IEnumerable<Type> IAgent.GetRequiredSnapshots() => [typeof(OfferListSnapshot), typeof(Spatial1DSnapshot)];
 
         Intent IAgent.GetIntent(IAgentContext context)
         {
@@ -26,9 +26,9 @@ public class Sandbox1D1Agent
                 else
                     actions.Add(new DoNothingDecision());
             }
-            if (context.HasSnapshot<Position1DSnapshot>())
+            if (context.HasSnapshot<Spatial1DSnapshot>())
             {
-                var position = context.GetSnapshot<Position1DSnapshot>().Position;
+                var position = context.GetSnapshot<Spatial1DSnapshot>().Position;
                 actions.Add(new Move1DAction(1));  // Move right
             }
             return new Intent(actions);

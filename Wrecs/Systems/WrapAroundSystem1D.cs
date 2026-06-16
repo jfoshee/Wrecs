@@ -22,7 +22,7 @@ public class WrapAroundSystem1D(int size) :
         if (_spatial1dSystem is null)
             throw new InvalidOperationException($"{nameof(Spatial1DSystem)} is required for {nameof(WrapAroundSystem1D)}");
 
-        var updates = new List<EntityUpdate<Position1DSnapshot>>();
+        var updates = new List<EntityUpdate<Spatial1DSnapshot>>();
 
         foreach (var entity in _spatial1dSystem.GetEntities())
         {
@@ -30,7 +30,7 @@ public class WrapAroundSystem1D(int size) :
             if (p < 0 || p >= size)
             {
                 var newPos = ((p % size) + size) % size;
-                updates.Add(new EntityUpdate<Position1DSnapshot>(entity, new Position1DSnapshot(newPos)));
+                updates.Add(new EntityUpdate<Spatial1DSnapshot>(entity, new Spatial1DSnapshot(newPos)));
                 _events.Add(new WrapAround1DEvent(entity, p, newPos));
             }
         }

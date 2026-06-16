@@ -31,8 +31,8 @@ public class MonopolyRentControllerTests
 
         var spatial1dSystem = new Spatial1DSystem();
         spatial1dSystem.InitEntities(
-            (tenant, new Position1DSnapshot(3)),   // Tenant on Baltic Avenue
-            (landlord, new Position1DSnapshot(0))
+            (tenant, new Spatial1DSnapshot(3)),   // Tenant on Baltic Avenue
+            (landlord, new Spatial1DSnapshot(0))
         );
 
         var moneySystem = new MoneySystem();

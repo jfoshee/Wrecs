@@ -5,10 +5,10 @@ namespace Wrecs.Systems;
 using Position = int;
 using Vector = int;
 
-public record struct Position1DSnapshot(Position Position) : IStateSnapshot<Spatial1DSystem>
+public record struct Spatial1DSnapshot(Position Position) : IStateSnapshot<Spatial1DSystem>
 {
-    public static implicit operator int(Position1DSnapshot snapshot) => snapshot.Position;
-    public static implicit operator Position1DSnapshot(int position) => new(position);
+    public static implicit operator int(Spatial1DSnapshot snapshot) => snapshot.Position;
+    public static implicit operator Spatial1DSnapshot(int position) => new(position);
 }
 
 /// <summary>
@@ -23,22 +23,21 @@ public interface ISpatial1DAgent : ISpatial1DEntity, IAgent
 }
 
 public class Spatial1DSystem :
-    ISystem<ISpatial1DEntity, Position1DSnapshot>,
+    ISystem<ISpatial1DEntity, Spatial1DSnapshot>,
     IBuildAgentContext,
     ITranslateIntent<Move1DAction>,
-    IAcceptUpdates<Position1DSnapshot>,
+    IAcceptUpdates<Spatial1DSnapshot>,
     ISpatialSystem
 {
     private List<IEntity> _entities = [];
-    private IEnumerable<ISpatial1DAgent> Agents => _entities.OfType<ISpatial1DAgent>();
 
     private readonly Dictionary<IEntity, Position> _entityPositions = [];
 
-    public Position1DSnapshot GetTypedState(IEntity entity) => new(_entityPositions[entity]);
+    public Spatial1DSnapshot GetTypedState(IEntity entity) => new(_entityPositions[entity]);
 
     public IReadOnlyList<IEntity> GetEntities() => _entities;
 
-    public void InitEntities(params (IEntity entity, Position1DSnapshot? initialState)[] initialEntities)
+    public void InitEntities(params (IEntity entity, Spatial1DSnapshot? initialState)[] initialEntities)
     {
         _entities = [.. initialEntities.Select(e => e.entity)];
         foreach (var (entity, initialState) in initialEntities)
@@ -47,7 +46,7 @@ public class Spatial1DSystem :
         }
     }
 
-    public void ApplyUpdates(IEnumerable<EntityUpdate<Position1DSnapshot>> updates)
+    public void ApplyUpdates(IEnumerable<EntityUpdate<Spatial1DSnapshot>> updates)
     {
         foreach (var update in updates)
         {
@@ -60,7 +59,7 @@ public class Spatial1DSystem :
         if (_entities.Contains(agent))
         {
             var agentPosition = _entityPositions[agent];
-            context.AddSnapshot(new Position1DSnapshot(agentPosition));
+            context.AddSnapshot(new Spatial1DSnapshot(agentPosition));
         }
     }
 
@@ -70,7 +69,7 @@ public class Spatial1DSystem :
         {
             var currentPosition = _entityPositions[agent];
             var newPosition = currentPosition + action.Step;
-            return new([new EntityUpdate<Position1DSnapshot>(agent, new Position1DSnapshot(newPosition))]);
+            return new([new EntityUpdate<Spatial1DSnapshot>(agent, new Spatial1DSnapshot(newPosition))]);
         }
         return new([]);
     }

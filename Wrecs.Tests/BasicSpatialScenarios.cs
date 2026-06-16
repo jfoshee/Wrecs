@@ -20,7 +20,7 @@ public class BasicSpatial1DScenarios
         var sim = new Sim();
         sim.AddSystem(s1);
         var agent = MockSpatial1DAgent(step: 0);
-        sim.InitEntities((agent, [new Position1DSnapshot(5)]));
+        sim.InitEntities((agent, [new Spatial1DSnapshot(5)]));
 
         sim.Tick();
 
@@ -48,7 +48,7 @@ public class BasicSpatial1DScenarios
         var sim = new Sim();
         sim.AddSystem(s1);
         var agent = MockSpatial1DAgent(step: -1);
-        sim.InitEntities((agent, [new Position1DSnapshot(10)]));
+        sim.InitEntities((agent, [new Spatial1DSnapshot(10)]));
 
         sim.Tick();
 
@@ -79,7 +79,7 @@ public class BasicSpatial1DScenarios
         sim.AddSystem(s1);
         var agent1 = MockSpatial1DAgent(step: 2);
         var agent2 = MockSpatial1DAgent(step: -1);
-        sim.InitEntities((agent1, []), (agent2, [new Position1DSnapshot(10)]));
+        sim.InitEntities((agent1, []), (agent2, [new Spatial1DSnapshot(10)]));
 
         sim.Tick();
 
@@ -98,15 +98,15 @@ public class BasicSpatial1DScenarios
         var s1 = new Spatial1DSystem();
         var sim = new Sim();
         sim.AddSystem(s1);
-        sim.InitEntities((agent, [new Position1DSnapshot(7)]));
+        sim.InitEntities((agent, [new Spatial1DSnapshot(7)]));
 
         sim.Tick();
 
-        mock.Verify(a => a.GetIntent(It.Is<IAgentContext>(ctx => ctx.GetSnapshot<Position1DSnapshot>().Position == 7)), Times.Once);
+        mock.Verify(a => a.GetIntent(It.Is<IAgentContext>(ctx => ctx.GetSnapshot<Spatial1DSnapshot>().Position == 7)), Times.Once);
 
         sim.Tick();
 
-        mock.Verify(a => a.GetIntent(It.Is<IAgentContext>(ctx => ctx.GetSnapshot<Position1DSnapshot>().Position == 8)), Times.Once);
+        mock.Verify(a => a.GetIntent(It.Is<IAgentContext>(ctx => ctx.GetSnapshot<Spatial1DSnapshot>().Position == 8)), Times.Once);
     }
 
     [Fact(DisplayName = "Agent Can Move To Negative Position")]
@@ -116,7 +116,7 @@ public class BasicSpatial1DScenarios
         var sim = new Sim();
         sim.AddSystem(s1);
         var agent = MockSpatial1DAgent(step: -5);
-        sim.InitEntities((agent, [new Position1DSnapshot(2)]));
+        sim.InitEntities((agent, [new Spatial1DSnapshot(2)]));
 
         sim.Tick();
 

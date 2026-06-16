@@ -51,11 +51,13 @@ public class Sim
         // TODO: shuffle agents for fairness (currently processes in registration order)
         foreach (var agent in _entities.OfType<IAgent>())
         {
+            // TODO: Just get the context that the agent needs via agent.GetRequiredSnapshots or some new interface
             var ctx = new AgentContext();
             foreach (var builder in _systems.OfType<IBuildAgentContext>())
                 builder.PopulateContext(agent, ctx);
             var intent = agent.GetIntent(ctx);
-            if (intent is null) continue;
+            if (intent is null)
+                continue;
             foreach (var action in intent.Actions)
             {
                 foreach (var translator in _systems.OfType<ITranslateIntent>())
