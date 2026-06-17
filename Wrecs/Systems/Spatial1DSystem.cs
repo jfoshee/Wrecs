@@ -57,13 +57,11 @@ public class Spatial1DSystem :
 
     public UpdateSet TranslateIntent(IAgent agent, Move1DAction action)
     {
-        if (_entities.Contains(agent))
-        {
-            var currentPosition = _entityPositions[agent];
-            var newPosition = currentPosition + action.Step;
-            return new([new EntityUpdate<Spatial1DSnapshot>(agent, new Spatial1DSnapshot(newPosition))]);
-        }
-        return new([]);
+        if (!_entities.Contains(agent))
+            throw new InvalidOperationException("Agent is not part of Spatial1DSystem");
+        var currentPosition = _entityPositions[agent];
+        var newPosition = currentPosition + action.Step;
+        return new([new EntityUpdate<Spatial1DSnapshot>(agent, new Spatial1DSnapshot(newPosition))]);
     }
 
     public void PrepareInternalUpdates() { }
