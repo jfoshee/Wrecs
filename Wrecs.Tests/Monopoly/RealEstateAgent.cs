@@ -6,7 +6,8 @@ namespace Wrecs.Tests.Monopoly;
 /// Agent responsible for holding initial property inventory and making
 /// targeted sell offers to players as they land on properties.
 /// </summary>
-public class RealEstateAgent(MonopolyProperty?[] boardConfig) : ICommercialAgent, IRequire<TurnSystem>, IRequire<Spatial1DSystem>
+public class RealEstateAgent(MonopolyProperty?[] boardConfig) :
+    ICommercialAgent, IRequire<TurnSystem>, IRequire<Spatial1DSystem>
 {
     private TurnSystem _turnSystem = null!;
     private Spatial1DSystem _spatial1dSystem = null!;
@@ -19,10 +20,9 @@ public class RealEstateAgent(MonopolyProperty?[] boardConfig) : ICommercialAgent
     public void Inject(TurnSystem dependency) => _turnSystem = dependency;
     public void Inject(Spatial1DSystem dependency) => _spatial1dSystem = dependency;
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot)];
     public Intent GetIntent(IAgentContext context)
     {
-        var state = context.GetSnapshot<CommercialSnapshot>();
+        var state = context.GetCommercialSnapshot();
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         // Get current player and their position
         var currentPlayer = _turnSystem.CurrentPlayer;

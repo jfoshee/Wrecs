@@ -8,7 +8,6 @@ public class MonopolyRentControllerTests
     {
         public int Id { get; } = EntityId.Next();
         public string Name { get; } = name;
-        public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
         public Intent GetIntent(IAgentContext context) => new Intent(new DoNothingDecision());
     }
 

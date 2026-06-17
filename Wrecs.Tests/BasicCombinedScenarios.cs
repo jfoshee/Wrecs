@@ -2,7 +2,7 @@ using Wrecs.Systems;
 
 namespace Wrecs.Tests;
 
-class BasicComboAgent : ICommercialAgent, ISpatial1DAgent
+class BasicComboAgent : ICommercialAgent, ISpatial1DAgent, IRequireSnapshot<Spatial1DSnapshot>
 {
     public int Id { get; } = EntityId.Next();
 
@@ -21,7 +21,6 @@ class BasicComboAgent : ICommercialAgent, ISpatial1DAgent
         NextStep = 0;
         return new(new Move1DAction(step));
     }
-    IEnumerable<Type> IAgent.GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot), typeof(Spatial1DSnapshot)];
 
     Intent IAgent.GetIntent(IAgentContext context)
     {
@@ -30,7 +29,7 @@ class BasicComboAgent : ICommercialAgent, ISpatial1DAgent
         if (context.HasSnapshot<OfferListSnapshot>())
         {
             var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
-            var intent1 = GetIntent(context.GetSnapshot<CommercialSnapshot>(), offers);
+            var intent1 = GetIntent(context.GetCommercialSnapshot(), offers);
             actions.AddRange(intent1.Actions);
         }
 

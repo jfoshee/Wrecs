@@ -9,10 +9,9 @@ public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommerci
 
     public string Name => "Random " + Id;
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot)];
     public Intent GetIntent(IAgentContext context)
     {
-        var state = context.GetSnapshot<CommercialSnapshot>();
+        var state = context.GetCommercialSnapshot();
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         // Randomly choose an action: 0 = do nothing, 1 = take offer, 2 = make buy offer, 3 = make sell offer
         var action = _random.Next(4);

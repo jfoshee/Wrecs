@@ -9,7 +9,6 @@ class DoNothingAgent : ICommercialAgent
     public int Id { get; } = EntityId.Next();
     public string Name => nameof(DoNothingAgent);
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [];
     public Intent GetIntent(IAgentContext context) => new();
 }
 
@@ -22,7 +21,6 @@ class AlwaysBuyingTaker : ICommercialAgent
 
     public string Name => nameof(AlwaysBuyingTaker);
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(OfferListSnapshot)];
     public Intent GetIntent(IAgentContext context)
     {
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
@@ -42,7 +40,6 @@ class AlwaysSellingTaker : ICommercialAgent
 
     public string Name => nameof(AlwaysSellingTaker);
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(OfferListSnapshot)];
     public Intent GetIntent(IAgentContext context)
     {
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
@@ -62,7 +59,6 @@ class AlwaysSellingMaker(int price, int resources) : ICommercialAgent
 
     public string Name => nameof(AlwaysSellingMaker);
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [];
     public Intent GetIntent(IAgentContext context) => new(new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources)));
 }
 
@@ -76,7 +72,6 @@ class MakesSellOfferAgent(int price, int resources, string? resourceType = null)
 
     public string Name => nameof(MakesSellOfferAgent);
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [];
     public Intent GetIntent(IAgentContext context)
     {
         if (_hasMadeOffer)
@@ -96,7 +91,6 @@ class MakesBuyOfferAgent(int price, int resources) : ICommercialAgent
 
     public string Name => nameof(MakesBuyOfferAgent);
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [];
     public Intent GetIntent(IAgentContext context)
     {
         if (_hasMadeOffer)
@@ -115,10 +109,9 @@ class OffersToSellAllResourcesAgent(int price) : ICommercialAgent
 
     public string Name => nameof(OffersToSellAllResourcesAgent);
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
     public Intent GetIntent(IAgentContext context)
     {
-        var state = context.GetSnapshot<CommercialSnapshot>();
+        var state = context.GetCommercialSnapshot();
         if (state.ResourceBalance > 0)
             return new(new MakeOfferDecision(new SellOffer(this, Price: price, Resources: state.ResourceBalance)));
         return new(new DoNothingDecision());

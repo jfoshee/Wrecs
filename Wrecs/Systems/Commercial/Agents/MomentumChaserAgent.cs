@@ -12,10 +12,9 @@ public sealed class MomentumChaserAgent(
 
     public string Name => "MomentumChaser";
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot)];
     public Intent GetIntent(IAgentContext context)
     {
-        var state = context.GetSnapshot<CommercialSnapshot>();
+        var state = context.GetCommercialSnapshot();
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         var market = OfferMath.GetMarketSnapshot(offers, this);
 

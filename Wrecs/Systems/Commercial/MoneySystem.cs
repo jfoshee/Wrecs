@@ -6,7 +6,7 @@ public interface IMoneyEntity : IEntity;
 
 public record struct MoneySnapshot(int MoneyBalance) : IStateSnapshot<MoneySystem>;
 
-public class MoneySystem : ISystem<IMoneyEntity, MoneySnapshot>, IAcceptUpdates<MoneySnapshot>
+public class MoneySystem : ISystem<IMoneyEntity, MoneySnapshot>, IAcceptUpdates<MoneySnapshot>, IBuildAgentContext<MoneySnapshot>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, int> _balances = [];
@@ -42,6 +42,9 @@ public class MoneySystem : ISystem<IMoneyEntity, MoneySnapshot>, IAcceptUpdates<
 
     public void PrepareInternalUpdates() { }
     public void ApplyInternalUpdates() { }
+
+    public MoneySnapshot? BuildSnapshot(IAgent agent) =>
+        _entities.Contains(agent) ? GetTypedState(agent) : null;
 
     public void ApplyUpdates(IEnumerable<EntityUpdate<MoneySnapshot>> updates)
     {

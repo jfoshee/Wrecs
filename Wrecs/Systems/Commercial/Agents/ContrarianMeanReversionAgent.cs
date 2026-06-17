@@ -13,11 +13,9 @@ public sealed class ContrarianMeanReversionAgent(
 
     public string Name => "ContrarianMeanReversion";
 
-
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot)];
     public Intent GetIntent(IAgentContext context)
     {
-        var state = context.GetSnapshot<CommercialSnapshot>();
+        var state = context.GetCommercialSnapshot();
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         var market = OfferMath.GetMarketSnapshot(offers, this);
 

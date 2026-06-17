@@ -91,6 +91,7 @@ public class BasicSpatial1DScenarios
     public void AgentReceivesCurrentPositionInGetStep()
     {
         var mock = new Mock<ISpatial1DAgent>();
+        mock.As<IRequireSnapshot<Spatial1DSnapshot>>();
         mock.Setup(a => a.Id).Returns(EntityId.Next());
         mock.Setup(a => a.GetIntent(It.IsAny<IAgentContext>())).Returns(new Intent(new Move1DAction(1)));
         var agent = mock.Object;

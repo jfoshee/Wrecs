@@ -45,7 +45,7 @@ public record struct InventorySnapshot : IStateSnapshot<InventorySystem>
         string.Join(", ", Inventory.Select(i => $"{i.Type}: {i.Amount}"));
 }
 
-public class InventorySystem : ISystem<IInventoryEntity, InventorySnapshot>, IAcceptUpdates<InventorySnapshot>
+public class InventorySystem : ISystem<IInventoryEntity, InventorySnapshot>, IAcceptUpdates<InventorySnapshot>, IBuildAgentContext<InventorySnapshot>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, Dictionary<string, int>> _inventories = [];
@@ -87,6 +87,9 @@ public class InventorySystem : ISystem<IInventoryEntity, InventorySnapshot>, IAc
 
     public void PrepareInternalUpdates() { }
     public void ApplyInternalUpdates() { }
+
+    public InventorySnapshot? BuildSnapshot(IAgent agent) =>
+        _entities.Contains(agent) ? GetTypedState(agent) : null;
 
     public void ApplyUpdates(IEnumerable<EntityUpdate<InventorySnapshot>> updates)
     {

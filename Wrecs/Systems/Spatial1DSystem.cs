@@ -24,7 +24,7 @@ public interface ISpatial1DAgent : ISpatial1DEntity, IAgent
 
 public class Spatial1DSystem :
     ISystem<ISpatial1DEntity, Spatial1DSnapshot>,
-    IBuildAgentContext,
+    IBuildAgentContext<Spatial1DSnapshot>,
     ITranslateIntent<Move1DAction>,
     IAcceptUpdates<Spatial1DSnapshot>,
     ISpatialSystem
@@ -54,14 +54,8 @@ public class Spatial1DSystem :
         }
     }
 
-    public void PopulateContext(IAgent agent, AgentContext context)
-    {
-        if (_entities.Contains(agent))
-        {
-            var agentPosition = _entityPositions[agent];
-            context.AddSnapshot(new Spatial1DSnapshot(agentPosition));
-        }
-    }
+    public Spatial1DSnapshot? BuildSnapshot(IAgent agent) =>
+        _entities.Contains(agent) ? _entityPositions[agent] : null;
 
     public UpdateSet TranslateIntent(IAgent agent, Move1DAction action)
     {

@@ -10,10 +10,9 @@ public sealed class LlmAgent(IChatClient chatClient, IOutput? output = null) : I
 
     public string Name => $"LLM-{Id}";
 
-    public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot), typeof(OfferListSnapshot)];
     public Intent GetIntent(IAgentContext context)
     {
-        var state = context.GetSnapshot<CommercialSnapshot>();
+        var state = context.GetCommercialSnapshot();
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         var availableOffers = offers
             .Where(o => o.Author != this && !o.Used)

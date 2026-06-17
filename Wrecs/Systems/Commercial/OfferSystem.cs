@@ -18,7 +18,7 @@ public record struct AddOfferOperation(Offer Offer) : IStateSnapshot<OfferSystem
 
 public class OfferSystem :
     ISystem<ICommercialAgent, OfferListSnapshot>,
-    IBuildAgentContext,
+    IBuildAgentContext<OfferListSnapshot>,
     ITranslateIntent<TakeOfferDecision>,
     ITranslateIntent<MakeOfferDecision>,
     IAcceptUpdates<RemoveOfferOperation>,
@@ -72,18 +72,16 @@ public class OfferSystem :
         _cachedAllOffers = null;
     }
 
-    public void PopulateContext(IAgent agent, AgentContext context)
+    public OfferListSnapshot? BuildSnapshot(IAgent agent)
     {
-        // TODO: use agent.GetRequiredSnapshots
         if (agent is not ICommercialAgent commercialAgent)
-            return;
+            return null;
         var allOffers = _cachedAllOffers ?? [];
         // Filter offers: include general offers + targeted offers for this agent
         var offersForAgent = allOffers
             .Where(o => o is not TargetedSellOffer targeted || targeted.Buyer == commercialAgent)
             .ToList();
-        context.AddSnapshot(BuildCommercialSnapshot(commercialAgent));
-        context.AddSnapshot(new OfferListSnapshot(offersForAgent));
+        return new OfferListSnapshot(offersForAgent);
     }
 
     public UpdateSet TranslateIntent(IAgent agent, TakeOfferDecision action)

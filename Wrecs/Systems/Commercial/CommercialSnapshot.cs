@@ -15,4 +15,7 @@ public record struct CommercialSnapshot(MoneySnapshot Money, InventorySnapshot I
     public readonly int GetResourceBalance(string? resourceType) => Inventory.GetAmount(resourceType ?? "");
 }
 
+/// <summary>
+/// Marker for entity that has Money and Inventory state
+/// </summary>
 public interface ICommercialEntity : IMoneyEntity, IInventoryEntity;

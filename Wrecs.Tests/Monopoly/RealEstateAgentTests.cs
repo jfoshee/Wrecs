@@ -8,7 +8,6 @@ public class RealEstateAgentTests
     private record TestPlayer(string Name) : ICommercialAgent, ISpatial1DEntity, ITakeTurns
     {
         public int Id { get; } = EntityId.Next();
-        public IEnumerable<Type> GetRequiredSnapshots() => [typeof(CommercialSnapshot)];
         public Intent GetIntent(IAgentContext context) => new Intent(new DoNothingDecision());
     }
 
@@ -41,7 +40,8 @@ public class RealEstateAgentTests
 
         // Act
         var context = new AgentContext();
-        context.AddSnapshot(agentState);
+        context.AddSnapshot(agentState.Money);
+        context.AddSnapshot(agentState.Inventory);
         context.AddSnapshot(new OfferListSnapshot([]));
         var intent = agent.GetIntent(context);
         var decision = intent.Actions.OfType<Decision>().Single();
@@ -87,7 +87,8 @@ public class RealEstateAgentTests
 
         // Act
         var context = new AgentContext();
-        context.AddSnapshot(agentState);
+        context.AddSnapshot(agentState.Money);
+        context.AddSnapshot(agentState.Inventory);
         context.AddSnapshot(new OfferListSnapshot([]));
         var intent = agent.GetIntent(context);
         var decision = intent.Actions.OfType<Decision>().Single();
@@ -124,7 +125,8 @@ public class RealEstateAgentTests
 
         // Act
         var context = new AgentContext();
-        context.AddSnapshot(agentState);
+        context.AddSnapshot(agentState.Money);
+        context.AddSnapshot(agentState.Inventory);
         context.AddSnapshot(new OfferListSnapshot([]));
         var intent = agent.GetIntent(context);
         var decision = intent.Actions.OfType<Decision>().Single();
