@@ -18,9 +18,7 @@ public interface ISpatial1DEntity : IEntity;
 
 public record struct Move1DAction(Vector Step) : IIntentAction;
 
-public interface ISpatial1DAgent : ISpatial1DEntity, IAgent
-{
-}
+public interface ISpatial1DAgent : ISpatial1DEntity, IAgent, IRequireSnapshot<Spatial1DSnapshot>;
 
 public class Spatial1DSystem :
     ISystem<ISpatial1DEntity, Spatial1DSnapshot>,

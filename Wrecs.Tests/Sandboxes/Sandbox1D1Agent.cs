@@ -7,7 +7,7 @@ namespace Wrecs.Tests.Sandboxes;
 // TODO: The agent can die if it does not get enough food.
 public class Sandbox1D1Agent
 {
-    class MainAgent : ICommercialAgent, ISpatial1DAgent, IRequireSnapshot<Spatial1DSnapshot>
+    class MainAgent : ICommercialAgent, ISpatial1DAgent
     {
         public int Id { get; } = EntityId.Next();
         public string Name => nameof(MainAgent);

@@ -2,45 +2,14 @@ using Wrecs.Systems;
 
 namespace Wrecs.Tests;
 
-class BasicComboAgent : ICommercialAgent, ISpatial1DAgent, IRequireSnapshot<Spatial1DSnapshot>
+class BasicComboAgent : ISpatial1DAgent, ICommercialAgent
 {
     public int Id { get; } = EntityId.Next();
-
     public string Name => nameof(BasicComboAgent);
 
-    public int NextStep { get; set; } = 0;
+    public int NextStep { get; set; }
 
-    public Intent GetIntent(CommercialSnapshot state, List<Offer> offers)
-    {
-        return new(new DoNothingDecision());
-    }
-
-    public Intent GetIntent(int currentPosition)
-    {
-        var step = NextStep;
-        NextStep = 0;
-        return new(new Move1DAction(step));
-    }
-
-    Intent IAgent.GetIntent(IAgentContext context)
-    {
-        var actions = new List<IIntentAction>();
-
-        if (context.HasSnapshot<OfferListSnapshot>())
-        {
-            var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
-            var intent1 = GetIntent(context.GetCommercialSnapshot(), offers);
-            actions.AddRange(intent1.Actions);
-        }
-
-        if (context.HasSnapshot<Spatial1DSnapshot>())
-        {
-            var intent2 = GetIntent(context.GetSnapshot<Spatial1DSnapshot>().Position);
-            actions.AddRange(intent2.Actions);
-        }
-
-        return new Intent(actions);
-    }
+    public Intent GetIntent(IAgentContext context) => new([new Move1DAction(NextStep)]);
 }
 
 // Scenarios that combine spatial1d and commercial
@@ -55,7 +24,7 @@ public class BasicCombinedScenarios
         sim.AddSystem(new Spatial1DSystem());
         sim.AddSystem(new ResourceSourcesController([source]));
         sim.InitEntities(
-            (agent, [new CommercialSnapshot(0, 0), new Spatial1DSnapshot(0)]),  // no money, sitting at origin
+            (agent, []),  // no money, sitting at origin
             (source, [new Spatial1DSnapshot(5)])  // sitting at position = +5
         );
 
