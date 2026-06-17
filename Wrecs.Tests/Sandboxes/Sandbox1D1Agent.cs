@@ -15,20 +15,13 @@ public class Sandbox1D1Agent
         Intent IAgent.GetIntent(IAgentContext context)
         {
             var actions = new List<IIntentAction>();
-            if (context.HasSnapshot<OfferListSnapshot>())
-            {
-                var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
-                var goodOffer = offers.OfType<BuyOffer>().FirstOrDefault(o => o.Price >= 10);
-                if (goodOffer is not null)
-                    actions.Add(new TakeOfferDecision(goodOffer));
-                else
-                    actions.Add(new DoNothingDecision());
-            }
-            if (context.HasSnapshot<Spatial1DSnapshot>())
-            {
-                var position = context.GetSnapshot<Spatial1DSnapshot>().Position;
-                actions.Add(new Move1DAction(1));  // Move right
-            }
+            var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
+            var goodOffer = offers.OfType<BuyOffer>().FirstOrDefault(o => o.Price >= 10);
+            if (goodOffer is not null)
+                actions.Add(new TakeOfferDecision(goodOffer));
+
+            actions.Add(new Move1DAction(1));  // Move right
+
             return new Intent(actions);
         }
     }
