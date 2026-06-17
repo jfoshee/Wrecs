@@ -88,6 +88,6 @@ public sealed class SpreadSniperAgent(
             return new(new MakeOfferDecision(new SellOffer(this, bridgeAsk, 1)));
         }
 
-        return new(new DoNothingDecision());
+        return Intent.Empty;
     }
 }

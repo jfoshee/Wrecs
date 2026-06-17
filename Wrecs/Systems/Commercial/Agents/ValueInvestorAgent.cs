@@ -58,7 +58,7 @@ public sealed class ValueInvestorAgent(
             return new(new MakeOfferDecision(new BuyOffer(this, bidPrice, 1)));
         }
 
-        return new(new DoNothingDecision());
+        return Intent.Empty;
     }
 
     private void UpdateFairPrice(List<Offer> offers)

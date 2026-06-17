@@ -80,6 +80,6 @@ public sealed class MomentumChaserAgent(
             return new(new MakeOfferDecision(new BuyOffer(this, Math.Max(1, (int)Math.Floor(mid - 1)), 1)));
         }
 
-        return new(new DoNothingDecision());
+        return Intent.Empty;
     }
 }

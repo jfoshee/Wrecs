@@ -139,7 +139,7 @@ public class MonopolyTest(ITestOutputHelper output)
             var getOutOfJailOffer = offers.FirstOrDefault(offer => offer.ResourceType == MonopolyJailSystem.PayFineResource);
             if (getOutOfJailOffer is not null)
                 return new(new TakeOfferDecision(getOutOfJailOffer));
-            return new(new DoNothingDecision());
+            return Intent.Empty;
         }
     }
 

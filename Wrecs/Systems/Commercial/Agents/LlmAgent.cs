@@ -109,7 +109,7 @@ public sealed class LlmAgent(IChatClient chatClient, IOutput? output = null) : I
         }
         catch
         {
-            return new(new DoNothingDecision());
+            return Intent.Empty;
         }
     }
 }

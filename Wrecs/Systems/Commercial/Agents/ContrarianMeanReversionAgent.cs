@@ -31,7 +31,7 @@ public sealed class ContrarianMeanReversionAgent(
 
         if (midPrices.Count < 4)
         {
-            return new(new DoNothingDecision());
+            return Intent.Empty;
         }
 
         var prices = midPrices.ToArray();
@@ -79,6 +79,6 @@ public sealed class ContrarianMeanReversionAgent(
             return new(new MakeOfferDecision(new BuyOffer(this, Math.Max(1, (int)Math.Floor(mean)), 1)));
         }
 
-        return new(new DoNothingDecision());
+        return Intent.Empty;
     }
 }

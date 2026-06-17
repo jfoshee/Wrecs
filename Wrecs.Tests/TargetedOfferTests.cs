@@ -14,7 +14,7 @@ class MakesTargetedSellOfferAgent(ICommercialAgent target, int price, int resour
     public Intent GetIntent(IAgentContext context)
     {
         if (_hasMadeOffer)
-            return new(new DoNothingDecision());
+            return Intent.Empty;
         _hasMadeOffer = true;
         return new(new MakeOfferDecision(new TargetedSellOffer(this, target, price, resources)));
     }
@@ -38,7 +38,7 @@ class TargetedOfferReceiverAgent : ICommercialAgent
             .FirstOrDefault(o => o.Buyer == this);
         if (targetedOffer is not null)
             return new(new TakeOfferDecision(targetedOffer));
-        return new(new DoNothingDecision());
+        return Intent.Empty;
     }
 }
 
@@ -56,7 +56,7 @@ class OfferObserverAgent : ICommercialAgent
     {
         var opportunities = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         OffersSeenPerTick.Add([.. opportunities]);
-        return new(new DoNothingDecision());
+        return Intent.Empty;
     }
 }
 
@@ -79,7 +79,7 @@ class MakesGeneralAndTargetedOffersAgent(
         {
             1 => new Intent(new MakeOfferDecision(new SellOffer(this, generalPrice, generalResources))),
             2 => new Intent(new MakeOfferDecision(new TargetedSellOffer(this, target, targetedPrice, targetedResources))),
-            _ => new Intent(new DoNothingDecision())
+            _ => Intent.Empty
         };
     }
 }

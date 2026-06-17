@@ -21,7 +21,7 @@ public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommerci
             1 => TryTakeRandomOffer(state, offers),
             2 => TryMakeBuyOffer(state),
             3 => TryMakeSellOffer(state),
-            _ => new Intent(new DoNothingDecision()),
+            _ => Intent.Empty,
         };
     }
 
@@ -32,7 +32,7 @@ public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommerci
             .ToList();
 
         if (availableOffers.Count == 0)
-            return new(new DoNothingDecision());
+            return Intent.Empty;
 
         var offer = availableOffers[_random.Next(availableOffers.Count)];
 
@@ -43,7 +43,7 @@ public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommerci
         if (offer is BuyOffer && state.ResourceBalance >= offer.Resources)
             return new(new TakeOfferDecision(offer));
 
-        return new(new DoNothingDecision());
+        return Intent.Empty;
     }
 
     private Intent TryMakeBuyOffer(CommercialSnapshot state)
@@ -52,13 +52,13 @@ public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommerci
         if (state.MoneyBalance >= price)
             return new(new MakeOfferDecision(new BuyOffer(this, price, 1)));
 
-        return new(new DoNothingDecision());
+        return Intent.Empty;
     }
 
     private Intent TryMakeSellOffer(CommercialSnapshot state)
     {
         if (state.ResourceBalance <= 0)
-            return new(new DoNothingDecision());
+            return Intent.Empty;
 
         var price = _random.Next(1, maxPrice + 1);
         return new(new MakeOfferDecision(new SellOffer(this, price, 1)));

@@ -8,7 +8,7 @@ public class RealEstateAgentTests
     private record TestPlayer(string Name) : ICommercialAgent, ISpatial1DEntity, ITakeTurns
     {
         public int Id { get; } = EntityId.Next();
-        public Intent GetIntent(IAgentContext context) => new Intent(new DoNothingDecision());
+        public Intent GetIntent(IAgentContext context) => Intent.Empty;
     }
 
     [Fact(DisplayName = "Agent makes targeted offer when player lands on owned property")]
@@ -44,7 +44,7 @@ public class RealEstateAgentTests
         context.AddSnapshot(agentState.Inventory);
         context.AddSnapshot(new OfferListSnapshot([]));
         var intent = agent.GetIntent(context);
-        var decision = intent.Actions.OfType<Decision>().Single();
+        var decision = intent.Actions.OfType<OfferDecision>().Single();
 
         // Assert
         decision.Should().BeOfType<MakeOfferDecision>();
@@ -91,10 +91,9 @@ public class RealEstateAgentTests
         context.AddSnapshot(agentState.Inventory);
         context.AddSnapshot(new OfferListSnapshot([]));
         var intent = agent.GetIntent(context);
-        var decision = intent.Actions.OfType<Decision>().Single();
 
         // Assert
-        decision.Should().BeOfType<DoNothingDecision>();
+        intent.Actions.Should().BeEmpty();
     }
 
     [Fact(DisplayName = "Agent does not make offer when player is not on a property")]
@@ -129,9 +128,8 @@ public class RealEstateAgentTests
         context.AddSnapshot(agentState.Inventory);
         context.AddSnapshot(new OfferListSnapshot([]));
         var intent = agent.GetIntent(context);
-        var decision = intent.Actions.OfType<Decision>().Single();
 
         // Assert
-        decision.Should().BeOfType<DoNothingDecision>();
+        intent.Actions.Should().BeEmpty();
     }
 }

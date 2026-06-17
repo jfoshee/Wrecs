@@ -72,6 +72,6 @@ public sealed class InventoryAwareMarketMakerAgent(
             return new(new MakeOfferDecision(new SellOffer(this, (int)askUnit, 1)));
         }
 
-        return new(new DoNothingDecision());
+        return Intent.Empty;
     }
 }

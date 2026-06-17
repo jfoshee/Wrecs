@@ -9,7 +9,7 @@ public record AlwaysBuyingMonopolyPlayer(string Name) : IMonopolyEntity, ICommer
         var opportunities = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         var offer = opportunities.OfType<SellOffer>().FirstOrDefault();
         if (offer is null)
-            return new(new DoNothingDecision());
+            return Intent.Empty;
         // Always accepts offer
         return new(new TakeOfferDecision(offer));
     }

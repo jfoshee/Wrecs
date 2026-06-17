@@ -9,7 +9,7 @@ class DoNothingAgent : ICommercialAgent
     public int Id { get; } = EntityId.Next();
     public string Name => nameof(DoNothingAgent);
 
-    public Intent GetIntent(IAgentContext context) => new();
+    public Intent GetIntent(IAgentContext context) => Intent.Empty;
 }
 
 /// <summary>
@@ -27,7 +27,7 @@ class AlwaysBuyingTaker : ICommercialAgent
         var sellOffer = offers.OfType<SellOffer>().FirstOrDefault();
         if (sellOffer is not null)
             return new(new TakeOfferDecision(sellOffer));
-        return new(new DoNothingDecision());
+        return Intent.Empty;
     }
 }
 
@@ -46,7 +46,7 @@ class AlwaysSellingTaker : ICommercialAgent
         var buyOffer = offers.OfType<BuyOffer>().FirstOrDefault();
         if (buyOffer is not null)
             return new(new TakeOfferDecision(buyOffer));
-        return new(new DoNothingDecision());
+        return Intent.Empty;
     }
 }
 
@@ -75,7 +75,7 @@ class MakesSellOfferAgent(int price, int resources, string? resourceType = null)
     public Intent GetIntent(IAgentContext context)
     {
         if (_hasMadeOffer)
-            return new(new DoNothingDecision());
+            return Intent.Empty;
         _hasMadeOffer = true;
         return new(new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources, ResourceType: resourceType)));
     }
@@ -94,7 +94,7 @@ class MakesBuyOfferAgent(int price, int resources) : ICommercialAgent
     public Intent GetIntent(IAgentContext context)
     {
         if (_hasMadeOffer)
-            return new(new DoNothingDecision());
+            return Intent.Empty;
         _hasMadeOffer = true;
         return new(new MakeOfferDecision(new BuyOffer(this, Price: price, Resources: resources)));
     }
@@ -114,6 +114,6 @@ class OffersToSellAllResourcesAgent(int price) : ICommercialAgent
         var state = context.GetCommercialSnapshot();
         if (state.ResourceBalance > 0)
             return new(new MakeOfferDecision(new SellOffer(this, Price: price, Resources: state.ResourceBalance)));
-        return new(new DoNothingDecision());
+        return Intent.Empty;
     }
 }

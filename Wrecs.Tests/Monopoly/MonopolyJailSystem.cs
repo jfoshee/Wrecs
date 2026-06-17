@@ -118,6 +118,6 @@ class JailerAgent : ICommercialAgent, IRequire<MonopolyJailSystem>, IRequire<Tur
                 // TODO: Handle making multiple offers
             }
         }
-        return new(new DoNothingDecision());
+        return Intent.Empty;
     }
 }
