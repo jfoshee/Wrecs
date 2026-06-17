@@ -163,7 +163,7 @@ public class InventorySystemTests
         var entity = new InventoryEntity(1);
 
         system.InitEntities((entity, new InventorySnapshot([("wood", 10)])));
-        system.ApplyUpdates([new EntityUpdate<InventorySnapshot>(entity, new InventorySnapshot([("stone", 7)]))]);
+        system.ApplyUpdates([new InventoryUpdate(entity, ("stone", 7))]); ;
 
         system.GetTypedState(entity).GetAmount("stone").Should().Be(7);
         system.GetTypedState(entity).GetAmount("wood").Should().Be(0);
@@ -178,7 +178,7 @@ public class InventorySystemTests
         var stateB = new InventorySnapshot([("gold", 4)]);
 
         system.InitEntities((entityA, new InventorySnapshot([("wood", 2)])), (entityB, stateB));
-        system.ApplyUpdates([new EntityUpdate<InventorySnapshot>(entityA, new InventorySnapshot([]))]);
+        system.ApplyUpdates([new InventoryUpdate(entityA)]);
 
         system.GetTypedState(entityA).Inventory.Should().BeEmpty();
         system.GetTypedState(entityB).Should().Be(stateB);
@@ -214,7 +214,7 @@ public class InventorySystemTests
                 var updated = current.Inventory
                     .Where(i => i.Type != type)
                     .Append((type, current.GetAmount(type) + qty));
-                return (IEntityUpdate)new EntityUpdate<InventorySnapshot>(entity, new InventorySnapshot(updated));
+                return (IEntityUpdate)new InventoryUpdate(entity, [.. updated]);
             });
             yield return new(updates);
         }

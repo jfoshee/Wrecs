@@ -30,7 +30,7 @@ public class WrapAroundSystem1D(int size) :
             if (p < 0 || p >= size)
             {
                 var newPos = ((p % size) + size) % size;
-                updates.Add(new EntityUpdate<Spatial1DSnapshot>(entity, new Spatial1DSnapshot(newPos)));
+                updates.Add(new Spatial1DUpdate(entity, newPos));
                 _events.Add(new WrapAround1DEvent(entity, p, newPos));
             }
         }

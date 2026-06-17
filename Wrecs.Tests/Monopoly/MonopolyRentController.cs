@@ -70,8 +70,8 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
         var ownerNewBalance = _moneySystem.GetTypedState(owner).MoneyBalance + rent;  // Landlord receives
 
         yield return new UpdateSet([
-            new EntityUpdate<MoneySnapshot>(currentPlayer, new MoneySnapshot(tenantNewBalance)),
-            new EntityUpdate<MoneySnapshot>(owner, new MoneySnapshot(ownerNewBalance)),
+            new MoneyUpdate(currentPlayer, tenantNewBalance),
+            new MoneyUpdate(owner, ownerNewBalance),
         ]);
     }
 }

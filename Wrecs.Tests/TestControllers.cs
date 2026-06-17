@@ -14,7 +14,7 @@ class InterestController(double interestRate) : IPrepareSharedUpdates, IRequire<
         {
             var balance = _moneySystem.GetTypedState(entity).MoneyBalance;
             var interest = (int)(balance * interestRate);
-            return (IEntityUpdate)new EntityUpdate<MoneySnapshot>(entity, new MoneySnapshot(balance + interest));
+            return (IEntityUpdate)new MoneyUpdate(entity, balance + interest);
         });
         yield return new(updates);
     }
@@ -35,6 +35,6 @@ class MiningController(IEntity miner, int resourcesPerTick) : IPrepareSharedUpda
         var updated = current.Inventory
             .Where(i => i.Type != "")
             .Append(("", newAmount));
-        yield return new([new EntityUpdate<InventorySnapshot>(miner, new InventorySnapshot(updated))]);
+        yield return new([new InventoryUpdate(miner, [.. updated])]);
     }
 }

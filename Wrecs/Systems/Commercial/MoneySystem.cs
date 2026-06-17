@@ -6,6 +6,13 @@ public interface IMoneyEntity : IEntity;
 
 public record struct MoneySnapshot(int MoneyBalance) : IStateSnapshot<MoneySystem>;
 
+public record MoneyUpdate : EntityUpdate<MoneySnapshot>
+{
+    public MoneyUpdate(IEntity entity, int newBalance) : base(entity, new MoneySnapshot(newBalance))
+    {
+    }
+}
+
 public class MoneySystem : ISystem<IMoneyEntity, MoneySnapshot>, IAcceptUpdates<MoneySnapshot>, IBuildAgentContext<MoneySnapshot>
 {
     private readonly List<IEntity> _entities = [];

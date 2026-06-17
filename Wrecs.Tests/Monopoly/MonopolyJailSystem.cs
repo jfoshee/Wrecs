@@ -78,8 +78,10 @@ class MonopolyJailController : IPrepareSharedUpdates, IRequire<Spatial1DSystem>
         foreach (var entity in _spatial1dSystem!.GetEntities().Where(e => _spatial1dSystem.GetTypedState(e) == 30))
         {
             yield return new UpdateSet([
-                new EntityUpdate<MonopolyJailSnapshot>(entity, new MonopolyJailSnapshot(true, 3)),  // Send them to jail for 3 turns
-                new EntityUpdate<Spatial1DSnapshot>(entity, new Spatial1DSnapshot(10)),               // Move them to the Jail tile which is at position 10
+                // Send them to jail for 3 turns
+                new EntityUpdate<MonopolyJailSnapshot>(entity, new MonopolyJailSnapshot(true, 3)),
+                // Move them to the Jail tile which is at position 10
+                new Spatial1DUpdate(entity, 10),
             ]);
         }
     }

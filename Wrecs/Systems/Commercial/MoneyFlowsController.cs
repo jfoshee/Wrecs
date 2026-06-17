@@ -52,7 +52,7 @@ public abstract class MoneyFlowsController<TMoneyFlowOrigin>(IEnumerable<TMoneyF
             foreach (var flow in approved)
                 money += flow.SignedAmount;
 
-            updates.Add(new EntityUpdate<MoneySnapshot>(entity, new MoneySnapshot(money)));
+            updates.Add(new MoneyUpdate(entity, money));
         }
 
         if (updates.Count > 0)

@@ -20,6 +20,13 @@ public record struct Move1DAction(Vector Step) : IIntentAction;
 
 public interface ISpatial1DAgent : ISpatial1DEntity, IAgent, IRequireSnapshot<Spatial1DSnapshot>;
 
+public record Spatial1DUpdate : EntityUpdate<Spatial1DSnapshot>
+{
+    public Spatial1DUpdate(IEntity entity, Position newPosition) : base(entity, new Spatial1DSnapshot(newPosition))
+    {
+    }
+}
+
 public class Spatial1DSystem :
     ISystem<ISpatial1DEntity, Spatial1DSnapshot>,
     IBuildAgentContext<Spatial1DSnapshot>,
@@ -61,7 +68,7 @@ public class Spatial1DSystem :
             throw new InvalidOperationException("Agent is not part of Spatial1DSystem");
         var currentPosition = _entityPositions[agent];
         var newPosition = currentPosition + action.Step;
-        return new([new EntityUpdate<Spatial1DSnapshot>(agent, new Spatial1DSnapshot(newPosition))]);
+        return new([new Spatial1DUpdate(agent, newPosition)]);
     }
 
     public void PrepareInternalUpdates() { }

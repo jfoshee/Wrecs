@@ -102,7 +102,7 @@ public class MoneySystemTests
         var entity = new MoneyEntity(1);
 
         system.InitEntities((entity, new MoneySnapshot(100)));
-        system.ApplyUpdates([new EntityUpdate<MoneySnapshot>(entity, new MoneySnapshot(999))]);
+        system.ApplyUpdates([new MoneyUpdate(entity, 999)]);
 
         system.GetTypedState(entity).MoneyBalance.Should().Be(999);
     }
@@ -115,7 +115,7 @@ public class MoneySystemTests
         var entityB = new MoneyEntity(2);
 
         system.InitEntities((entityA, new MoneySnapshot(100)), (entityB, new MoneySnapshot(200)));
-        system.ApplyUpdates([new EntityUpdate<MoneySnapshot>(entityA, new MoneySnapshot(42))]);
+        system.ApplyUpdates([new MoneyUpdate(entityA, 42)]);
 
         system.GetTypedState(entityA).MoneyBalance.Should().Be(42);
         system.GetTypedState(entityB).MoneyBalance.Should().Be(200);
@@ -149,7 +149,7 @@ public class MoneySystemTests
             {
                 var currentBalance = _moneySystem.GetTypedState(e).MoneyBalance;
                 var newBalance = currentBalance + amount;
-                return (IEntityUpdate)new EntityUpdate<MoneySnapshot>(e, new MoneySnapshot(newBalance));
+                return (IEntityUpdate)new MoneyUpdate(e, newBalance);
             });
             yield return new(updates);
         }

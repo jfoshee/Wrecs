@@ -22,7 +22,7 @@ public class SimInitTest
         public IEnumerable<UpdateSet> PrepareSharedUpdates()
         {
             var updates = _spatial1dSystem!.GetEntities()
-                .Select(e => (IEntityUpdate)new EntityUpdate<Spatial1DSnapshot>(e, new(_spatial1dSystem.GetTypedState(e).Position + 1)));
+                .Select(e => (IEntityUpdate)new Spatial1DUpdate(e, _spatial1dSystem.GetTypedState(e).Position + 1));
             yield return new(updates);
         }
     }

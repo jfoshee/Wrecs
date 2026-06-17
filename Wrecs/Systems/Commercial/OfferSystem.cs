@@ -209,21 +209,20 @@ public class OfferSystem :
         var sellerResourceBalance = sellerState.GetResourceBalance(offer.ResourceType) - offer.Resources;
         return
         [
-            new EntityUpdate<MoneySnapshot>(buyer, new MoneySnapshot(buyerMoneyBalance)),
-            new EntityUpdate<MoneySnapshot>(seller, new MoneySnapshot(sellerMoneyBalance)),
-            new EntityUpdate<InventorySnapshot>(buyer, UpdatedInventorySnapshot(buyerState.Inventory, buyerResourceBalance, offer.ResourceType)),
-            new EntityUpdate<InventorySnapshot>(seller, UpdatedInventorySnapshot(sellerState.Inventory, sellerResourceBalance, offer.ResourceType)),
+            new MoneyUpdate(buyer, buyerMoneyBalance),
+            new MoneyUpdate(seller, sellerMoneyBalance),
+            new InventoryUpdate(buyer, [.. UpdatedInventory(buyerState.Inventory, buyerResourceBalance, offer.ResourceType)]),
+            new InventoryUpdate(seller, [.. UpdatedInventory(sellerState.Inventory, sellerResourceBalance, offer.ResourceType)]),
             new EntityUpdate<RemoveOfferOperation>(offer.Author, new RemoveOfferOperation(offer))
         ];
     }
 
-    private static InventorySnapshot UpdatedInventorySnapshot(InventorySnapshot inventory, int newResourceBalance, string? resourceType)
+    private static IEnumerable<(string Type, int Amount)> UpdatedInventory(InventorySnapshot inventory, int newResourceBalance, string? resourceType)
     {
         var key = resourceType ?? "";
-        var updated = inventory.Inventory
+        return inventory.Inventory
             .Where(i => i.Type != key)
             .Append((key, newResourceBalance));
-        return new InventorySnapshot(updated);
     }
 
     private static List<Offer> State(OfferListSnapshot snapshot)

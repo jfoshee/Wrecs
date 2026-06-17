@@ -55,7 +55,7 @@ public abstract class ResourceFlowsController<TResourceFlowOrigin>(IEnumerable<T
                 inventory[key] = inventory.GetValueOrDefault(key, 0) + flow.SignedAmount;
             }
 
-            updates.Add(new EntityUpdate<InventorySnapshot>(entity, new InventorySnapshot(inventory.Select(kvp => (kvp.Key, kvp.Value)))));
+            updates.Add(new InventoryUpdate(entity, [.. inventory.Select(kvp => (kvp.Key, kvp.Value))]));
         }
 
         if (updates.Count > 0)

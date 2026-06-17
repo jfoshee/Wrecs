@@ -45,6 +45,14 @@ public record struct InventorySnapshot : IStateSnapshot<InventorySystem>
         string.Join(", ", Inventory.Select(i => $"{i.Type}: {i.Amount}"));
 }
 
+public record InventoryUpdate : EntityUpdate<InventorySnapshot>
+{
+    public InventoryUpdate(IEntity entity, params (string Type, int Amount)[] inventory)
+        : base(entity, new InventorySnapshot(inventory))
+    {
+    }
+}
+
 public class InventorySystem : ISystem<IInventoryEntity, InventorySnapshot>, IAcceptUpdates<InventorySnapshot>, IBuildAgentContext<InventorySnapshot>
 {
     private readonly List<IEntity> _entities = [];
