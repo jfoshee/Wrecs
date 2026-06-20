@@ -5,7 +5,7 @@ namespace Wrecs.Tests.Monopoly;
 record struct MonopolyJailSnapshot(bool IsInJail, int TurnsRemaining) : IStateSnapshot<MonopolyJailSystem>;
 
 class MonopolyJailSystem :
-    ISystem<IMonopolyEntity, MonopolyJailSnapshot>,
+    ISystemWithEntities<IMonopolyEntity, MonopolyJailSnapshot>,
     ISystemWithInternalUpdates,
     ISystemUpdateAcceptor<MonopolyJailSnapshot>,
     IRequire<TurnSystem>

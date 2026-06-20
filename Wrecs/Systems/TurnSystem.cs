@@ -17,7 +17,7 @@ public interface ITakeTurns : IEntity;
 public record struct TurnSnapshot(bool IsMyTurn, int Phase = 0) : IStateSnapshot<TurnSystem>;
 
 public class TurnSystem :
-    ISystem<ITakeTurns, TurnSnapshot>,
+    ISystemWithEntities<ITakeTurns, TurnSnapshot>,
     ISystemEventHandler<EndGameEvent>,
     ISystemInternalUpdateApplier
 {

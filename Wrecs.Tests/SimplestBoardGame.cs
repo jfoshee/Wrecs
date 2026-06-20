@@ -10,7 +10,7 @@ public class PlayerEntity(string name) : IEntity, ISpatial1DEntity, ITakeTurns
 
 readonly record struct EndGameSnapshot(bool IsGameOver, bool IsWinner) : IStateSnapshot<SimpleEndGameSystem>;
 interface ISimpleEndGamePlayer : IEntity;
-class SimpleEndGameSystem : ISystem<ISimpleEndGamePlayer, EndGameSnapshot>,
+class SimpleEndGameSystem : ISystemWithEntities<ISimpleEndGamePlayer, EndGameSnapshot>,
     ISystemEventRaiser<EndGameEvent>,
     ISystemEventHandler<WrapAround1DEvent>
 {
