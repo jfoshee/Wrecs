@@ -11,8 +11,8 @@ public class PlayerEntity(string name) : IEntity, ISpatial1DEntity, ITakeTurns
 readonly record struct EndGameSnapshot(bool IsGameOver, bool IsWinner) : IStateSnapshot<SimpleEndGameSystem>;
 interface ISimpleEndGamePlayer : IEntity;
 class SimpleEndGameSystem : ISystem<ISimpleEndGamePlayer, EndGameSnapshot>,
-    IRaise<EndGameEvent>,
-    IHandle<WrapAround1DEvent>
+    ISystemEventRaiser<EndGameEvent>,
+    ISystemEventHandler<WrapAround1DEvent>
 {
     IEntity[] _entities = [];
     private IEntity? _winner;
@@ -125,7 +125,7 @@ public class SimplestBoardGame
 
 public class SimplestBoardGameTest
 {
-    class EndGameEventTracker : ISystem, IHandle<EndGameEvent>
+    class EndGameEventTracker : ISystem, ISystemEventHandler<EndGameEvent>
     {
         public int Count { get; private set; }
         public void HandleTyped(EndGameEvent e) => Count++;

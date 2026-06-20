@@ -9,7 +9,7 @@ public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommerci
 
     public string Name => "Random " + Id;
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         var state = context.GetCommercialSnapshot();
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
@@ -21,18 +21,18 @@ public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommerci
             1 => TryTakeRandomOffer(state, offers),
             2 => TryMakeBuyOffer(state),
             3 => TryMakeSellOffer(state),
-            _ => Intent.Empty,
+            _ => AgentIntent.Empty,
         };
     }
 
-    private Intent TryTakeRandomOffer(CommercialSnapshot state, List<Offer> offers)
+    private AgentIntent TryTakeRandomOffer(CommercialSnapshot state, List<Offer> offers)
     {
         var availableOffers = offers
             .Where(o => o.Author != this && !o.Used)
             .ToList();
 
         if (availableOffers.Count == 0)
-            return Intent.Empty;
+            return AgentIntent.Empty;
 
         var offer = availableOffers[_random.Next(availableOffers.Count)];
 
@@ -43,22 +43,22 @@ public sealed class RandomAgent(int maxPrice, Random? random = null) : ICommerci
         if (offer is BuyOffer && state.ResourceBalance >= offer.Resources)
             return new(new TakeOfferDecision(offer));
 
-        return Intent.Empty;
+        return AgentIntent.Empty;
     }
 
-    private Intent TryMakeBuyOffer(CommercialSnapshot state)
+    private AgentIntent TryMakeBuyOffer(CommercialSnapshot state)
     {
         var price = _random.Next(1, maxPrice + 1);
         if (state.MoneyBalance >= price)
             return new(new MakeOfferDecision(new BuyOffer(this, price, 1)));
 
-        return Intent.Empty;
+        return AgentIntent.Empty;
     }
 
-    private Intent TryMakeSellOffer(CommercialSnapshot state)
+    private AgentIntent TryMakeSellOffer(CommercialSnapshot state)
     {
         if (state.ResourceBalance <= 0)
-            return Intent.Empty;
+            return AgentIntent.Empty;
 
         var price = _random.Next(1, maxPrice + 1);
         return new(new MakeOfferDecision(new SellOffer(this, price, 1)));

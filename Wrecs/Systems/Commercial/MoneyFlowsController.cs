@@ -4,7 +4,7 @@ namespace Wrecs.Systems.Commercial;
 
 public abstract class MoneyFlowsController<TMoneyFlowOrigin>(IEnumerable<TMoneyFlowOrigin> flowOrigins,
                                                              IEnumerable<IMoneyFlowPolicy> flowPolicies)
-    : IPrepareSharedUpdates, IRequire<MoneySystem>
+    : ISystemSharedUpdates, IRequire<MoneySystem>
     where TMoneyFlowOrigin : IMoneyFlowOrigin
 {
     private readonly List<TMoneyFlowOrigin> _flowOrigins = [.. flowOrigins];

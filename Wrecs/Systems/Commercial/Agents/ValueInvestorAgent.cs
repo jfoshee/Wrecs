@@ -13,7 +13,7 @@ public sealed class ValueInvestorAgent(
 
     public string Name => "ValueInvestor";
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         var state = context.GetCommercialSnapshot();
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
@@ -58,7 +58,7 @@ public sealed class ValueInvestorAgent(
             return new(new MakeOfferDecision(new BuyOffer(this, bidPrice, 1)));
         }
 
-        return Intent.Empty;
+        return AgentIntent.Empty;
     }
 
     private void UpdateFairPrice(List<Offer> offers)

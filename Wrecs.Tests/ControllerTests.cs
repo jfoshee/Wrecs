@@ -4,7 +4,7 @@ public record TestEntity(int Id, string Name = "Test") : IEntity;
 public record struct StateA(int Value) : IStateSnapshot<SystemA>;
 public record struct StateB(string Data) : IStateSnapshot<SystemB>;
 
-public class SystemA : ISystem<TestEntity, StateA>, IAcceptUpdates<StateA>
+public class SystemA : ISystem<TestEntity, StateA>, ISystemUpdateAcceptor<StateA>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, StateA> _states = [];
@@ -31,7 +31,7 @@ public class SystemA : ISystem<TestEntity, StateA>, IAcceptUpdates<StateA>
     public void ApplyInternalUpdates() { }
 }
 
-public class SystemB : ISystem<TestEntity, StateB>, IAcceptUpdates<StateB>
+public class SystemB : ISystem<TestEntity, StateB>, ISystemUpdateAcceptor<StateB>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, StateB> _states = [];
@@ -58,7 +58,7 @@ public class SystemB : ISystem<TestEntity, StateB>, IAcceptUpdates<StateB>
     public void ApplyInternalUpdates() { }
 }
 
-public class ControllerA : IPrepareSharedUpdates, IRequire<SystemA>
+public class ControllerA : ISystemSharedUpdates, IRequire<SystemA>
 {
     private SystemA? _systemA;
     public void Inject(SystemA system) => _systemA = system;
@@ -74,7 +74,7 @@ public class ControllerA : IPrepareSharedUpdates, IRequire<SystemA>
     }
 }
 
-public class ControllerB : IPrepareSharedUpdates, IRequire<SystemB>
+public class ControllerB : ISystemSharedUpdates, IRequire<SystemB>
 {
     private SystemB? _systemB;
     public void Inject(SystemB system) => _systemB = system;
@@ -90,7 +90,7 @@ public class ControllerB : IPrepareSharedUpdates, IRequire<SystemB>
     }
 }
 
-public class CombinedController : IPrepareSharedUpdates, IRequire<SystemA>, IRequire<SystemB>
+public class CombinedController : ISystemSharedUpdates, IRequire<SystemA>, IRequire<SystemB>
 {
     private SystemA? _systemA;
     private SystemB? _systemB;

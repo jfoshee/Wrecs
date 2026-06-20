@@ -20,28 +20,28 @@ public class RealEstateAgent(MonopolyProperty?[] boardConfig) :
     public void Inject(TurnSystem dependency) => _turnSystem = dependency;
     public void Inject(Spatial1DSystem dependency) => _spatial1dSystem = dependency;
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         var state = context.GetCommercialSnapshot();
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         // Get current player and their position
         var currentPlayer = _turnSystem.CurrentPlayer;
         if (currentPlayer is not ICommercialAgent buyer)
-            return Intent.Empty;
+            return AgentIntent.Empty;
 
         var playerPosition = _spatial1dSystem.GetTypedState(currentPlayer).Position;
 
         // Look up property at that position (array index = position)
         if (playerPosition < 0 || playerPosition >= boardConfig.Length)
-            return Intent.Empty;
+            return AgentIntent.Empty;
         var property = boardConfig[playerPosition];
         if (property is null)
-            return Intent.Empty; // No property at this position
+            return AgentIntent.Empty; // No property at this position
 
         // Check if agent owns this property (property name = resource type)
         var ownedAmount = state.GetResourceBalance(property.Name);
         if (ownedAmount <= 0)
-            return Intent.Empty; // Don't own this property
+            return AgentIntent.Empty; // Don't own this property
 
         // Make targeted sell offer to the current player
         var offer = new TargetedSellOffer(

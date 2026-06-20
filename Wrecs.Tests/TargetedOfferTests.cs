@@ -11,10 +11,10 @@ class MakesTargetedSellOfferAgent(ICommercialAgent target, int price, int resour
     public string Name => nameof(MakesTargetedSellOfferAgent);
     private bool _hasMadeOffer = false;
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         if (_hasMadeOffer)
-            return Intent.Empty;
+            return AgentIntent.Empty;
         _hasMadeOffer = true;
         return new(new MakeOfferDecision(new TargetedSellOffer(this, target, price, resources)));
     }
@@ -30,7 +30,7 @@ class TargetedOfferReceiverAgent : ICommercialAgent
 
     public List<List<Offer>> OffersSeenPerTick { get; } = [];
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         var opportunities = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         OffersSeenPerTick.Add([.. opportunities]);
@@ -38,7 +38,7 @@ class TargetedOfferReceiverAgent : ICommercialAgent
             .FirstOrDefault(o => o.Buyer == this);
         if (targetedOffer is not null)
             return new(new TakeOfferDecision(targetedOffer));
-        return Intent.Empty;
+        return AgentIntent.Empty;
     }
 }
 
@@ -52,11 +52,11 @@ class OfferObserverAgent : ICommercialAgent
 
     public List<List<Offer>> OffersSeenPerTick { get; } = [];
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         var opportunities = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         OffersSeenPerTick.Add([.. opportunities]);
-        return Intent.Empty;
+        return AgentIntent.Empty;
     }
 }
 
@@ -72,14 +72,14 @@ class MakesGeneralAndTargetedOffersAgent(
     public string Name => nameof(MakesGeneralAndTargetedOffersAgent);
     private int _tickCount = 0;
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         _tickCount++;
         return _tickCount switch
         {
-            1 => new Intent(new MakeOfferDecision(new SellOffer(this, generalPrice, generalResources))),
-            2 => new Intent(new MakeOfferDecision(new TargetedSellOffer(this, target, targetedPrice, targetedResources))),
-            _ => Intent.Empty
+            1 => new AgentIntent(new MakeOfferDecision(new SellOffer(this, generalPrice, generalResources))),
+            2 => new AgentIntent(new MakeOfferDecision(new TargetedSellOffer(this, target, targetedPrice, targetedResources))),
+            _ => AgentIntent.Empty
         };
     }
 }

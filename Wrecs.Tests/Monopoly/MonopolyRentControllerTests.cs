@@ -8,7 +8,7 @@ public class MonopolyRentControllerTests
     {
         public int Id { get; } = EntityId.Next();
         public string Name { get; } = name;
-        public Intent GetIntent(IAgentContext context) => Intent.Empty;
+        public AgentIntent GetIntent(IAgentContext context) => AgentIntent.Empty;
     }
 
     [Fact(DisplayName = "Player pays rent when landing on property owned by another player")]

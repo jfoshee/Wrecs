@@ -19,10 +19,10 @@ public record struct AddOfferOperation(Offer Offer) : IStateSnapshot<OfferSystem
 public class OfferSystem :
     ISystem<ICommercialAgent, OfferListSnapshot>,
     IBuildAgentContext<OfferListSnapshot>,
-    ITranslateIntent<TakeOfferDecision>,
-    ITranslateIntent<MakeOfferDecision>,
-    IAcceptUpdates<RemoveOfferOperation>,
-    IAcceptUpdates<AddOfferOperation>,
+    ISystemAgentIntentTranslator<TakeOfferDecision>,
+    ISystemAgentIntentTranslator<MakeOfferDecision>,
+    ISystemUpdateAcceptor<RemoveOfferOperation>,
+    ISystemUpdateAcceptor<AddOfferOperation>,
     IRequire<MoneySystem>,
     IRequire<InventorySystem>
 {
@@ -99,10 +99,10 @@ public class OfferSystem :
     }
 
     // Explicit implementations required because OfferSystem implements ITranslateIntent<T> twice
-    bool ITranslateIntent.CanTranslate(IIntentAction action) =>
+    bool ISystemAgentIntentTranslator.CanTranslate(IAgentIntentAction action) =>
         action is TakeOfferDecision || action is MakeOfferDecision;
 
-    UpdateSet ITranslateIntent.Translate(IAgent agent, IIntentAction action) => action switch
+    UpdateSet ISystemAgentIntentTranslator.Translate(IAgent agent, IAgentIntentAction action) => action switch
     {
         TakeOfferDecision take => TranslateIntent(agent, take),
         MakeOfferDecision make => TranslateIntent(agent, make),
@@ -126,7 +126,7 @@ public class OfferSystem :
     }
 
     // Explicit implementation required because OfferSystem implements IAcceptUpdates<T> twice
-    void IAcceptUpdates.ApplyUpdates(IEnumerable<IEntityUpdate> updates)
+    void ISystemUpdateAcceptor.ApplyUpdates(IEnumerable<IEntityUpdate> updates)
     {
         var all = updates.ToList();
         ApplyUpdates(all.OfType<EntityUpdate<RemoveOfferOperation>>());

@@ -4,7 +4,7 @@ namespace Wrecs.Tests.Monopoly;
 
 record struct MonopolyJailSnapshot(bool IsInJail, int TurnsRemaining) : IStateSnapshot<MonopolyJailSystem>;
 
-class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>, IAcceptUpdates<MonopolyJailSnapshot>, IRequire<TurnSystem>
+class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>, ISystemUpdateAcceptor<MonopolyJailSnapshot>, IRequire<TurnSystem>
 {
     public const string PayFineResource = "Jail Fine Receipt";
     private readonly List<IEntity> _entities = [];
@@ -66,7 +66,7 @@ class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>, IAcce
     internal IEnumerable<IEntity> GetInmates() => _turnsRemaining.Keys;
 }
 
-class MonopolyJailController : IPrepareSharedUpdates, IRequire<Spatial1DSystem>
+class MonopolyJailController : ISystemSharedUpdates, IRequire<Spatial1DSystem>
 {
     private Spatial1DSystem? _spatial1dSystem;
 
@@ -101,7 +101,7 @@ class JailerAgent : ICommercialAgent, IRequire<MonopolyJailSystem>, IRequire<Tur
     private TurnSystem? _turnSystem;
     public void Inject(TurnSystem dependency) => _turnSystem = dependency;
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         // Make offers to all inmates to pay $50 to get out of jail
         var inmates = _jailSystem?.GetInmates() ?? [];
@@ -120,6 +120,6 @@ class JailerAgent : ICommercialAgent, IRequire<MonopolyJailSystem>, IRequire<Tur
                 // TODO: Handle making multiple offers
             }
         }
-        return Intent.Empty;
+        return AgentIntent.Empty;
     }
 }

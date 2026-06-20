@@ -11,7 +11,7 @@ public sealed class InventoryAwareMarketMakerAgent(
     public int Id { get; } = EntityId.Next();
     public string Name => "Inventory-Aware Market-Maker " + Id;
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         var state = context.GetCommercialSnapshot();
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
@@ -72,6 +72,6 @@ public sealed class InventoryAwareMarketMakerAgent(
             return new(new MakeOfferDecision(new SellOffer(this, (int)askUnit, 1)));
         }
 
-        return Intent.Empty;
+        return AgentIntent.Empty;
     }
 }

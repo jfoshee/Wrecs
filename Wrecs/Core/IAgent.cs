@@ -8,7 +8,7 @@ public interface IAgentContext
 
 public interface IAgent : IEntity
 {
-    Intent GetIntent(IAgentContext context);
+    AgentIntent GetIntent(IAgentContext context);
 }
 
 /// <summary>

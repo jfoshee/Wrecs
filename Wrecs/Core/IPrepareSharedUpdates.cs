@@ -1,6 +1,6 @@
 namespace Wrecs.Core;
 
-public interface IPrepareSharedUpdates : ISystem
+public interface ISystemSharedUpdates : ISystem
 {
     /// <summary>
     /// Prepares a set of updates that may involve multiple Systems.

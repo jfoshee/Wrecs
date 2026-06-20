@@ -13,7 +13,7 @@ public record MoneyUpdate : EntityUpdate<MoneySnapshot>
     }
 }
 
-public class MoneySystem : ISystem<IMoneyEntity, MoneySnapshot>, IAcceptUpdates<MoneySnapshot>, IBuildAgentContext<MoneySnapshot>
+public class MoneySystem : ISystem<IMoneyEntity, MoneySnapshot>, ISystemUpdateAcceptor<MoneySnapshot>, IBuildAgentContext<MoneySnapshot>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, int> _balances = [];
@@ -36,7 +36,7 @@ public class MoneySystem : ISystem<IMoneyEntity, MoneySnapshot>, IAcceptUpdates<
         }
     }
 
-    void IHasEntities.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
+    void ISystemEntityStateInitializer.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
     {
         var matchingEntities = entitiesWithState
             .Select(e => (e.entity, initialState:

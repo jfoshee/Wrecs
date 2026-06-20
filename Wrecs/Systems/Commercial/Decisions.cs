@@ -2,7 +2,7 @@ using Wrecs.Core;
 
 namespace Wrecs.Systems.Commercial;
 
-public abstract class OfferDecision(Offer offer) : IIntentAction
+public abstract class OfferDecision(Offer offer) : IAgentIntentAction
 {
     public Offer Offer { get; } = offer;
 }

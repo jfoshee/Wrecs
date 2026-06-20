@@ -9,7 +9,7 @@ class DoNothingAgent : ICommercialAgent
     public int Id { get; } = EntityId.Next();
     public string Name => nameof(DoNothingAgent);
 
-    public Intent GetIntent(IAgentContext context) => Intent.Empty;
+    public AgentIntent GetIntent(IAgentContext context) => AgentIntent.Empty;
 }
 
 /// <summary>
@@ -21,13 +21,13 @@ class AlwaysBuyingTaker : ICommercialAgent
 
     public string Name => nameof(AlwaysBuyingTaker);
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         var sellOffer = offers.OfType<SellOffer>().FirstOrDefault();
         if (sellOffer is not null)
             return new(new TakeOfferDecision(sellOffer));
-        return Intent.Empty;
+        return AgentIntent.Empty;
     }
 }
 
@@ -40,13 +40,13 @@ class AlwaysSellingTaker : ICommercialAgent
 
     public string Name => nameof(AlwaysSellingTaker);
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         var buyOffer = offers.OfType<BuyOffer>().FirstOrDefault();
         if (buyOffer is not null)
             return new(new TakeOfferDecision(buyOffer));
-        return Intent.Empty;
+        return AgentIntent.Empty;
     }
 }
 
@@ -59,7 +59,7 @@ class AlwaysSellingMaker(int price, int resources) : ICommercialAgent
 
     public string Name => nameof(AlwaysSellingMaker);
 
-    public Intent GetIntent(IAgentContext context) => new(new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources)));
+    public AgentIntent GetIntent(IAgentContext context) => new(new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources)));
 }
 
 /// <summary>
@@ -72,10 +72,10 @@ class MakesSellOfferAgent(int price, int resources, string? resourceType = null)
 
     public string Name => nameof(MakesSellOfferAgent);
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         if (_hasMadeOffer)
-            return Intent.Empty;
+            return AgentIntent.Empty;
         _hasMadeOffer = true;
         return new(new MakeOfferDecision(new SellOffer(this, Price: price, Resources: resources, ResourceType: resourceType)));
     }
@@ -91,10 +91,10 @@ class MakesBuyOfferAgent(int price, int resources) : ICommercialAgent
 
     public string Name => nameof(MakesBuyOfferAgent);
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         if (_hasMadeOffer)
-            return Intent.Empty;
+            return AgentIntent.Empty;
         _hasMadeOffer = true;
         return new(new MakeOfferDecision(new BuyOffer(this, Price: price, Resources: resources)));
     }
@@ -109,11 +109,11 @@ class OffersToSellAllResourcesAgent(int price) : ICommercialAgent
 
     public string Name => nameof(OffersToSellAllResourcesAgent);
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         var state = context.GetCommercialSnapshot();
         if (state.ResourceBalance > 0)
             return new(new MakeOfferDecision(new SellOffer(this, Price: price, Resources: state.ResourceBalance)));
-        return Intent.Empty;
+        return AgentIntent.Empty;
     }
 }

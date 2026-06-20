@@ -8,7 +8,7 @@ public class RealEstateAgentTests
     private record TestPlayer(string Name) : ICommercialAgent, ISpatial1DEntity, ITakeTurns
     {
         public int Id { get; } = EntityId.Next();
-        public Intent GetIntent(IAgentContext context) => Intent.Empty;
+        public AgentIntent GetIntent(IAgentContext context) => AgentIntent.Empty;
     }
 
     [Fact(DisplayName = "Agent makes targeted offer when player lands on owned property")]

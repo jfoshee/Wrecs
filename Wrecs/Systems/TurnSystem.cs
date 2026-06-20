@@ -16,7 +16,7 @@ public interface ITakeTurns : IEntity;
 /// </summary>
 public record struct TurnSnapshot(bool IsMyTurn, int Phase = 0) : IStateSnapshot<TurnSystem>;
 
-public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>, IHandle<EndGameEvent>
+public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>, ISystemEventHandler<EndGameEvent>
 {
     private bool _enabled = true;
     private List<IEntity> _entities = [];
@@ -78,7 +78,7 @@ public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>, IHandle<EndGameEven
         _currentTurnIndex = (_currentTurnIndex + 1) % _entities.Count;
     }
 
-    void IHandle<EndGameEvent>.HandleTyped(EndGameEvent e)
+    void ISystemEventHandler<EndGameEvent>.HandleTyped(EndGameEvent e)
     {
         _enabled = false;
         // Reset state

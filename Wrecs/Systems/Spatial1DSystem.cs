@@ -16,7 +16,7 @@ public record struct Spatial1DSnapshot(Position Position) : IStateSnapshot<Spati
 /// </summary>
 public interface ISpatial1DEntity : IEntity;
 
-public record struct Move1DAction(Vector Step) : IIntentAction;
+public record struct Move1DAction(Vector Step) : IAgentIntentAction;
 
 public interface ISpatial1DAgent : ISpatial1DEntity, IAgent, IRequireSnapshot<Spatial1DSnapshot>;
 
@@ -30,8 +30,8 @@ public record Spatial1DUpdate : EntityUpdate<Spatial1DSnapshot>
 public class Spatial1DSystem :
     ISystem<ISpatial1DEntity, Spatial1DSnapshot>,
     IBuildAgentContext<Spatial1DSnapshot>,
-    ITranslateIntent<Move1DAction>,
-    IAcceptUpdates<Spatial1DSnapshot>,
+    ISystemAgentIntentTranslator<Move1DAction>,
+    ISystemUpdateAcceptor<Spatial1DSnapshot>,
     ISpatialSystem
 {
     private List<IEntity> _entities = [];

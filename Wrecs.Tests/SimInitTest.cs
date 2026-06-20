@@ -14,7 +14,7 @@ public class SimInitTest
     {
     }
 
-    class MoveAllController : IPrepareSharedUpdates, IRequire<Spatial1DSystem>
+    class MoveAllController : ISystemSharedUpdates, IRequire<Spatial1DSystem>
     {
         private Spatial1DSystem? _spatial1dSystem;
         public void Inject(Spatial1DSystem system) => _spatial1dSystem = system;

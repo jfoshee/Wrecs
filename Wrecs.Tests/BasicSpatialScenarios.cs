@@ -93,7 +93,7 @@ public class BasicSpatial1DScenarios
         var mock = new Mock<ISpatial1DAgent>();
         mock.As<IRequireSnapshot<Spatial1DSnapshot>>();
         mock.Setup(a => a.Id).Returns(EntityId.Next());
-        mock.Setup(a => a.GetIntent(It.IsAny<IAgentContext>())).Returns(new Intent(new Move1DAction(1)));
+        mock.Setup(a => a.GetIntent(It.IsAny<IAgentContext>())).Returns(new AgentIntent(new Move1DAction(1)));
         var agent = mock.Object;
 
         var s1 = new Spatial1DSystem();
@@ -129,7 +129,7 @@ public class BasicSpatial1DScenarios
         var id = EntityId.Next();
         var mock = new Mock<ISpatial1DAgent>();
         mock.Setup(a => a.Id).Returns(id);
-        mock.Setup(a => a.GetIntent(It.IsAny<IAgentContext>())).Returns(new Intent(new Move1DAction(step)));
+        mock.Setup(a => a.GetIntent(It.IsAny<IAgentContext>())).Returns(new AgentIntent(new Move1DAction(step)));
         return mock.Object;
     }
 }

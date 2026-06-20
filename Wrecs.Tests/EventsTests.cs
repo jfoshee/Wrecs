@@ -3,7 +3,7 @@ namespace Wrecs.Tests;
 public class EventsTests
 {
     struct BasicEvent : IEvent;
-    class BasicRaiser : IRaise<BasicEvent>, ISystem
+    class BasicRaiser : ISystemEventRaiser<BasicEvent>, ISystem
     {
         public List<BasicEvent> ToRaise = [];
         public IEnumerable<BasicEvent> GetTypedEvents()
@@ -18,7 +18,7 @@ public class EventsTests
         public void PrepareInternalUpdates() { }
     }
 
-    class BasicHandler : IHandle<BasicEvent>, ISystem
+    class BasicHandler : ISystemEventHandler<BasicEvent>, ISystem
     {
         public int Handled { get; private set; }
 
@@ -96,7 +96,7 @@ public class EventsTests
     }
 
     struct AnotherEvent : IEvent;
-    class AnotherRaiser : IRaise<AnotherEvent>, ISystem
+    class AnotherRaiser : ISystemEventRaiser<AnotherEvent>, ISystem
     {
         public List<AnotherEvent> ToRaise = [];
         public IEnumerable<AnotherEvent> GetTypedEvents()
@@ -111,7 +111,7 @@ public class EventsTests
         public void PrepareInternalUpdates() { }
     }
 
-    class AnotherHandler : IHandle<AnotherEvent>, ISystem
+    class AnotherHandler : ISystemEventHandler<AnotherEvent>, ISystem
     {
         public int Handled { get; private set; }
 

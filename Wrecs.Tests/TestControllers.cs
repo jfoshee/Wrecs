@@ -3,7 +3,7 @@ namespace Wrecs.Tests;
 /// <summary>
 /// A controller that adds interest to the money balance of all agents.
 /// </summary>
-class InterestController(double interestRate) : IPrepareSharedUpdates, IRequire<MoneySystem>
+class InterestController(double interestRate) : ISystemSharedUpdates, IRequire<MoneySystem>
 {
     private MoneySystem? _moneySystem;
     public void Inject(MoneySystem system) => _moneySystem = system;
@@ -23,7 +23,7 @@ class InterestController(double interestRate) : IPrepareSharedUpdates, IRequire<
 /// <summary>
 /// A controller that grants unitless resources to a specific entity each tick (e.g., simulating mining).
 /// </summary>
-class MiningController(IEntity miner, int resourcesPerTick) : IPrepareSharedUpdates, IRequire<InventorySystem>
+class MiningController(IEntity miner, int resourcesPerTick) : ISystemSharedUpdates, IRequire<InventorySystem>
 {
     private InventorySystem? _inventorySystem;
     public void Inject(InventorySystem system) => _inventorySystem = system;

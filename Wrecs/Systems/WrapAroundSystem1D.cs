@@ -8,9 +8,9 @@ namespace Wrecs.Systems;
 public record struct WrapAround1DEvent(IEntity Entity, int OldPosition, int NewPosition) : IEvent;
 
 public class WrapAroundSystem1D(int size) :
-    IPrepareSharedUpdates,
+    ISystemSharedUpdates,
     IRequire<Spatial1DSystem>,
-    IRaise<WrapAround1DEvent>
+    ISystemEventRaiser<WrapAround1DEvent>
 {
     private Spatial1DSystem? _spatial1dSystem;
     private readonly List<WrapAround1DEvent> _events = [];

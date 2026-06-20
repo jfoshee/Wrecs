@@ -12,7 +12,7 @@ public sealed class MomentumChaserAgent(
 
     public string Name => "MomentumChaser";
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         var state = context.GetCommercialSnapshot();
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
@@ -66,7 +66,7 @@ public sealed class MomentumChaserAgent(
         return PassiveQuote(state, market);
     }
 
-    private Intent PassiveQuote(CommercialSnapshot state, OfferMath.MarketSnapshot market)
+    private AgentIntent PassiveQuote(CommercialSnapshot state, OfferMath.MarketSnapshot market)
     {
         var mid = market.MidPrice ?? 5.0;
 
@@ -80,6 +80,6 @@ public sealed class MomentumChaserAgent(
             return new(new MakeOfferDecision(new BuyOffer(this, Math.Max(1, (int)Math.Floor(mid - 1)), 1)));
         }
 
-        return Intent.Empty;
+        return AgentIntent.Empty;
     }
 }

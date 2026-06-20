@@ -7,7 +7,7 @@ namespace Wrecs.Tests.Monopoly;
 /// and giving the money to the owning player.
 /// </summary>
 public class MonopolyRentController(MonopolyProperty?[] boardConfig)
-    : IPrepareSharedUpdates,
+    : ISystemSharedUpdates,
       IRequire<TurnSystem>,
       IRequire<Spatial1DSystem>,
       IRequire<MoneySystem>,

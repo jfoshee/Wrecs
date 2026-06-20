@@ -4,7 +4,7 @@ namespace Wrecs.Systems.Commercial;
 
 public abstract class ResourceFlowsController<TResourceFlowOrigin>(IEnumerable<TResourceFlowOrigin> flowOrigins,
                                                                    IEnumerable<IResourceFlowPolicy> flowPolicies)
-    : IPrepareSharedUpdates, IRequire<InventorySystem>
+    : ISystemSharedUpdates, IRequire<InventorySystem>
     where TResourceFlowOrigin : IResourceFlowOrigin
 {
     private readonly List<TResourceFlowOrigin> _flowOrigins = [.. flowOrigins];

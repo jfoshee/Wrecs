@@ -13,7 +13,7 @@ public sealed class ContrarianMeanReversionAgent(
 
     public string Name => "ContrarianMeanReversion";
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         var state = context.GetCommercialSnapshot();
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
@@ -31,7 +31,7 @@ public sealed class ContrarianMeanReversionAgent(
 
         if (midPrices.Count < 4)
         {
-            return Intent.Empty;
+            return AgentIntent.Empty;
         }
 
         var prices = midPrices.ToArray();
@@ -79,6 +79,6 @@ public sealed class ContrarianMeanReversionAgent(
             return new(new MakeOfferDecision(new BuyOffer(this, Math.Max(1, (int)Math.Floor(mean)), 1)));
         }
 
-        return Intent.Empty;
+        return AgentIntent.Empty;
     }
 }

@@ -4,12 +4,12 @@ public record AlwaysBuyingMonopolyPlayer(string Name) : IMonopolyEntity, ICommer
 {
     public int Id { get; } = EntityId.Next();
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         var opportunities = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
         var offer = opportunities.OfType<SellOffer>().FirstOrDefault();
         if (offer is null)
-            return Intent.Empty;
+            return AgentIntent.Empty;
         // Always accepts offer
         return new(new TakeOfferDecision(offer));
     }

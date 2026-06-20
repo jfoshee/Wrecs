@@ -53,7 +53,7 @@ public record InventoryUpdate : EntityUpdate<InventorySnapshot>
     }
 }
 
-public class InventorySystem : ISystem<IInventoryEntity, InventorySnapshot>, IAcceptUpdates<InventorySnapshot>, IBuildAgentContext<InventorySnapshot>
+public class InventorySystem : ISystem<IInventoryEntity, InventorySnapshot>, ISystemUpdateAcceptor<InventorySnapshot>, IBuildAgentContext<InventorySnapshot>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, Dictionary<string, int>> _inventories = [];
@@ -82,7 +82,7 @@ public class InventorySystem : ISystem<IInventoryEntity, InventorySnapshot>, IAc
         }
     }
 
-    void IHasEntities.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
+    void ISystemEntityStateInitializer.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
     {
         var matchingEntities = entitiesWithState
             .Select(e => (e.entity, initialState:

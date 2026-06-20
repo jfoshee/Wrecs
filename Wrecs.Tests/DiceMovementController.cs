@@ -3,7 +3,7 @@ using Wrecs.Systems;
 namespace Wrecs.Tests;
 
 class DiceMovementController(IGameDice dice) :
-    IPrepareSharedUpdates,
+    ISystemSharedUpdates,
     IRequire<TurnSystem>,
     IRequire<Spatial1DSystem>
 {

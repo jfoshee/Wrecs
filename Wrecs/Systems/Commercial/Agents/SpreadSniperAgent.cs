@@ -11,7 +11,7 @@ public sealed class SpreadSniperAgent(
 
     public string Name => "SpreadSniper";
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         var state = context.GetCommercialSnapshot();
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
@@ -88,6 +88,6 @@ public sealed class SpreadSniperAgent(
             return new(new MakeOfferDecision(new SellOffer(this, bridgeAsk, 1)));
         }
 
-        return Intent.Empty;
+        return AgentIntent.Empty;
     }
 }

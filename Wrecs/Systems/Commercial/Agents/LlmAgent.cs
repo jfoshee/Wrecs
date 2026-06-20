@@ -10,7 +10,7 @@ public sealed class LlmAgent(IChatClient chatClient, IOutput? output = null) : I
 
     public string Name => $"LLM-{Id}";
 
-    public Intent GetIntent(IAgentContext context)
+    public AgentIntent GetIntent(IAgentContext context)
     {
         var state = context.GetCommercialSnapshot();
         var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
@@ -82,7 +82,7 @@ public sealed class LlmAgent(IChatClient chatClient, IOutput? output = null) : I
         return ParseDecision(response.Text ?? "", offers.Where(o => o.Author != this && !o.Used).ToList());
     }
 
-    private Intent ParseDecision(string responseText, List<Offer> availableOffers)
+    private AgentIntent ParseDecision(string responseText, List<Offer> availableOffers)
     {
         try
         {
@@ -101,15 +101,15 @@ public sealed class LlmAgent(IChatClient chatClient, IOutput? output = null) : I
             return action switch
             {
                 "take" when root.TryGetProperty("offerIndex", out var idx) && idx.GetInt32() < availableOffers.Count
-                    => new Intent(new TakeOfferDecision(availableOffers[idx.GetInt32()])),
-                "buy" => new Intent(new MakeOfferDecision(new BuyOffer(this, root.GetProperty("price").GetInt32(), root.GetProperty("resources").GetInt32()))),
-                "sell" => new Intent(new MakeOfferDecision(new SellOffer(this, root.GetProperty("price").GetInt32(), root.GetProperty("resources").GetInt32()))),
+                    => new AgentIntent(new TakeOfferDecision(availableOffers[idx.GetInt32()])),
+                "buy" => new AgentIntent(new MakeOfferDecision(new BuyOffer(this, root.GetProperty("price").GetInt32(), root.GetProperty("resources").GetInt32()))),
+                "sell" => new AgentIntent(new MakeOfferDecision(new SellOffer(this, root.GetProperty("price").GetInt32(), root.GetProperty("resources").GetInt32()))),
                 _ => throw new Exception("Failed to parse JSON: \n" + responseText)
             };
         }
         catch
         {
-            return Intent.Empty;
+            return AgentIntent.Empty;
         }
     }
 }

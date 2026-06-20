@@ -25,7 +25,7 @@ public class Sim
         }
 
         // Initialize each system with matching entities
-        foreach (var system in _systems.OfType<IHasEntities>())
+        foreach (var system in _systems.OfType<ISystemEntityStateInitializer>())
         {
             system.InitEntities(entitiesWithState);
         }
@@ -37,11 +37,11 @@ public class Sim
 
         // Preparation Phase
         List<UpdateSet> sharedUpdates = [];
-        foreach (var system in _systems.OfType<IPrepareInternalUpdates>())
+        foreach (var system in _systems.OfType<ISystemInternalUpdatePreparer>())
         {
             system.PrepareInternalUpdates();
         }
-        foreach (var system in _systems.OfType<IPrepareSharedUpdates>())
+        foreach (var system in _systems.OfType<ISystemSharedUpdates>())
         {
             var updateSet = system.PrepareSharedUpdates();
             sharedUpdates.AddRange(updateSet);
@@ -52,14 +52,14 @@ public class Sim
         foreach (var agent in _entities.OfType<IAgent>())
         {
             var ctx = new AgentContext();
-            foreach (var builder in _systems.OfType<IBuildAgentContext>())
-                builder.PopulateContext(agent, ctx);
+            foreach (var builder in _systems.OfType<ISystemAgentContextBuilder>())
+                builder.PopulateAgentContext(agent, ctx);
             var intent = agent.GetIntent(ctx);
             if (intent is null)
                 continue;
             foreach (var action in intent.Actions)
             {
-                foreach (var translator in _systems.OfType<ITranslateIntent>())
+                foreach (var translator in _systems.OfType<ISystemAgentIntentTranslator>())
                 {
                     if (translator.CanTranslate(action))
                         sharedUpdates.Add(translator.Translate(agent, action));
@@ -69,7 +69,7 @@ public class Sim
 
         // Get events to raise
         _eventQueue.Clear();
-        var raisers = _systems.OfType<IRaise>();
+        var raisers = _systems.OfType<ISystemEventRaiser>();
         foreach (var raiser in raisers)
         {
             var events = raiser.GetEvents();
@@ -77,7 +77,7 @@ public class Sim
         }
 
         // Raise Events => Call handlers
-        var handlers = _systems.OfType<IHandle>();
+        var handlers = _systems.OfType<ISystemEventHandler>();
         foreach (var e in _eventQueue)
         {
             foreach (var handler in handlers)
@@ -90,11 +90,11 @@ public class Sim
         var allUpdates = sharedUpdates.SelectMany(cu => cu.Updates);
 
         // Update Phase
-        foreach (var system in _systems.OfType<IApplyInternalUpdates>())
+        foreach (var system in _systems.OfType<ISystemInternalUpdateApplier>())
         {
             system.ApplyInternalUpdates();
         }
-        foreach (var system in _systems.OfType<IAcceptUpdates>())
+        foreach (var system in _systems.OfType<ISystemUpdateAcceptor>())
         {
             system.ApplyUpdates(allUpdates);
         }

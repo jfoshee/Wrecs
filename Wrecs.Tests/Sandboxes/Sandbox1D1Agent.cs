@@ -29,10 +29,10 @@ public class Sandbox1D1Agent
 
         public int SellCount { get; private set; }
 
-        public Intent GetIntent(IAgentContext context)
+        public AgentIntent GetIntent(IAgentContext context)
         {
             if (NextStep.HasValue)
-                return new Intent(new Move1DAction(NextStep.Value));
+                return new AgentIntent(new Move1DAction(NextStep.Value));
 
             var snapshot = context.GetCommercialSnapshot();
             var inventory = snapshot.ResourceBalance;
@@ -40,7 +40,7 @@ public class Sandbox1D1Agent
             var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
 
             int step = 0;
-            IIntentAction? tradeAction = null;
+            IAgentIntentAction? tradeAction = null;
 
             switch (_phase)
             {
@@ -118,10 +118,10 @@ public class Sandbox1D1Agent
 
             _lastInventory = inventory;
 
-            var actions = new List<IIntentAction> { new Move1DAction(step) };
+            var actions = new List<IAgentIntentAction> { new Move1DAction(step) };
             if (tradeAction is not null)
                 actions.Insert(0, tradeAction);
-            return new Intent(actions);
+            return new AgentIntent(actions);
         }
     }
 
@@ -133,13 +133,13 @@ public class Sandbox1D1Agent
         public int Id { get; } = EntityId.Next();
         public string Name => nameof(ResourceBuyer);
 
-        public Intent GetIntent(IAgentContext context)
+        public AgentIntent GetIntent(IAgentContext context)
         {
             var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
             var hasActiveBuyOffer = offers.Any(o => o.Author == this && !o.Used);
             if (!hasActiveBuyOffer)
-                return new Intent(new MakeOfferDecision(new BuyOffer(this, Price: 15, Resources: 10)));
-            return Intent.Empty;
+                return new AgentIntent(new MakeOfferDecision(new BuyOffer(this, Price: 15, Resources: 10)));
+            return AgentIntent.Empty;
         }
     }
 
