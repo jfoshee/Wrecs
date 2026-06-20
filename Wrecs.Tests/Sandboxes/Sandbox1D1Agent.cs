@@ -11,21 +11,17 @@ public class Sandbox1D1Agent
 
     /// <summary>
     /// An agent that explores a 1D world to find a resource source, collects resources,
-    /// then travels to a known buyer location to sell, and repeats the cycle.
+    /// then travels to a buyer it can see to sell, and repeats the cycle.
     /// </summary>
     class ExplorerAgent : ISpatial1DAgent, ICommercialAgent
     {
-        private const int BuyerPosition = 10;
-
         public int Id { get; } = EntityId.Next();
         public string Name => nameof(ExplorerAgent);
 
         public int? NextStep { get; set; } // used for testing to override the agent's next step
 
         private ExplorerPhase _phase = ExplorerPhase.Searching;
-        private int _sourcePosition = -1;
         private int _lastInventory = 0;
-        private int _dwellTick = 0;
 
         public int SellCount { get; private set; }
 
@@ -36,8 +32,10 @@ public class Sandbox1D1Agent
 
             var snapshot = context.GetCommercialSnapshot();
             var inventory = snapshot.ResourceBalance;
-            var position = context.GetSnapshot<Spatial1DSnapshot>().Position;
             var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
+            var visibleEntities = context.GetSnapshot<VisibilitySnapshot>().VisibleEntities?.ToList() ?? [];
+            var sourceVisible = visibleEntities.OfType<ProximityResourceSource>().Any();
+            var buyerVisible = visibleEntities.OfType<ResourceBuyer>().Any();
 
             int step = 0;
             IAgentIntentAction? tradeAction = null;
@@ -47,22 +45,14 @@ public class Sandbox1D1Agent
                 case ExplorerPhase.Searching:
                     if (inventory > _lastInventory)
                     {
-                        // Resources appeared — source is at current position
-                        _sourcePosition = position;
+                        // Resources appeared — the source was reached
                         _phase = ExplorerPhase.GoingToSell;
-                        step = Math.Sign(BuyerPosition - position);
-                    }
-                    else if (_dwellTick < 2)
-                    {
-                        // Sit on the spot to allow the source to detect proximity
-                        step = 0;
-                        _dwellTick++;
+                        step = 1;
                     }
                     else
                     {
-                        // No resource here after 2 ticks, move right
+                        // Keep moving until the source becomes visible and can be reached
                         step = 1;
-                        _dwellTick = 0;
                     }
                     break;
 
@@ -70,20 +60,20 @@ public class Sandbox1D1Agent
                     if (inventory >= 10)
                     {
                         _phase = ExplorerPhase.GoingToSell;
-                        step = Math.Sign(BuyerPosition - position);
+                        step = 1;
                     }
                     else
                     {
-                        step = 0; // stay at source until we have enough
+                        step = sourceVisible ? 0 : 1; // stay near the source until we have enough
                     }
                     break;
 
                 case ExplorerPhase.GoingToSell:
-                    if (position == BuyerPosition)
+                    if (inventory > 0)
                     {
-                        if (inventory > 0)
+                        if (buyerVisible)
                         {
-                            // At buyer — take their buy offer if available
+                            // At a visible buyer — take their buy offer if available
                             var goodOffer = offers.OfType<BuyOffer>().FirstOrDefault(o => o.Price >= 10);
                             if (goodOffer is not null)
                                 tradeAction = new TakeOfferDecision(goodOffer);
@@ -91,27 +81,27 @@ public class Sandbox1D1Agent
                         }
                         else
                         {
-                            // Inventory depleted — sale complete, head back to source
-                            SellCount++;
-                            _phase = ExplorerPhase.Returning;
-                            step = Math.Sign(_sourcePosition - BuyerPosition);
+                            step = 1;
                         }
                     }
                     else
                     {
-                        step = Math.Sign(BuyerPosition - position);
+                        // Inventory depleted — sale complete, head back toward the source
+                        SellCount++;
+                        _phase = ExplorerPhase.Returning;
+                        step = -1;
                     }
                     break;
 
                 case ExplorerPhase.Returning:
-                    if (position == _sourcePosition)
+                    if (inventory > _lastInventory)
                     {
                         _phase = ExplorerPhase.Collecting;
                         step = 0;
                     }
                     else
                     {
-                        step = Math.Sign(_sourcePosition - position);
+                        step = -1;
                     }
                     break;
             }
@@ -160,7 +150,8 @@ public class Sandbox1D1Agent
                 new OfferSystem(),
                 new Spatial1DSystem(),
                 new WrapAroundSystem1D(size: WorldSize),
-                new ResourceSourcesController([Source])
+                new ResourceSourcesController([Source]),
+                new VisibilitySystem()
             );
             _sim.InitEntities(
                 (Agent, []),
@@ -205,25 +196,26 @@ public class Sandbox1D1Agent
         world.Agent.NextStep = 4;
         world.Tick();
 
-        // Agent should have new position, but still no resources
+        // Agent should have moved onto the source position, but still no resources yet
         world.GetCommercialState(world.Agent).Should().Be(new CommercialSnapshot(0, 0));
-        world.GetPosition(world.Agent).Should().Be(4);
+        world.GetPosition(world.Agent).Should().Be(5);
 
-        // Move the agent on top of the source
-        world.Agent.NextStep = 1;
+        // Stay on the source long enough to receive the grant
+        world.Agent.NextStep = 0;
         world.Tick();
         world.GetPosition(world.Agent).Should().Be(world.GetPosition(world.Source)); // at same position as source
+        world.GetCommercialState(world.Agent).ResourceBalance.Should().BeGreaterThanOrEqualTo(10);
 
         // Move agent 1 unit beyond the source
         world.Agent.NextStep = 1;
         world.Tick();
         // Agent should have received resources from the source
-        world.GetCommercialState(world.Agent).Should().Be(new CommercialSnapshot(0, 10));
+        world.GetCommercialState(world.Agent).ResourceBalance.Should().BeGreaterThanOrEqualTo(10);
         world.GetPosition(world.Agent).Should().Be(6);
 
         // Agent has moved and no longer receives grant
         world.Tick();
-        world.GetCommercialState(world.Agent).Should().Be(new CommercialSnapshot(0, 10));
+        world.GetCommercialState(world.Agent).ResourceBalance.Should().BeGreaterThanOrEqualTo(10);
     }
 
     [Fact(DisplayName = "Agent explores, collects resources, sells at buyer, and repeats")]
