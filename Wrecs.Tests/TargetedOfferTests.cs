@@ -175,7 +175,7 @@ class MakesOfferThenObservesAgent(Func<ICommercialAgent, Offer> offerFactory) : 
 
 public class TargetedOfferTests
 {
-    [Fact]
+    [Fact(DisplayName = "Targeted Sell Offer: Target Sees and Takes the Offer")]
     public void BasicTargetedOffer_TargetSeesAndTakesOffer()
     {
         // Arrange
@@ -201,7 +201,7 @@ public class TargetedOfferTests
         Assert.Equal(10, sellerState.MoneyBalance);     // Received 10 for resources
     }
 
-    [Fact]
+    [Fact(DisplayName = "Targeted Sell Offer: Non-Target Does Not See the Offer")]
     public void TargetedOffer_NonTargetDoesNotSeeOffer()
     {
         // Arrange
@@ -228,7 +228,7 @@ public class TargetedOfferTests
         Assert.Empty(nonTargetOffersOnTick2.OfType<TargetedSellOffer>());
     }
 
-    [Fact]
+    [Fact(DisplayName = "Targeted Sell Offers: Same Target Sees Offers From Multiple Sellers")]
     public void MultipleTargetedOffersToSameTarget_TargetSeesAll()
     {
         // Arrange
@@ -255,7 +255,7 @@ public class TargetedOfferTests
         Assert.Contains(targetedOffers, o => o.Price == 20 && o.Resources == 3);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Targeted Sell Offers: Different Targets Each See Only Their Own Offer")]
     public void DifferentTargets_EachSeesOnlyTheirOwnOffers()
     {
         // Arrange
@@ -290,7 +290,7 @@ public class TargetedOfferTests
         Assert.Equal(sellerB, targetBOffers[0].Seller);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Mixed General and Targeted Sell Offers: Target Sees Both, Non-Target Sees Only General")]
     public void MixedGeneralAndTargetedOffers_TargetSeesBoth_NonTargetSeesOnlyGeneral()
     {
         // Arrange
@@ -334,7 +334,7 @@ public class TargetedOfferTests
         Assert.Empty(nonTargetTargetedOffers);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Targeted Buy Offer: Target Sees and Takes the Offer")]
     public void BasicTargetedBuyOffer_TargetSeesAndTakesOffer()
     {
         // Arrange
@@ -360,7 +360,7 @@ public class TargetedOfferTests
         Assert.Equal(45, sellerState.ResourceBalance); // Sold 5 resources
     }
 
-    [Fact]
+    [Fact(DisplayName = "Targeted Buy Offer: Non-Target Does Not See the Offer")]
     public void TargetedBuyOffer_NonTargetDoesNotSeeOffer()
     {
         // Arrange
@@ -386,7 +386,7 @@ public class TargetedOfferTests
         Assert.Empty(nonTargetOffersOnTick2.OfType<TargetedBuyOffer>());
     }
 
-    [Fact]
+    [Fact(DisplayName = "Targeted Buy Offers: Same Target Sees Offers From Multiple Buyers")]
     public void MultipleTargetedBuyOffersToSameTarget_TargetSeesAll()
     {
         // Arrange
@@ -413,7 +413,7 @@ public class TargetedOfferTests
         Assert.Contains(targetedOffers, o => o.Price == 20 && o.Resources == 3);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Targeted Buy Offers: Different Targets Each See Only Their Own Offer")]
     public void DifferentTargets_EachSeesOnlyTheirOwnBuyOffers()
     {
         // Arrange
@@ -448,7 +448,7 @@ public class TargetedOfferTests
         Assert.Equal(buyerB, sellerBOffers[0].Buyer);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Mixed General and Targeted Buy Offers: Target Sees Both, Non-Target Sees Only General")]
     public void MixedGeneralAndTargetedBuyOffers_TargetSeesBoth_NonTargetSeesOnlyGeneral()
     {
         // Arrange
@@ -492,7 +492,7 @@ public class TargetedOfferTests
         Assert.Empty(nonTargetTargetedOffers);
     }
 
-    [Fact]
+    [Fact(DisplayName = "Targeted Sell Offer: Author Sees Its Own Offer")]
     public void AuthorSeesItsOwnTargetedSellOffer()
     {
         // Arrange
@@ -513,7 +513,7 @@ public class TargetedOfferTests
         Assert.Single(sellerOffersOnTick2.OfType<TargetedSellOffer>());
     }
 
-    [Fact]
+    [Fact(DisplayName = "Targeted Buy Offer: Author Sees Its Own Offer")]
     public void AuthorSeesItsOwnTargetedBuyOffer()
     {
         // Arrange
