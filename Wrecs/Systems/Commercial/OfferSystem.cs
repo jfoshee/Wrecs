@@ -77,12 +77,21 @@ public class OfferSystem :
         if (agent is not ICommercialAgent commercialAgent)
             return null;
         var allOffers = _cachedAllOffers ?? [];
-        // Filter offers: include general offers + targeted offers for this agent
+        // Filter offers: an agent sees its own offers, general offers, and offers targeted at it
         var offersForAgent = allOffers
-            .Where(o => o is not TargetedSellOffer targeted || targeted.Buyer == commercialAgent)
+            .Where(o => IsVisibleTo(o, commercialAgent))
             .ToList();
         return new OfferListSnapshot(offersForAgent);
     }
+
+    private static bool IsVisibleTo(Offer offer, ICommercialAgent agent) =>
+        offer.Author == agent ||
+        offer switch
+        {
+            TargetedSellOffer targeted => targeted.Buyer == agent,
+            TargetedBuyOffer targeted => targeted.Seller == agent,
+            _ => true
+        };
 
     public UpdateSet TranslateIntent(IAgent agent, TakeOfferDecision action)
     {

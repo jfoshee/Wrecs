@@ -35,7 +35,7 @@ public class Sandbox1D1Agent
             var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
             var visibleEntities = context.GetSnapshot<VisibilitySnapshot>().VisibleEntities?.ToList() ?? [];
             var sourceVisible = visibleEntities.OfType<ProximityResourceSource>().Any();
-            var buyerVisible = visibleEntities.OfType<ResourceBuyer>().Any();
+            var buyerVisible = visibleEntities.OfType<Merchant>().Any();
 
             int step = 0;
             IAgentIntentAction? tradeAction = null;
@@ -118,17 +118,23 @@ public class Sandbox1D1Agent
     /// <summary>
     /// A stationary commercial agent at a known location that continuously posts buy offers for resources.
     /// </summary>
-    class ResourceBuyer : ISpatial1DEntity, ICommercialAgent
+    class Merchant : ISpatial1DEntity, ICommercialAgent
     {
         public int Id { get; } = EntityId.Next();
-        public string Name => nameof(ResourceBuyer);
+        public string Name => nameof(Merchant);
 
         public AgentIntent GetIntent(IAgentContext context)
         {
+            var visibleEntities = context.GetSnapshot<VisibilitySnapshot>().VisibleEntities?.ToList() ?? [];
+            var target = visibleEntities.OfType<ICommercialAgent>().FirstOrDefault();
+            if (target is null)
+                return AgentIntent.Empty;
+
             var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
-            var hasActiveBuyOffer = offers.Any(o => o.Author == this && !o.Used);
-            if (!hasActiveBuyOffer)
-                return new AgentIntent(new MakeOfferDecision(new BuyOffer(this, Price: 15, Resources: 10)));
+            var hasActiveOfferToTarget = offers.Any(o =>
+                o is TargetedBuyOffer targeted && targeted.Author == this && targeted.Seller == target && !o.Used);
+            if (!hasActiveOfferToTarget)
+                return new AgentIntent(new MakeOfferDecision(new TargetedBuyOffer(this, target, Price: 15, Resources: 10)));
             return AgentIntent.Empty;
         }
     }
@@ -139,7 +145,7 @@ public class Sandbox1D1Agent
         private readonly Sim _sim = new();
 
         public readonly ExplorerAgent Agent = new();
-        public readonly ResourceBuyer Buyer = new();
+        public readonly Merchant Buyer = new();
         public readonly ProximityResourceSource Source = new(resourcesGranted: 10, intervalTicks: 1, proximity: 0);
 
         public World()
