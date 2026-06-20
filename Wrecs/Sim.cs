@@ -6,7 +6,6 @@ public class Sim
 {
     private readonly List<ISystem> _systems = [];
     private readonly List<IEntity> _entities = [];
-    private readonly List<IEvent> _eventQueue = [];
     private bool _dependenciesInjected = false;
 
     public void AddSystem(ISystem system)
@@ -68,17 +67,17 @@ public class Sim
         }
 
         // Get events to raise
-        _eventQueue.Clear();
+        var eventQueue = new List<IEvent>();
         var raisers = _systems.OfType<ISystemEventRaiser>();
         foreach (var raiser in raisers)
         {
             var events = raiser.GetEvents();
-            _eventQueue.AddRange(events);
+            eventQueue.AddRange(events);
         }
 
         // Raise Events => Call handlers
         var handlers = _systems.OfType<ISystemEventHandler>();
-        foreach (var e in _eventQueue)
+        foreach (var e in eventQueue)
         {
             foreach (var handler in handlers)
             {
