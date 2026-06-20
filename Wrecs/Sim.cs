@@ -47,12 +47,11 @@ public class Sim
         }
 
         // Agent invocation phase: Sim builds each agent's context and dispatches intent actions to translators
-        // TODO: shuffle agents for fairness (currently processes in registration order)
         foreach (var agent in _entities.OfType<IAgent>())
         {
             var ctx = new AgentContext();
-            foreach (var builder in _systems.OfType<ISystemAgentContextBuilder>())
-                builder.PopulateAgentContext(agent, ctx);
+            foreach (var contextProvider in _systems.OfType<ISystemAgentContextProvider>())
+                contextProvider.PopulateAgentContext(agent, ctx);
             var intent = agent.GetIntent(ctx);
             if (intent is null)
                 continue;
@@ -68,18 +67,18 @@ public class Sim
 
         // Get events to raise
         var eventQueue = new List<IEvent>();
-        var raisers = _systems.OfType<ISystemEventRaiser>();
-        foreach (var raiser in raisers)
+        var eventRaisers = _systems.OfType<ISystemEventRaiser>();
+        foreach (var raiser in eventRaisers)
         {
             var events = raiser.GetEvents();
             eventQueue.AddRange(events);
         }
 
         // Raise Events => Call handlers
-        var handlers = _systems.OfType<ISystemEventHandler>();
+        var eventHandlers = _systems.OfType<ISystemEventHandler>();
         foreach (var e in eventQueue)
         {
-            foreach (var handler in handlers)
+            foreach (var handler in eventHandlers)
             {
                 handler.Handle(e);
             }
