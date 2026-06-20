@@ -5,6 +5,6 @@ namespace Wrecs.Systems.Commercial;
 public interface ICommercialAgent :
     ICommercialEntity,
     IAgent,
-    IRequireSnapshot<MoneySnapshot>,
-    IRequireSnapshot<InventorySnapshot>,
-    IRequireSnapshot<OfferListSnapshot>;
+    IAgentRequireSnapshot<MoneySnapshot>,
+    IAgentRequireSnapshot<InventorySnapshot>,
+    IAgentRequireSnapshot<OfferListSnapshot>;

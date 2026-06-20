@@ -13,7 +13,7 @@ public interface ISystemAgentContextProvider : ISystem
 
 /// <summary>
 /// A system that provides its own <typeparamref name="TSnapshot"/> state into an
-/// agent's context, but only for agents that declare <see cref="IRequireSnapshot{T}"/>
+/// agent's context, but only for agents that declare <see cref="IAgentRequireSnapshot{T}"/>
 /// for that snapshot type.
 /// </summary>
 public interface ISystemAgentContextProvider<TSnapshot> : ISystemAgentContextProvider where TSnapshot : struct, IStateSnapshot
@@ -22,7 +22,7 @@ public interface ISystemAgentContextProvider<TSnapshot> : ISystemAgentContextPro
 
     void ISystemAgentContextProvider.PopulateAgentContext(IAgent agent, AgentContext context)
     {
-        if (agent is not IRequireSnapshot<TSnapshot>)
+        if (agent is not IAgentRequireSnapshot<TSnapshot>)
             return;
         var snapshot = BuildSnapshot(agent);
         if (snapshot.HasValue)

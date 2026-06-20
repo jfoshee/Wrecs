@@ -16,4 +16,4 @@ public interface IAgent : IEntity
 /// in its <see cref="IAgentContext"/>. Implemented by agents; checked by
 /// <see cref="ISystemAgentContextProvider{TSnapshot}"/> implementations.
 /// </summary>
-public interface IRequireSnapshot<T> where T : struct, IStateSnapshot;
+public interface IAgentRequireSnapshot<T> : IAgent where T : struct, IStateSnapshot;
