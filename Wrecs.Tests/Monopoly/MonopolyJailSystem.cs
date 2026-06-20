@@ -4,7 +4,11 @@ namespace Wrecs.Tests.Monopoly;
 
 record struct MonopolyJailSnapshot(bool IsInJail, int TurnsRemaining) : IStateSnapshot<MonopolyJailSystem>;
 
-class MonopolyJailSystem : ISystem<IMonopolyEntity, MonopolyJailSnapshot>, ISystemUpdateAcceptor<MonopolyJailSnapshot>, IRequire<TurnSystem>
+class MonopolyJailSystem :
+    ISystem<IMonopolyEntity, MonopolyJailSnapshot>,
+    ISystemWithInternalUpdates,
+    ISystemUpdateAcceptor<MonopolyJailSnapshot>,
+    IRequire<TurnSystem>
 {
     public const string PayFineResource = "Jail Fine Receipt";
     private readonly List<IEntity> _entities = [];

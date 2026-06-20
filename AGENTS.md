@@ -86,10 +86,6 @@ public class MySystem : ISystem<IMyEntity, MySnapshot>
     public IReadOnlyList<IEntity> GetEntities() => _entities;
 
     public MySnapshot GetTypedState(IEntity entity) => _states[entity];
-
-    // Required by ISystemWithInternalUpdates
-    public void PrepareInternalUpdates() { }
-    public void ApplyInternalUpdates() { }
 }
 ```
 

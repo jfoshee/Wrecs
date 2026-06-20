@@ -26,9 +26,6 @@ public class SystemA : ISystem<TestEntity, StateA>, ISystemUpdateAcceptor<StateA
         foreach (var update in updates)
             _states[update.Entity] = update.State;
     }
-
-    public void PrepareInternalUpdates() { }
-    public void ApplyInternalUpdates() { }
 }
 
 public class SystemB : ISystem<TestEntity, StateB>, ISystemUpdateAcceptor<StateB>
@@ -53,9 +50,6 @@ public class SystemB : ISystem<TestEntity, StateB>, ISystemUpdateAcceptor<StateB
         foreach (var update in updates)
             _states[update.Entity] = update.State;
     }
-
-    public void PrepareInternalUpdates() { }
-    public void ApplyInternalUpdates() { }
 }
 
 public class ControllerA : ISystemSharedUpdates, IRequire<SystemA>

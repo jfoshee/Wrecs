@@ -2,11 +2,9 @@ using Wrecs.Core;
 
 namespace Wrecs.Systems;
 
-public class LogTickSystem(IOutput output) : ISystem
+public class LogTickSystem(IOutput output) : ISystemWithInternalUpdates
 {
     private int _tickCount = 0;
-
-    public void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState) { }
 
     public void PrepareInternalUpdates()
     {

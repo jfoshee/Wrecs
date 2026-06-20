@@ -13,9 +13,7 @@ public class EventsTests
             return r;
         }
 
-        public void ApplyInternalUpdates() { }
         public void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState) { }
-        public void PrepareInternalUpdates() { }
     }
 
     class BasicHandler : ISystemEventHandler<BasicEvent>, ISystem
@@ -26,10 +24,6 @@ public class EventsTests
         {
             ++Handled;
         }
-
-        public void ApplyInternalUpdates() { }
-        public void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState) { }
-        public void PrepareInternalUpdates() { }
     }
 
     [Fact(DisplayName = "0 Raised, 0 Handled")]
@@ -105,10 +99,6 @@ public class EventsTests
             ToRaise.Clear();
             return r;
         }
-
-        public void ApplyInternalUpdates() { }
-        public void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState) { }
-        public void PrepareInternalUpdates() { }
     }
 
     class AnotherHandler : ISystemEventHandler<AnotherEvent>, ISystem
@@ -119,10 +109,6 @@ public class EventsTests
         {
             ++Handled;
         }
-
-        public void ApplyInternalUpdates() { }
-        public void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState) { }
-        public void PrepareInternalUpdates() { }
     }
 
     [Fact(DisplayName = "Event Type Distinction")]

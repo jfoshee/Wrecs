@@ -71,10 +71,6 @@ public class Spatial1DSystem :
         return new([new Spatial1DUpdate(agent, newPosition)]);
     }
 
-    public void PrepareInternalUpdates() { }
-
-    public void ApplyInternalUpdates() { }
-
     public float GetDistance(IEntity e1, IEntity e2)
     {
         return GetDistance(_entityPositions[e1], _entityPositions[e2]);

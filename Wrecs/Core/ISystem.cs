@@ -6,7 +6,6 @@ namespace Wrecs.Core;
 public interface ISystem;
 
 public interface ISystem<TMarkerInterface, TStateSnapshot> :
-    ISystemWithInternalUpdates,
     ISystemWithEntities
     where TMarkerInterface : IEntity
     where TStateSnapshot : struct, IStateSnapshot

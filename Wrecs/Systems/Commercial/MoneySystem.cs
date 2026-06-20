@@ -47,9 +47,6 @@ public class MoneySystem : ISystem<IMoneyEntity, MoneySnapshot>, ISystemUpdateAc
         InitEntities(matchingEntities);
     }
 
-    public void PrepareInternalUpdates() { }
-    public void ApplyInternalUpdates() { }
-
     public MoneySnapshot? BuildSnapshot(IAgent agent) =>
         _entities.Contains(agent) ? GetTypedState(agent) : null;
 

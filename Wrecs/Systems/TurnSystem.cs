@@ -16,7 +16,10 @@ public interface ITakeTurns : IEntity;
 /// </summary>
 public record struct TurnSnapshot(bool IsMyTurn, int Phase = 0) : IStateSnapshot<TurnSystem>;
 
-public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>, ISystemEventHandler<EndGameEvent>
+public class TurnSystem :
+    ISystem<ITakeTurns, TurnSnapshot>,
+    ISystemEventHandler<EndGameEvent>,
+    ISystemInternalUpdateApplier
 {
     private bool _enabled = true;
     private List<IEntity> _entities = [];
@@ -62,8 +65,6 @@ public class TurnSystem : ISystem<ITakeTurns, TurnSnapshot>, ISystemEventHandler
         var index = _entities.IndexOf(entity);
         return new TurnSnapshot(index == _currentTurnIndex, _currentPhase);
     }
-
-    public void PrepareInternalUpdates() { }
 
     public void ApplyInternalUpdates()
     {

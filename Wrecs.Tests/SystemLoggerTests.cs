@@ -27,7 +27,6 @@ public class SystemLoggerTests
 
         // Prepare phase
         logger.PrepareInternalUpdates();
-        system.PrepareInternalUpdates();
         // Apply phase
         logger.ApplyInternalUpdates();
         system.ApplyInternalUpdates();

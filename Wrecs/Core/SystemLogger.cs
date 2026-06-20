@@ -1,6 +1,8 @@
 namespace Wrecs.Core;
 
-public class SystemLogger<TSystem>(IOutput output) : ISystem, ISystemInternalUpdatePreparer, IRequire<TSystem>
+public class SystemLogger<TSystem>(IOutput output) :
+    ISystemWithInternalUpdates,
+    IRequire<TSystem>
     where TSystem : class, ISystem, ISystemEntityStateInitializer, ISystemEntityStateProvider
 {
     private TSystem? _system;

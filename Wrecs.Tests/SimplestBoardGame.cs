@@ -35,10 +35,6 @@ class SimpleEndGameSystem : ISystem<ISimpleEndGamePlayer, EndGameSnapshot>,
         return new EndGameSnapshot(IsGameOver: true, IsWinner: entity == _winner);
     }
 
-    public void PrepareInternalUpdates() { }
-
-    public void ApplyInternalUpdates() { }
-
     // Raise event when game is over
     public IEnumerable<EndGameEvent> GetTypedEvents()
     {
@@ -129,10 +125,6 @@ public class SimplestBoardGameTest
     {
         public int Count { get; private set; }
         public void HandleTyped(EndGameEvent e) => Count++;
-
-        public void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState) { }
-        public void ApplyInternalUpdates() { }
-        public void PrepareInternalUpdates() { }
     }
 
     [Fact(DisplayName = "Initialization")]

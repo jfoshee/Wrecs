@@ -93,9 +93,6 @@ public class InventorySystem : ISystem<IInventoryEntity, InventorySnapshot>, ISy
         InitEntities(matchingEntities);
     }
 
-    public void PrepareInternalUpdates() { }
-    public void ApplyInternalUpdates() { }
-
     public InventorySnapshot? BuildSnapshot(IAgent agent) =>
         _entities.Contains(agent) ? GetTypedState(agent) : null;
 

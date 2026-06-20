@@ -18,6 +18,7 @@ public record struct AddOfferOperation(Offer Offer) : IStateSnapshot<OfferSystem
 
 public class OfferSystem :
     ISystem<ICommercialAgent, OfferListSnapshot>,
+    ISystemWithInternalUpdates,
     ISystemAgentContextProvider<OfferListSnapshot>,
     ISystemAgentIntentTranslator<TakeOfferDecision>,
     ISystemAgentIntentTranslator<MakeOfferDecision>,
