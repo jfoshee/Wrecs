@@ -29,7 +29,7 @@ public record Spatial1DUpdate : EntityUpdate<Spatial1DSnapshot>
 
 public class Spatial1DSystem :
     ISystem<ISpatial1DEntity, Spatial1DSnapshot>,
-    IBuildAgentContext<Spatial1DSnapshot>,
+    ISystemAgentContextProvider<Spatial1DSnapshot>,
     ISystemAgentIntentTranslator<Move1DAction>,
     ISystemUpdateAcceptor<Spatial1DSnapshot>,
     ISpatialSystem

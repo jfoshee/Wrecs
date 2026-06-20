@@ -13,7 +13,7 @@ public record MoneyUpdate : EntityUpdate<MoneySnapshot>
     }
 }
 
-public class MoneySystem : ISystem<IMoneyEntity, MoneySnapshot>, ISystemUpdateAcceptor<MoneySnapshot>, IBuildAgentContext<MoneySnapshot>
+public class MoneySystem : ISystem<IMoneyEntity, MoneySnapshot>, ISystemUpdateAcceptor<MoneySnapshot>, ISystemAgentContextProvider<MoneySnapshot>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, int> _balances = [];

@@ -13,7 +13,7 @@ public class Sandbox1D1Agent
     /// An agent that explores a 1D world to find a resource source, collects resources,
     /// then travels to a buyer it can see to sell, and repeats the cycle.
     /// </summary>
-    class ExplorerAgent : ISpatial1DAgent, ICommercialAgent
+    class ExplorerAgent : ISpatial1DAgent, ICommercialAgent, IRequireSnapshot<VisibilitySnapshot>
     {
         public int Id { get; } = EntityId.Next();
         public string Name => nameof(ExplorerAgent);
@@ -118,7 +118,7 @@ public class Sandbox1D1Agent
     /// <summary>
     /// A stationary commercial agent at a known location that continuously posts buy offers for resources.
     /// </summary>
-    class Merchant : ISpatial1DEntity, ICommercialAgent
+    class Merchant : ISpatial1DEntity, ICommercialAgent, IRequireSnapshot<VisibilitySnapshot>
     {
         public int Id { get; } = EntityId.Next();
         public string Name => nameof(Merchant);

@@ -14,6 +14,6 @@ public interface IAgent : IEntity
 /// <summary>
 /// Declares that an agent needs a snapshot of type <typeparamref name="T"/>
 /// in its <see cref="IAgentContext"/>. Implemented by agents; checked by
-/// <see cref="IBuildAgentContext{TSnapshot}"/> implementations.
+/// <see cref="ISystemAgentContextProvider{TSnapshot}"/> implementations.
 /// </summary>
 public interface IRequireSnapshot<T> where T : struct, IStateSnapshot;

@@ -53,7 +53,7 @@ public record InventoryUpdate : EntityUpdate<InventorySnapshot>
     }
 }
 
-public class InventorySystem : ISystem<IInventoryEntity, InventorySnapshot>, ISystemUpdateAcceptor<InventorySnapshot>, IBuildAgentContext<InventorySnapshot>
+public class InventorySystem : ISystem<IInventoryEntity, InventorySnapshot>, ISystemUpdateAcceptor<InventorySnapshot>, ISystemAgentContextProvider<InventorySnapshot>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, Dictionary<string, int>> _inventories = [];
