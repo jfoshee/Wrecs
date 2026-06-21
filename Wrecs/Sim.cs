@@ -111,19 +111,37 @@ public class Sim
                               .Concat(_entities.OfType<IRequire>()); // TODO: Should we allow injecting into entities? currently required for Monopoly real estate agent and sources/sinks (flows).
 
         foreach (var target in targets)
-        {
-            foreach (var system in _systems)
-                InjectSystemIfRequired(target, system);
-        }
+            InjectSystemsIfRequired(target);
     }
 
-    private static void InjectSystemIfRequired(IRequire entity, ISystem system)
+    private void InjectSystemsIfRequired(IRequire entity)
     {
-        var requireInterface = typeof(IRequire<>).MakeGenericType(system.GetType());
-        if (requireInterface.IsInstanceOfType(entity))
+        var dependencyContracts = entity.GetType()
+            .GetInterfaces()
+            .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequire<>));
+
+        foreach (var dependencyContract in dependencyContracts)
         {
-            var injectMethod = requireInterface.GetMethod(nameof(IRequire<>.Inject))!;
-            injectMethod.Invoke(entity, [system]);
+            var requiredType = dependencyContract.GetGenericArguments()[0];
+            // Use IsAssignableFrom so that we can match on interfaces or base classes, not just exact types
+            // This allows consumers to be less specific about their dependencies
+            var matches = _systems
+                .Where(system => requiredType.IsAssignableFrom(system.GetType()))
+                .ToList();
+
+            if (matches.Count == 0)
+                continue;
+
+            if (matches.Count > 1)
+            {
+                var matchList = string.Join(", ", matches.Select(s => s.GetType().Name));
+                throw new InvalidOperationException(
+                    $"Multiple systems match {requiredType.Name} for {entity.GetType().Name}: {matchList}. " +
+                    "Register only one matching system or require a more specific type.");
+            }
+
+            var injectMethod = dependencyContract.GetMethod(nameof(IRequire<ISystem>.Inject))!;
+            injectMethod.Invoke(entity, [matches[0]]);
         }
     }
 }

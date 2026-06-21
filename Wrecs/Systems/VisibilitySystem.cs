@@ -9,15 +9,15 @@ public record struct VisibilitySnapshot(IReadOnlyList<IEntity> VisibleEntities) 
 /// </summary>
 public class VisibilitySystem(float maxDistance = 1) :
     ISystemAgentContextProvider<VisibilitySnapshot>,
-    IRequire<Spatial1DSystem>
+    IRequire<ISpatialSystem>
 {
-    private Spatial1DSystem? _spatialSystem;
-    public void Inject(Spatial1DSystem dependency) => _spatialSystem = dependency;
+    private ISpatialSystem? _spatialSystem;
+    public void Inject(ISpatialSystem dependency) => _spatialSystem = dependency;
 
     public VisibilitySnapshot? BuildSnapshot(IAgent agent)
     {
         if (_spatialSystem is null)
-            throw new InvalidOperationException("Spatial1DSystem dependency not injected.");
+            throw new InvalidOperationException($"{nameof(ISpatialSystem)} dependency not injected.");
 
         var entities = _spatialSystem.GetEntities();
         var visibleEntities = entities.Where(e => e != agent && _spatialSystem.GetDistance(agent, e) <= maxDistance)
