@@ -157,7 +157,7 @@ public class Sandbox1D1Agent
                 new Spatial1DSystem(),
                 new WrapAroundSystem1D(size: WorldSize),
                 new ResourceSourcesController([Source]),
-                new VisibilitySystem()
+                new VisibilitySystem(maxDistance: 1)
             );
             _sim.InitEntities(
                 (Agent, []),

@@ -7,7 +7,7 @@ public record struct VisibilitySnapshot(IReadOnlyList<IEntity> VisibleEntities) 
 /// <summary>
 /// Gives Agents the ability to see what Entities are nearby
 /// </summary>
-public class VisibilitySystem :
+public class VisibilitySystem(float maxDistance = 1) :
     ISystemAgentContextProvider<VisibilitySnapshot>,
     IRequire<Spatial1DSystem>
 {
@@ -19,10 +19,8 @@ public class VisibilitySystem :
         if (_spatialSystem is null)
             throw new InvalidOperationException("Spatial1DSystem dependency not injected.");
 
-        const float MaxDistance = 2;
-
         var entities = _spatialSystem.GetEntities();
-        var visibleEntities = entities.Where(e => e != agent && _spatialSystem.GetDistance(agent, e) <= MaxDistance)
+        var visibleEntities = entities.Where(e => e != agent && _spatialSystem.GetDistance(agent, e) <= maxDistance)
                                       .ToList();
         return new(visibleEntities);
     }
