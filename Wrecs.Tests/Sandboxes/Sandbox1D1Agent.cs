@@ -7,111 +7,170 @@ namespace Wrecs.Tests.Sandboxes;
 // TODO: The agent can die if it does not get enough food.
 public class Sandbox1D1Agent
 {
-    enum ExplorerPhase { Searching, Collecting, GoingToSell, Returning }
+    private const int MerchantBuyPrice = 15;
 
-    /// <summary>
-    /// An agent that explores a 1D world to find a resource source, collects resources,
-    /// then travels to a buyer it can see to sell, and repeats the cycle.
-    /// </summary>
-    class ExplorerAgent : ISpatial1DAgent, ICommercialAgent, IAgentRequireSnapshot<VisibilitySnapshot>
+    public sealed record ExplorerObservation(int ResourceBalance,
+                                             int MoneyBalance,
+                                             bool CanCollect,
+                                             bool CanSell,
+                                             bool SourceVisible,
+                                             bool BuyerVisible)
+    {
+        public static ExplorerObservation From(IAgentContext context)
+        {
+            var commercialState = context.GetCommercialSnapshot();
+            var visibilityState = context.GetSnapshot<VisibilitySnapshot>();
+            var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
+
+            var sourceVisible = visibilityState.VisibleEntities?.OfType<IResourceSource>().Any() ?? false;
+            var buyerVisible = visibilityState.VisibleEntities?.OfType<ICommercialAgent>().Any() ?? false;
+            var canSell = offers.OfType<BuyOffer>().Any(o => !o.Used);
+
+            return new ExplorerObservation(
+                ResourceBalance: commercialState.ResourceBalance,
+                MoneyBalance: commercialState.MoneyBalance,
+                CanCollect: sourceVisible,
+                CanSell: canSell,
+                SourceVisible: sourceVisible,
+                BuyerVisible: buyerVisible
+            );
+        }
+    }
+
+    public enum ExplorerAction
+    {
+        Stay,
+        MoveLeft,
+        MoveRight,
+        Collect,
+        Sell
+    }
+
+    public interface IExplorerPolicy
+    {
+        ExplorerAction ChooseAction(ExplorerObservation observation);
+    }
+
+    public sealed class ExplorerAgent(IExplorerPolicy policy) :
+        ISpatial1DAgent,
+        ICommercialAgent,
+        IAgentRequireSnapshot<VisibilitySnapshot>
     {
         public int Id { get; } = EntityId.Next();
         public string Name => nameof(ExplorerAgent);
 
-        public int? NextStep { get; set; } // used for testing to override the agent's next step
+        public AgentIntent GetIntent(IAgentContext context)
+        {
+            var observation = ExplorerObservation.From(context);
+            var action = policy.ChooseAction(observation);
 
+            return ToIntent(action, context);
+        }
+
+        private static AgentIntent ToIntent(ExplorerAction action, IAgentContext context)
+        {
+            return action switch
+            {
+                ExplorerAction.Collect => AgentIntent.Empty, // Collecting is handled by the ResourceSource system
+                ExplorerAction.Stay => AgentIntent.Empty,
+                ExplorerAction.MoveLeft => new AgentIntent(new Move1DAction(-1)),
+                ExplorerAction.MoveRight => new AgentIntent(new Move1DAction(+1)),
+                ExplorerAction.Sell => new AgentIntent(new TakeOfferDecision(GetBestBuyOffer(context))),
+                _ => throw new InvalidOperationException($"Unknown action: {action}")
+            };
+        }
+
+        private static BuyOffer GetBestBuyOffer(IAgentContext context) =>
+            context.GetSnapshot<OfferListSnapshot>().Offers?
+                .OfType<BuyOffer>()
+                .Where(o => !o.Used)
+                .OrderByDescending(o => o.Price)
+                .FirstOrDefault()
+            ?? throw new InvalidOperationException("Cannot sell without an available buy offer.");
+    }
+
+    enum ExplorerPhase { Searching, Collecting, GoingToSell, Returning }
+
+    public sealed class PrescriptedExplorerPolicy(ExplorerAction defaultAction = ExplorerAction.Stay) : IExplorerPolicy
+    {
+        private readonly Queue<ExplorerAction> _actions = [];
+
+        public void Enqueue(params ExplorerAction[] actions)
+        {
+            foreach (var action in actions)
+                _actions.Enqueue(action);
+        }
+
+        public ExplorerAction ChooseAction(ExplorerObservation observation) =>
+            _actions.TryDequeue(out var action) ? action : defaultAction;
+    }
+
+    public sealed class ScriptedExplorerPolicy : IExplorerPolicy
+    {
         private ExplorerPhase _phase = ExplorerPhase.Searching;
         private int _lastInventory = 0;
 
-        public int SellCount { get; private set; }
-
-        public AgentIntent GetIntent(IAgentContext context)
+        public ExplorerAction ChooseAction(ExplorerObservation observation)
         {
-            if (NextStep.HasValue)
-                return new AgentIntent(new Move1DAction(NextStep.Value));
-
-            var snapshot = context.GetCommercialSnapshot();
-            var inventory = snapshot.ResourceBalance;
-            var offers = context.GetSnapshot<OfferListSnapshot>().Offers?.ToList() ?? [];
-            var visibleEntities = context.GetSnapshot<VisibilitySnapshot>().VisibleEntities?.ToList() ?? [];
-            var sourceVisible = visibleEntities.OfType<ProximityResourceSource>().Any();
-            var buyerVisible = visibleEntities.OfType<Merchant>().Any();
-
-            int step = 0;
-            IAgentIntentAction? tradeAction = null;
-
-            switch (_phase)
+            var action = _phase switch
             {
-                case ExplorerPhase.Searching:
-                    if (inventory > _lastInventory)
-                    {
-                        // Resources appeared — the source was reached
-                        _phase = ExplorerPhase.GoingToSell;
-                        step = 1;
-                    }
-                    else
-                    {
-                        // Keep moving until the source becomes visible and can be reached
-                        step = 1;
-                    }
-                    break;
+                ExplorerPhase.Searching => Search(observation),
+                ExplorerPhase.Collecting => Collect(observation),
+                ExplorerPhase.GoingToSell => GoSell(observation),
+                ExplorerPhase.Returning => Return(observation),
+                _ => ExplorerAction.Stay
+            };
 
-                case ExplorerPhase.Collecting:
-                    if (inventory >= 10)
-                    {
-                        _phase = ExplorerPhase.GoingToSell;
-                        step = 1;
-                    }
-                    else
-                    {
-                        step = sourceVisible ? 0 : 1; // stay near the source until we have enough
-                    }
-                    break;
+            _lastInventory = observation.ResourceBalance;
+            return action;
+        }
 
-                case ExplorerPhase.GoingToSell:
-                    if (inventory > 0)
-                    {
-                        if (buyerVisible)
-                        {
-                            // At a visible buyer — take their buy offer if available
-                            var goodOffer = offers.OfType<BuyOffer>().FirstOrDefault(o => o.Price >= 10);
-                            if (goodOffer is not null)
-                                tradeAction = new TakeOfferDecision(goodOffer);
-                            step = 0;
-                        }
-                        else
-                        {
-                            step = 1;
-                        }
-                    }
-                    else
-                    {
-                        // Inventory depleted — sale complete, head back toward the source
-                        SellCount++;
-                        _phase = ExplorerPhase.Returning;
-                        step = -1;
-                    }
-                    break;
-
-                case ExplorerPhase.Returning:
-                    if (inventory > _lastInventory)
-                    {
-                        _phase = ExplorerPhase.Collecting;
-                        step = 0;
-                    }
-                    else
-                    {
-                        step = -1;
-                    }
-                    break;
+        private ExplorerAction Search(ExplorerObservation observation)
+        {
+            if (observation.ResourceBalance > _lastInventory)
+            {
+                _phase = ExplorerPhase.GoingToSell;
+                return ExplorerAction.MoveRight;
             }
 
-            _lastInventory = inventory;
+            return ExplorerAction.MoveRight;
+        }
 
-            var actions = new List<IAgentIntentAction> { new Move1DAction(step) };
-            if (tradeAction is not null)
-                actions.Insert(0, tradeAction);
-            return new AgentIntent(actions);
+        private ExplorerAction Collect(ExplorerObservation observation)
+        {
+            if (observation.ResourceBalance > 0)
+            {
+                _phase = ExplorerPhase.GoingToSell;
+                return ExplorerAction.MoveRight;
+            }
+
+            return observation.CanCollect
+                ? ExplorerAction.Collect
+                : ExplorerAction.MoveRight;
+        }
+
+        private ExplorerAction GoSell(ExplorerObservation observation)
+        {
+            if (observation.ResourceBalance <= 0)
+            {
+                _phase = ExplorerPhase.Returning;
+                return ExplorerAction.MoveLeft;
+            }
+
+            return observation.CanSell
+                ? ExplorerAction.Sell
+                : ExplorerAction.MoveRight;
+        }
+
+        private ExplorerAction Return(ExplorerObservation observation)
+        {
+            if (observation.ResourceBalance > _lastInventory)
+            {
+                _phase = ExplorerPhase.Collecting;
+                return ExplorerAction.Collect;
+            }
+
+            return ExplorerAction.MoveLeft;
         }
     }
 
@@ -144,12 +203,14 @@ public class Sandbox1D1Agent
         const int WorldSize = 20;
         private readonly Sim _sim = new();
 
-        public readonly ExplorerAgent Agent = new();
+        public readonly ExplorerAgent Agent;
         public readonly Merchant Buyer = new();
         public readonly ProximityResourceSource Source = new(resourcesGranted: 10, intervalTicks: 1, proximity: 0);
 
-        public World()
+        public World(IExplorerPolicy? explorerPolicy = null)
         {
+            Agent = new ExplorerAgent(explorerPolicy ?? new ScriptedExplorerPolicy());
+
             _sim.AddSystems(
                 new MoneySystem(),
                 new InventorySystem(),
@@ -176,13 +237,15 @@ public class Sandbox1D1Agent
         }
 
         public int GetPosition(IEntity entity) => _sim.GetPosition(entity);
+
+        public int GetCompletedSaleCount(IEntity seller) =>
+            GetCommercialState(seller).MoneyBalance / MerchantBuyPrice;
     }
 
     [Fact(DisplayName = "Sandbox 1D, 1 Agent")]
     public void Run()
     {
-        var world = new World();
-        world.Agent.NextStep = 1;  // move right each tick
+        var world = new World(new PrescriptedExplorerPolicy(ExplorerAction.MoveRight));
         var ticks = 10;
         for (int i = 0; i < ticks; i++)
             world.Tick();
@@ -191,7 +254,8 @@ public class Sandbox1D1Agent
     [Fact(DisplayName = "Agent receives from Proximity-aware Resource Source")]
     public void AgentReceivesFromProximityAwareResourceSource()
     {
-        var world = new World();
+        var policy = new PrescriptedExplorerPolicy();
+        var world = new World(policy);
 
         world.Tick();
 
@@ -199,21 +263,27 @@ public class Sandbox1D1Agent
         world.GetCommercialState(world.Agent).Should().Be(new CommercialSnapshot(0, 0));
 
         // Move the agent closer to the source
-        world.Agent.NextStep = 4;
-        world.Tick();
+        policy.Enqueue(
+            ExplorerAction.MoveRight,
+            ExplorerAction.MoveRight,
+            ExplorerAction.MoveRight,
+            ExplorerAction.MoveRight,
+            ExplorerAction.MoveRight);
+        for (int i = 0; i < 5; i++)
+            world.Tick();
 
         // Agent should have moved onto the source position, but still no resources yet
         world.GetCommercialState(world.Agent).Should().Be(new CommercialSnapshot(0, 0));
         world.GetPosition(world.Agent).Should().Be(5);
 
         // Stay on the source long enough to receive the grant
-        world.Agent.NextStep = 0;
+        policy.Enqueue(ExplorerAction.Stay);
         world.Tick();
         world.GetPosition(world.Agent).Should().Be(world.GetPosition(world.Source)); // at same position as source
         world.GetCommercialState(world.Agent).ResourceBalance.Should().BeGreaterThanOrEqualTo(10);
 
         // Move agent 1 unit beyond the source
-        world.Agent.NextStep = 1;
+        policy.Enqueue(ExplorerAction.MoveRight);
         world.Tick();
         // Agent should have received resources from the source
         world.GetCommercialState(world.Agent).ResourceBalance.Should().BeGreaterThanOrEqualTo(10);
@@ -234,7 +304,7 @@ public class Sandbox1D1Agent
             world.Tick();
 
         // After ~25 ticks: agent should have found the source and completed its first sale
-        world.Agent.SellCount.Should().BeGreaterThanOrEqualTo(1,
+        world.GetCompletedSaleCount(world.Agent).Should().BeGreaterThanOrEqualTo(1,
             because: "agent should have found the source and sold its first load by tick 25");
         world.GetCommercialState(world.Agent).MoneyBalance.Should().BeGreaterThanOrEqualTo(15,
             because: "agent earns 15 money per sale");
@@ -244,7 +314,7 @@ public class Sandbox1D1Agent
             world.Tick();
 
         // After ~45 ticks: agent should have completed at least 2 sell cycles
-        world.Agent.SellCount.Should().BeGreaterThanOrEqualTo(2,
+        world.GetCompletedSaleCount(world.Agent).Should().BeGreaterThanOrEqualTo(2,
             because: "agent should complete multiple collect-and-sell cycles");
         world.GetCommercialState(world.Agent).MoneyBalance.Should().BeGreaterThanOrEqualTo(30,
             because: "agent earns 15 per sale, so 2 sales = 30 money");
