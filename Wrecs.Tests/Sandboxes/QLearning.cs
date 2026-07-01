@@ -9,6 +9,8 @@ class QLearning
     // The Q-table is a matrix where rows represent states (S) and columns represent actions (A)
     private readonly Dictionary<QState, QActionRow> _q = [];
 
+    public Func<QState, QAction, QState, float> RewardFunction { get; set; } = (_, _, _) => 0;
+
     public float Q(QState state, QAction action) => 0;
 
     internal void SetQ(QState state, QAction action, float value)
@@ -21,16 +23,43 @@ class QLearning
         _q[state][action] = value;
     }
 
-    private static QAction MaxQ(QActionRow row) => Enumerable.MaxBy(row, cell => cell.Value).Key;
+    private static QAction MaxQAction(QActionRow row) => Enumerable.MaxBy(row, cell => cell.Value).Key;
+
+    internal float MaxQ(QState state)
+    {
+        if (_q.TryGetValue(state, out QActionRow? row))
+        {
+            return row.Values.Max();
+        }
+        return default;
+    }
+
 
     public QAction ChooseAction(QState state)
     {
         if (_q.TryGetValue(state, out QActionRow? row))
         {
-            return MaxQ(row);
+            return MaxQAction(row);
         }
-        // TODO: random value?
         return default;
+    }
+
+    // alpha = learning rate
+    public float LearningRate { get; set; } = 0.5f;
+
+    // gamma = discount factor
+    public float DiscountFactor { get; set; } = 0.5f;
+
+    public void UpdateQ(QState priorState, QAction action, QState newState)
+    {
+        var reward = RewardFunction(priorState, action, newState);
+        // The table is updated using the Bellman Equation after every step the agent takes:
+        // \(Q(s,a)\leftarrow Q(s,a)+\alpha \left[r+\gamma \max _{a^{\prime }}Q(s^{\prime },a^{\prime })-Q(s,a)\right]\)
+        var Q_sa = Q(priorState, action);
+        Q_sa = Q_sa + LearningRate * (
+            reward + DiscountFactor * MaxQ(newState) - Q_sa
+        );
+        SetQ(priorState, action, Q_sa);
     }
 }
 
@@ -51,6 +80,26 @@ public class QLearningTest
 
     static IEnumerable<QAction> AllActions => [QAction.Collect, QAction.MoveLeft, QAction.MoveRight, QAction.Sell, QAction.Stay];
 
+    static float Reward(int moneyDelta, int resourceDelta, int ticksElapsed, int stepsTaken)
+    {
+        const int HardCodedResourceValue = 10;
+        const float weightMoney = 100;
+        const float weightAge = -1;
+        const float weightSteps = -1;
+        return weightMoney * (moneyDelta + resourceDelta * HardCodedResourceValue)
+            + weightAge * ticksElapsed
+            + weightSteps * stepsTaken;
+    }
+
+    static float Reward(QState priorState, QAction action, QState newState)
+    {
+        var moneyDelta = newState.MoneyBalance - priorState.MoneyBalance;
+        var resourceDelta = newState.ResourceBalance - priorState.ResourceBalance;
+        var ticksElapsed = 1;
+        var stepsTaken = action == QAction.MoveLeft || action == QAction.MoveRight ? 1 : 0;
+        return Reward(moneyDelta, resourceDelta, ticksElapsed, stepsTaken);
+    }
+
     [Fact(DisplayName = "Q-Learning Initialization")]
     public void Initialization()
     {
@@ -68,16 +117,23 @@ public class QLearningTest
         var subject = new QLearning();
         var state = new QState(42, 24, true, false, true, false);
 
-        // Setup fake Q values
-        subject.SetQ(state, QAction.Stay, 0.2f);
+        // Without a row set, should return defaults
+        subject.MaxQ(state).Should().Be(0);
+        subject.ChooseAction(state).Should().Be(default);
+
+        // Only 1 Q value in row set to non-zero, that's the winner
         subject.SetQ(state, QAction.MoveLeft, 0.3f);
+        subject.MaxQ(state).Should().Be(0.3f);
+        subject.ChooseAction(state).Should().Be(QAction.MoveLeft);
+
+        // Set other Q values in row
+        subject.SetQ(state, QAction.Stay, 0.2f);
         subject.SetQ(state, QAction.MoveRight, 0.4f);
         subject.SetQ(state, QAction.Collect, 0.9f);
         subject.SetQ(state, QAction.Sell, 0.7f);
 
+        // And the Action with the Max Q Value should be selected
+        subject.MaxQ(state).Should().Be(0.9f);
         subject.ChooseAction(state).Should().Be(QAction.Collect);
     }
-
-    // The table is updated using the Bellman Equation after every step the agent takes:
-    // \(Q(s,a)\leftarrow Q(s,a)+\alpha \left[r+\gamma \max _{a^{\prime }}Q(s^{\prime },a^{\prime })-Q(s,a)\right]\)
 }
