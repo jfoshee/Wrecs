@@ -11,7 +11,17 @@ class QLearning
 
     public Func<QState, QAction, QState, float> RewardFunction { get; set; } = (_, _, _) => 0;
 
-    public float Q(QState state, QAction action) => 0;
+    public float Q(QState state, QAction action)
+    {
+        if (_q.TryGetValue(state, out QActionRow? row))
+        {
+            if (row.TryGetValue(action, out float value))
+            {
+                return value;
+            }
+        }
+        return default;
+    }
 
     internal void SetQ(QState state, QAction action, float value)
     {
@@ -105,10 +115,29 @@ public class QLearningTest
     {
         var subject = new QLearning();
 
+        // Max Q of each state should be zero
+        foreach (var state in AllStates())
+        {
+            subject.MaxQ(state).Should().Be(0);
+            // subject.ChooseAction(state).Should().Be(default);
+        }
+
         // Each Q value should start as zero
         foreach (var state in AllStates())
             foreach (var action in AllActions)
                 subject.Q(state, action).Should().Be(0);
+    }
+
+    [Fact(DisplayName = "Set Q Value for given State and Action")]
+    public void SetQValue()
+    {
+        var subject = new QLearning();
+        var state = new QState(42, 24, true, false, true, false);
+        var action = QAction.MoveLeft;
+        var expected = 0.5f;
+
+        subject.SetQ(state, action, expected);
+        subject.Q(state, action).Should().Be(expected);
     }
 
     [Fact(DisplayName = "Choose max value Action for given State")]
@@ -135,5 +164,26 @@ public class QLearningTest
         // And the Action with the Max Q Value should be selected
         subject.MaxQ(state).Should().Be(0.9f);
         subject.ChooseAction(state).Should().Be(QAction.Collect);
+    }
+
+    [Fact(DisplayName = "Update Q: No Learning")]
+    public void UpdatingQNoLearning()
+    {
+        // Without Learning the Q remains unchanged
+        var subject = new QLearning
+        {
+            LearningRate = 0,
+            DiscountFactor = 1,
+            RewardFunction = Reward
+        };
+        var state = new QState(10, 100, true, false, true, false);
+        var action = QAction.MoveLeft;
+        var newState = new QState(20, 300, true, false, true, false);
+        var expected = 0.16f;
+        subject.SetQ(state, action, expected);
+
+        subject.UpdateQ(state, action, newState);
+
+        subject.Q(state, action).Should().Be(expected);
     }
 }
