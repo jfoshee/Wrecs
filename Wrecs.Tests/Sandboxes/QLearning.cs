@@ -173,17 +173,89 @@ public class QLearningTest
         var subject = new QLearning
         {
             LearningRate = 0,
-            DiscountFactor = 1,
-            RewardFunction = Reward
+            DiscountFactor = 99,
+            RewardFunction = (_, _, _) => 999
         };
         var state = new QState(10, 100, true, false, true, false);
         var action = QAction.MoveLeft;
         var newState = new QState(20, 300, true, false, true, false);
-        var expected = 0.16f;
+        var expected = 16;
         subject.SetQ(state, action, expected);
 
         subject.UpdateQ(state, action, newState);
 
+        // With no learning, no matter the reward, the Q value remains unchanged
         subject.Q(state, action).Should().Be(expected);
+    }
+
+    [Fact(DisplayName = "Update Q: No Long-Term Learning: Discount Factor = 0")]
+    public void UpdatingQNoLongTermLearning()
+    {
+        var subject = new QLearning
+        {
+            LearningRate = 1,
+            DiscountFactor = 0,
+            RewardFunction = (_, _, _) => 32f
+        };
+        var state = new QState(10, 100, true, false, true, false);
+        var action = QAction.Sell;
+        var newState = new QState(20, 300, true, false, true, false);
+        subject.SetQ(state, action, 86);
+
+        subject.UpdateQ(state, action, newState);
+
+        // With a discount factor (gamma) of 0 the new Q value becomes the current reward,
+        // the existing Q value is cancelled out
+        subject.Q(state, action).Should().Be(32);
+    }
+
+    [Fact(DisplayName = "Update Q: Includes discounted MaxQ for next state")]
+    public void UpdatingQIncludesDiscountedMaxQ()
+    {
+        var subject = new QLearning
+        {
+            LearningRate = 1,
+            DiscountFactor = 0.5f,
+            RewardFunction = (_, _, _) => 32f
+        };
+        var state = new QState(10, 100, true, false, true, false);
+        var action = QAction.Sell;
+        var newState = new QState(20, 300, true, false, true, false);
+        subject.SetQ(state, action, 86);
+        // Setup the "row" q values for the new state
+        // Which is used to "predict" the future reward
+        subject.SetQ(newState, QAction.MoveLeft, 10);
+        subject.SetQ(newState, QAction.MoveRight, 70); // <- Will be max Q for new state
+        subject.SetQ(newState, QAction.Sell, 15);
+
+        subject.UpdateQ(state, action, newState);
+
+        // With a discount factor (gamma) of 0.5 the new Q value becomes the current reward + discounted max Q for next state
+        // The existing Q value is cancelled out
+        subject.Q(state, action).Should().Be(32 + 0.5f * 70);
+    }
+
+    [Fact(DisplayName = "Update Q: Putting it all together")]
+    public void UpdatingQPuttingItAllTogether()
+    {
+        var subject = new QLearning
+        {
+            LearningRate = 0.25f,
+            DiscountFactor = 0.5f,
+            RewardFunction = (_, _, _) => 32
+        };
+        var state = new QState(10, 100, true, false, true, false);
+        var action = QAction.Sell;
+        var newState = new QState(20, 300, true, false, true, false);
+        subject.SetQ(state, action, 1024);
+        // Setup the "row" q values for the new state
+        // Which is used to "predict" the future reward
+        subject.SetQ(newState, QAction.MoveLeft, 10);
+        subject.SetQ(newState, QAction.MoveRight, 70); // <- Will be max Q for new state
+        subject.SetQ(newState, QAction.Sell, 15);
+
+        subject.UpdateQ(state, action, newState);
+
+        subject.Q(state, action).Should().Be(1024 + 0.25f * (32 + 0.5f * 70 - 1024));
     }
 }
