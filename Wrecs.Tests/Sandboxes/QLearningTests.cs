@@ -1,5 +1,6 @@
 namespace Wrecs.Tests.Sandboxes;
 
+using static Wrecs.Tests.Sandboxes.Sandbox1D1Agent;
 using QAction = Sandbox1D1Agent.ExplorerAction;
 using QState = Sandbox1D1Agent.ExplorerObservation;
 
@@ -221,5 +222,47 @@ public class QLearningTests
             var actual = histogram[action] / (float)iterations;
             actual.Should().BeApproximately(expected, 0.05f, $"Action {action} was not uniformly distributed");
         }
+    }
+
+    class QLearningExplorerPolicy(QLearning qLearning) : IExplorerPolicy
+    {
+        // TODO: initialize state
+        private QState? _lastState;
+        private QAction _lastAction;
+
+        public QAction ChooseAction(QState state)
+        {
+            var action = qLearning.ChooseAction(state);
+
+            if (_lastState is not null)
+                qLearning.UpdateQ(_lastState, _lastAction, state);
+
+            _lastState = state;
+            _lastAction = action;
+            return action;
+        }
+    }
+
+    [Fact(DisplayName = "Learning Loop")]
+    public void LearningLoop()
+    {
+        var subject = new QLearning
+        {
+            RewardFunction = Reward,
+            ExplorationProbability = 0.5f
+        };
+        var worlds = 100;
+        var ticks = 100;
+        for (int i = 0; i < worlds; i++)
+        {
+            // Must reset the policy here because it holds the last state
+            var explorerPolicy = new QLearningExplorerPolicy(subject);
+            var sim = new World(explorerPolicy);
+            for (int t = 0; t < ticks; t++)
+            {
+                sim.Tick();
+            }
+        }
+        subject.Q(new QState(0, 0, true, false, true, false), QAction.Collect).Should().BeGreaterThan(0);
     }
 }

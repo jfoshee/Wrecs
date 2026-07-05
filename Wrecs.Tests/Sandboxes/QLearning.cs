@@ -104,9 +104,8 @@ class QLearning
     {
         var reward = RewardFunction(priorState, action, newState);
         // The table is updated using the Bellman Equation after every step the agent takes:
-        // \(Q(s,a)\leftarrow Q(s,a)+\alpha \left[r+\gamma \max _{a^{\prime }}Q(s^{\prime },a^{\prime })-Q(s,a)\right]\)
         var Q_sa = Q(priorState, action);
-        Q_sa = Q_sa + LearningRate * (
+        Q_sa += LearningRate * (
             reward + DiscountFactor * MaxQ(newState) - Q_sa
         );
         SetQ(priorState, action, Q_sa);

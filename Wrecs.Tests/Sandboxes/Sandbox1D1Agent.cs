@@ -177,7 +177,7 @@ public class Sandbox1D1Agent
     /// <summary>
     /// A stationary commercial agent at a known location that continuously posts buy offers for resources.
     /// </summary>
-    class Merchant : ISpatial1DEntity, ICommercialAgent, IAgentRequireSnapshot<VisibilitySnapshot>
+    internal class Merchant : ISpatial1DEntity, ICommercialAgent, IAgentRequireSnapshot<VisibilitySnapshot>
     {
         public int Id { get; } = EntityId.Next();
         public string Name => nameof(Merchant);
@@ -198,7 +198,7 @@ public class Sandbox1D1Agent
         }
     }
 
-    class World
+    internal class World
     {
         const int WorldSize = 20;
         private readonly Sim _sim = new();
