@@ -52,17 +52,17 @@ class QLearning
                 return value;
             }
         }
-        return default;
+        return 0;
     }
 
     internal void SetQ(QState state, QAction action, float value)
     {
-        if (!_q.ContainsKey(state))
+        if (!_q.TryGetValue(state, out QActionRow? row))
         {
-            // _q[state] = [[action, value]];
-            _q[state] = [];
+            _q[state] = row = [];
         }
-        _q[state][action] = value;
+
+        row[action] = value;
     }
 
     private static QAction MaxQAction(QActionRow row) => Enumerable.MaxBy(row, cell => cell.Value).Key;
@@ -73,8 +73,7 @@ class QLearning
         {
             return row.Values.Max();
         }
-        // TODO: Explore
-        return default;
+        return 0;
     }
 
     private static QAction RandomAction() => Random.Shared.Next(0, 5) switch
