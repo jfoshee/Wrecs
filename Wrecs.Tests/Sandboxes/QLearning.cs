@@ -11,7 +11,7 @@ class QLearning
     /// A value of 0 means the agent does not learn anything,
     /// while a value of 1 means the agent only considers the most recent information.
     /// </summary>
-    public float LearningRate { get; set; } = 0.5f;
+    public float LearningRate { get; set; } = 0.1f;
 
     /// <summary>
     /// The Discount Factor (gamma) determines the importance of future rewards.
@@ -19,7 +19,16 @@ class QLearning
     /// A value of 0 means the agent only considers immediate rewards,
     /// while a value of 1 means the agent values future rewards equally to immediate rewards.
     /// </summary>
-    public float DiscountFactor { get; set; } = 0.5f;
+    public float DiscountFactor { get; set; } = 0.9f;
+
+    /// <summary>
+    /// The Exploration Probability (epsilon) determines how often the agent explores
+    /// new actions versus exploiting known actions.
+    /// A value of 0 means the agent always exploits known actions,
+    /// while a value of 1 means the agent always explores new actions.
+    /// New actions are randomly selected from the set of possible actions.
+    /// </summary>
+    public float ExplorationProbability { get; set; } = 0;
 
     /// <summary>
     /// The Reward Function returns a reward value based on the change in state after taking an action.
@@ -27,7 +36,6 @@ class QLearning
     /// For regressions in state the reward should be low.
     /// </summary>
     public Func<QState, QAction, QState, float> RewardFunction { get; set; } = (_, _, _) => 0;
-
 
     /// <summary>
     /// The Q-table is a matrix where rows represent states (S) and columns represent actions (A).
@@ -65,17 +73,27 @@ class QLearning
         {
             return row.Values.Max();
         }
+        // TODO: Explore
         return default;
     }
 
+    private static QAction RandomAction() => Random.Shared.Next(0, 5) switch
+    {
+        0 => QAction.Collect,
+        1 => QAction.MoveLeft,
+        2 => QAction.MoveRight,
+        3 => QAction.Sell,
+        _ => QAction.Stay
+    };
 
     public QAction ChooseAction(QState state)
     {
-        if (_q.TryGetValue(state, out QActionRow? row))
+        bool explore = Random.Shared.NextDouble() < ExplorationProbability;
+        if (!explore && _q.TryGetValue(state, out QActionRow? row))
         {
             return MaxQAction(row);
         }
-        return default;
+        return RandomAction();
     }
 
     /// <summary>
@@ -96,7 +114,7 @@ class QLearning
     }
 }
 
-public class QLearningTest
+public class QLearningTests
 {
     static IEnumerable<QState> AllStates()
     {
@@ -142,7 +160,6 @@ public class QLearningTest
         foreach (var state in AllStates())
         {
             subject.MaxQ(state).Should().Be(0);
-            // subject.ChooseAction(state).Should().Be(default);
         }
 
         // Each Q value should start as zero
@@ -171,7 +188,7 @@ public class QLearningTest
 
         // Without a row set, should return defaults
         subject.MaxQ(state).Should().Be(0);
-        subject.ChooseAction(state).Should().Be(default);
+        subject.ChooseAction(state).Should().BeOneOf(AllActions);
 
         // Only 1 Q value in row set to non-zero, that's the winner
         subject.SetQ(state, QAction.MoveLeft, 0.3f);
@@ -280,5 +297,40 @@ public class QLearningTest
         subject.UpdateQ(state, action, newState);
 
         subject.Q(state, action).Should().Be(1024 + 0.25f * (32 + 0.5f * 70 - 1024));
+    }
+
+    [Fact(DisplayName = "Exploration: Randomness in Next State selection")]
+    public void RandomnessInNextStateSelection()
+    {
+        var subject = new QLearning
+        {
+            ExplorationProbability = 1, // <- Always explore
+        };
+        var state = new QState(10, 100, true, false, true, false);
+        // subject.SetQ(state, QAction.MoveLeft, 99);
+        const int iterations = 1_000;
+        var histogram = new Dictionary<QAction, int>
+        {
+            [QAction.Collect] = 0,
+            [QAction.MoveLeft] = 0,
+            [QAction.MoveRight] = 0,
+            [QAction.Sell] = 0,
+            [QAction.Stay] = 0
+        };
+
+        // Act: choose next action many times
+        for (int i = 0; i < iterations; i++)
+        {
+            var action = subject.ChooseAction(state);
+            histogram[action]++;
+        }
+
+        // Assert: Distribution of actions should be roughly uniform, with some tolerance for randomness
+        var expected = 1 / (float)AllActions.Count();
+        foreach (var action in AllActions)
+        {
+            var actual = histogram[action] / (float)iterations;
+            actual.Should().BeApproximately(expected, 0.05f, $"Action {action} was not uniformly distributed");
+        }
     }
 }
