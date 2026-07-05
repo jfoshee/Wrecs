@@ -6,10 +6,34 @@ using QState = Sandbox1D1Agent.ExplorerObservation;
 
 class QLearning
 {
-    // The Q-table is a matrix where rows represent states (S) and columns represent actions (A)
-    private readonly Dictionary<QState, QActionRow> _q = [];
+    /// <summary>
+    /// The Learning Rate (alpha) determines how much new information overrides old information.
+    /// A value of 0 means the agent does not learn anything,
+    /// while a value of 1 means the agent only considers the most recent information.
+    /// </summary>
+    public float LearningRate { get; set; } = 0.5f;
 
+    /// <summary>
+    /// The Discount Factor (gamma) determines the importance of future rewards.
+    /// It is the coefficient applied to the max Q value of the _next_ state.
+    /// A value of 0 means the agent only considers immediate rewards,
+    /// while a value of 1 means the agent values future rewards equally to immediate rewards.
+    /// </summary>
+    public float DiscountFactor { get; set; } = 0.5f;
+
+    /// <summary>
+    /// The Reward Function returns a reward value based on the change in state after taking an action.
+    /// For improvements in state the reward should be high.
+    /// For regressions in state the reward should be low.
+    /// </summary>
     public Func<QState, QAction, QState, float> RewardFunction { get; set; } = (_, _, _) => 0;
+
+
+    /// <summary>
+    /// The Q-table is a matrix where rows represent states (S) and columns represent actions (A).
+    /// Each cell is updated via the Bellman Equation after every step the agent takes.
+    /// </summary>
+    private readonly Dictionary<QState, QActionRow> _q = [];
 
     public float Q(QState state, QAction action)
     {
@@ -54,12 +78,11 @@ class QLearning
         return default;
     }
 
-    // alpha = learning rate
-    public float LearningRate { get; set; } = 0.5f;
-
-    // gamma = discount factor
-    public float DiscountFactor { get; set; } = 0.5f;
-
+    /// <summary>
+    /// Incrementally "learn" from experience by updating the Q value
+    /// for the given state and action
+    /// based on the reward received and the max Q value of the new state.
+    /// </summary>
     public void UpdateQ(QState priorState, QAction action, QState newState)
     {
         var reward = RewardFunction(priorState, action, newState);
