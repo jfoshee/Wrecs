@@ -16,6 +16,10 @@ public class Sandbox1D1Agent
                                              bool SourceVisible,
                                              bool BuyerVisible)
     {
+        // Order of magnitude
+        // This is a simple way to reduce the number of states in the Q-table.
+        private static int OoM(int value) => value <= 0 ? 0 : (int)Math.Ceiling(Math.Log10(value));
+
         public static ExplorerObservation From(IAgentContext context)
         {
             var commercialState = context.GetCommercialSnapshot();
@@ -27,8 +31,8 @@ public class Sandbox1D1Agent
             var canSell = offers.OfType<BuyOffer>().Any(o => !o.Used);
 
             return new ExplorerObservation(
-                ResourceBalance: commercialState.ResourceBalance,
-                MoneyBalance: commercialState.MoneyBalance,
+                ResourceBalance: OoM(commercialState.ResourceBalance),
+                MoneyBalance: OoM(commercialState.MoneyBalance),
                 CanCollect: sourceVisible,
                 CanSell: canSell,
                 SourceVisible: sourceVisible,

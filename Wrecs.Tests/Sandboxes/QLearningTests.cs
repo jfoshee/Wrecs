@@ -8,7 +8,7 @@ public class QLearningTests
 {
     static IEnumerable<QState> AllStates()
     {
-        int[] balances = [-100, -10, -1, 0, 1, 10, 100];
+        int[] balances = [-100, -10, -1, 0, 1, 2, 3, 10, 100];
         bool[] bools = [false, true];
         foreach (var resourceBalance in balances)
             foreach (var moneyBalance in balances)
@@ -303,7 +303,7 @@ public class QLearningTests
         }
         // Check stats on all Q values
         var allQValues = subject.GetAllQValues().ToArray();
-        allQValues.Length.Should().BeGreaterThan(400);
+        allQValues.Length.Should().BeGreaterThan(100);
         var (min, max, avg) = (allQValues.Min(), allQValues.Max(), allQValues.Average());
         min.Should().BeLessThan(0);
         max.Should().BeGreaterThan(0);
@@ -311,5 +311,4 @@ public class QLearningTests
     }
 }
 
-// TODO: equivalence class money and resource counts
 // TODO: Can provide a seed in constructor for deterministic testing
