@@ -75,18 +75,19 @@ public class Sandbox1D1Agent
                 ExplorerAction.Stay => AgentIntent.Empty,
                 ExplorerAction.MoveLeft => new AgentIntent(new Move1DAction(-1)),
                 ExplorerAction.MoveRight => new AgentIntent(new Move1DAction(+1)),
-                ExplorerAction.Sell => new AgentIntent(new TakeOfferDecision(GetBestBuyOffer(context))),
+                ExplorerAction.Sell => GetBestBuyOffer(context) is BuyOffer offer
+                    ? new AgentIntent(new TakeOfferDecision(offer))
+                    : AgentIntent.Empty, // w/out an offer Selling is not a valid action
                 _ => throw new InvalidOperationException($"Unknown action: {action}")
             };
         }
 
-        private static BuyOffer GetBestBuyOffer(IAgentContext context) =>
+        private static BuyOffer? GetBestBuyOffer(IAgentContext context) =>
             context.GetSnapshot<OfferListSnapshot>().Offers?
                 .OfType<BuyOffer>()
                 .Where(o => !o.Used)
                 .OrderByDescending(o => o.Price)
-                .FirstOrDefault()
-            ?? throw new InvalidOperationException("Cannot sell without an available buy offer.");
+                .FirstOrDefault();
     }
 
     enum ExplorerPhase { Searching, Collecting, GoingToSell, Returning }

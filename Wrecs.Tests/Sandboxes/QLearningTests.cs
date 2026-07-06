@@ -266,3 +266,7 @@ public class QLearningTests
         subject.Q(new QState(0, 0, true, false, true, false), QAction.Collect).Should().BeGreaterThan(0);
     }
 }
+
+// - exception
+// - all actions (novelty)
+// - equivalence class money and resource counts
