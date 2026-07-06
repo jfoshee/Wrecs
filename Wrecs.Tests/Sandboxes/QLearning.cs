@@ -39,6 +39,8 @@ class QLearning
 
     public QAction[] AllActions { get; set; } = Enum.GetValues<QAction>();
 
+    internal IEnumerable<float> GetAllQValues() => _q.SelectMany(row => row.Value.Values);
+
     /// <summary>
     /// The Q-table is a matrix where rows represent states (S) and columns represent actions (A).
     /// Each cell is updated via the Bellman Equation after every step the agent takes.

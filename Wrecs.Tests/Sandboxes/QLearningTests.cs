@@ -295,14 +295,21 @@ public class QLearningTests
                 sim.Tick();
             }
         }
-        var sampleState = new QState(0, 0, true, false, true, false);
+        var basicState = new QState(0, 0, true, false, true, false);
         // Every action should have a value
         foreach (var action in AllActions)
         {
-            subject.Q(sampleState, action).Should().NotBe(0);
+            subject.Q(basicState, action).Should().NotBe(0);
         }
+        // Check stats on all Q values
+        var allQValues = subject.GetAllQValues().ToArray();
+        allQValues.Length.Should().BeGreaterThan(400);
+        var (min, max, avg) = (allQValues.Min(), allQValues.Max(), allQValues.Average());
+        min.Should().BeLessThan(0);
+        max.Should().BeGreaterThan(0);
+        avg.Should().BeGreaterThan(0);
     }
 }
 
-// TODO: why are Q values all negative?
 // TODO: equivalence class money and resource counts
+// TODO: Can provide a seed in constructor for deterministic testing
