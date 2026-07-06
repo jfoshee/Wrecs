@@ -37,6 +37,8 @@ class QLearning
     /// </summary>
     public Func<QState, QAction, QState, float> RewardFunction { get; set; } = (_, _, _) => 0;
 
+    public QAction[] AllActions { get; set; } = Enum.GetValues<QAction>();
+
     /// <summary>
     /// The Q-table is a matrix where rows represent states (S) and columns represent actions (A).
     /// Each cell is updated via the Bellman Equation after every step the agent takes.
@@ -76,16 +78,30 @@ class QLearning
         return 0;
     }
 
-    private static QAction RandomAction() => (QAction)Random.Shared.Next(0, Enum.GetValues<QAction>().Length);
+    /// <summary>
+    /// Return a randomly selected action from the set of all actions, excluding any specified actions.
+    /// If all actions are excluded, a random action is selected from the set of all actions.
+    /// </summary>
+    internal QAction RandomAction(IEnumerable<QAction>? excluding)
+    {
+        var excluded = excluding?.ToHashSet() ?? [];
+        var availableActions = AllActions.Except(excluded).ToArray();
+        if (availableActions.Length == 0)
+        {
+            return AllActions[Random.Shared.Next(AllActions.Length)];
+        }
+        return availableActions[Random.Shared.Next(availableActions.Length)];
+    }
 
     public QAction ChooseAction(QState state)
     {
         bool explore = Random.Shared.NextDouble() < ExplorationProbability;
-        if (!explore && _q.TryGetValue(state, out QActionRow? row))
+        if (_q.TryGetValue(state, out QActionRow? row) && !explore)
         {
             return MaxQAction(row);
         }
-        return RandomAction();
+        // Explore an action that has not yet been tried in this state, if possible.
+        return RandomAction(excluding: row?.Keys);
     }
 
     /// <summary>

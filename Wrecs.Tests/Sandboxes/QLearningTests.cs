@@ -95,6 +95,40 @@ public class QLearningTests
         subject.ChooseAction(state).Should().Be(QAction.Sell);
     }
 
+    [Fact(DisplayName = "Random Action: Uses configured actions")]
+    public void RandomActionUsesConfiguredActions()
+    {
+        var subject = new QLearning
+        {
+            AllActions = [QAction.Sell]
+        };
+
+        subject.RandomAction(excluding: null).Should().Be(QAction.Sell);
+        subject.RandomAction([]).Should().Be(QAction.Sell);
+    }
+
+    [Fact(DisplayName = "Random Action: Excludes unavailable actions")]
+    public void RandomActionExcludesUnavailableActions()
+    {
+        var subject = new QLearning
+        {
+            AllActions = [QAction.MoveLeft, QAction.Sell]
+        };
+
+        subject.RandomAction([QAction.MoveLeft]).Should().Be(QAction.Sell);
+    }
+
+    [Fact(DisplayName = "Random Action: Falls back to all actions when every action is excluded")]
+    public void RandomActionFallsBackWhenEveryActionIsExcluded()
+    {
+        var subject = new QLearning
+        {
+            AllActions = [QAction.MoveRight]
+        };
+
+        subject.RandomAction([QAction.MoveRight]).Should().Be(QAction.MoveRight);
+    }
+
     [Fact(DisplayName = "Update Q: No Learning")]
     public void UpdatingQNoLearning()
     {
@@ -214,7 +248,7 @@ public class QLearningTests
         }
 
         // Assert: Distribution of actions should be roughly uniform, with some tolerance for randomness
-        var expected = 1 / (float)AllActions.Count();
+        var expected = 1 / (float)AllActions.Length;
         foreach (var action in AllActions)
         {
             var actual = histogram[action] / (float)iterations;
@@ -261,9 +295,14 @@ public class QLearningTests
                 sim.Tick();
             }
         }
-        subject.Q(new QState(0, 0, true, false, true, false), QAction.Stay).Should().BeGreaterThan(0);
+        var sampleState = new QState(0, 0, true, false, true, false);
+        // Every action should have a value
+        foreach (var action in AllActions)
+        {
+            subject.Q(sampleState, action).Should().NotBe(0);
+        }
     }
 }
 
-// - all actions (novelty)
-// - equivalence class money and resource counts
+// TODO: why are Q values all negative?
+// TODO: equivalence class money and resource counts
