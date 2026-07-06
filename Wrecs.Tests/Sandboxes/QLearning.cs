@@ -76,14 +76,7 @@ class QLearning
         return 0;
     }
 
-    private static QAction RandomAction() => Random.Shared.Next(0, 5) switch
-    {
-        0 => QAction.Collect,
-        1 => QAction.MoveLeft,
-        2 => QAction.MoveRight,
-        3 => QAction.Sell,
-        _ => QAction.Stay
-    };
+    private static QAction RandomAction() => (QAction)Random.Shared.Next(0, Enum.GetValues<QAction>().Length);
 
     public QAction ChooseAction(QState state)
     {

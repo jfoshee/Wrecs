@@ -42,7 +42,6 @@ public class Sandbox1D1Agent
         Stay,
         MoveLeft,
         MoveRight,
-        Collect,
         Sell
     }
 
@@ -71,7 +70,6 @@ public class Sandbox1D1Agent
         {
             return action switch
             {
-                ExplorerAction.Collect => AgentIntent.Empty, // Collecting is handled by the ResourceSource system
                 ExplorerAction.Stay => AgentIntent.Empty,
                 ExplorerAction.MoveLeft => new AgentIntent(new Move1DAction(-1)),
                 ExplorerAction.MoveRight => new AgentIntent(new Move1DAction(+1)),
@@ -146,7 +144,7 @@ public class Sandbox1D1Agent
             }
 
             return observation.CanCollect
-                ? ExplorerAction.Collect
+                ? ExplorerAction.Stay
                 : ExplorerAction.MoveRight;
         }
 
@@ -168,7 +166,7 @@ public class Sandbox1D1Agent
             if (observation.ResourceBalance > _lastInventory)
             {
                 _phase = ExplorerPhase.Collecting;
-                return ExplorerAction.Collect;
+                return ExplorerAction.Stay;
             }
 
             return ExplorerAction.MoveLeft;

@@ -19,7 +19,7 @@ public class QLearningTests
                                 yield return new(resourceBalance, moneyBalance, canCollect, canSell, sourceVisible, buyerVisible);
     }
 
-    static IEnumerable<QAction> AllActions => [QAction.Collect, QAction.MoveLeft, QAction.MoveRight, QAction.Sell, QAction.Stay];
+    static QAction[] AllActions => Enum.GetValues<QAction>();
 
     static float Reward(int moneyDelta, int resourceDelta, int ticksElapsed, int stepsTaken)
     {
@@ -88,12 +88,11 @@ public class QLearningTests
         // Set other Q values in row
         subject.SetQ(state, QAction.Stay, 0.2f);
         subject.SetQ(state, QAction.MoveRight, 0.4f);
-        subject.SetQ(state, QAction.Collect, 0.9f);
-        subject.SetQ(state, QAction.Sell, 0.7f);
+        subject.SetQ(state, QAction.Sell, 0.9f);
 
         // And the Action with the Max Q Value should be selected
         subject.MaxQ(state).Should().Be(0.9f);
-        subject.ChooseAction(state).Should().Be(QAction.Collect);
+        subject.ChooseAction(state).Should().Be(QAction.Sell);
     }
 
     [Fact(DisplayName = "Update Q: No Learning")]
@@ -194,14 +193,13 @@ public class QLearningTests
     {
         var subject = new QLearning
         {
-            ExplorationProbability = 1, // <- Always explore
+            ExplorationProbability = 1, // <- Always explore random action
         };
         var state = new QState(10, 100, true, false, true, false);
         // subject.SetQ(state, QAction.MoveLeft, 99);
-        const int iterations = 1_000;
+        const int iterations = 2_000;
         var histogram = new Dictionary<QAction, int>
         {
-            [QAction.Collect] = 0,
             [QAction.MoveLeft] = 0,
             [QAction.MoveRight] = 0,
             [QAction.Sell] = 0,
@@ -220,7 +218,7 @@ public class QLearningTests
         foreach (var action in AllActions)
         {
             var actual = histogram[action] / (float)iterations;
-            actual.Should().BeApproximately(expected, 0.05f, $"Action {action} was not uniformly distributed");
+            actual.Should().BeApproximately(expected, 0.02f, $"Action {action} was not uniformly distributed");
         }
     }
 
@@ -263,10 +261,9 @@ public class QLearningTests
                 sim.Tick();
             }
         }
-        subject.Q(new QState(0, 0, true, false, true, false), QAction.Collect).Should().BeGreaterThan(0);
+        subject.Q(new QState(0, 0, true, false, true, false), QAction.Stay).Should().BeGreaterThan(0);
     }
 }
 
-// - exception
 // - all actions (novelty)
 // - equivalence class money and resource counts
