@@ -278,7 +278,7 @@ public class QLearningTests
     [Fact(DisplayName = "Learning Loop")]
     public void LearningLoop()
     {
-        var subject = new QLearning
+        var subject = new QLearning(seed: 42)
         {
             RewardFunction = Reward,
             ExplorationProbability = 0.5f
@@ -310,5 +310,3 @@ public class QLearningTests
         avg.Should().BeGreaterThan(0);
     }
 }
-
-// TODO: Can provide a seed in constructor for deterministic testing

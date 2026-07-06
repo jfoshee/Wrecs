@@ -4,8 +4,10 @@ using QAction = Sandbox1D1Agent.ExplorerAction;
 using QActionRow = Dictionary<Sandbox1D1Agent.ExplorerAction, float>;
 using QState = Sandbox1D1Agent.ExplorerObservation;
 
-class QLearning
+class QLearning(int? seed = null)
 {
+    private readonly Random _random = seed.HasValue ? new Random(seed.Value) : Random.Shared;
+
     /// <summary>
     /// The Learning Rate (alpha) determines how much new information overrides old information.
     /// A value of 0 means the agent does not learn anything,
@@ -90,14 +92,14 @@ class QLearning
         var availableActions = AllActions.Except(excluded).ToArray();
         if (availableActions.Length == 0)
         {
-            return AllActions[Random.Shared.Next(AllActions.Length)];
+            return AllActions[_random.Next(AllActions.Length)];
         }
-        return availableActions[Random.Shared.Next(availableActions.Length)];
+        return availableActions[_random.Next(availableActions.Length)];
     }
 
     public QAction ChooseAction(QState state)
     {
-        bool explore = Random.Shared.NextDouble() < ExplorationProbability;
+        bool explore = _random.NextDouble() < ExplorationProbability;
         if (_q.TryGetValue(state, out QActionRow? row) && !explore)
         {
             return MaxQAction(row);
