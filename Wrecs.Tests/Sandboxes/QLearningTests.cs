@@ -295,11 +295,11 @@ public class QLearningTests
                 sim.Tick();
             }
         }
-        var basicState = new QState(0, 0, true, false, true, false);
+        var initialState = new QState(0, 0, false, false, false, false);
         // Every action should have a value
         foreach (var action in AllActions)
         {
-            subject.Q(basicState, action).Should().NotBe(0);
+            subject.Q(initialState, action).Should().NotBe(0);
         }
         // Check stats on all Q values
         var allQValues = subject.GetAllQValues().ToArray();
@@ -308,5 +308,16 @@ public class QLearningTests
         min.Should().BeLessThan(0);
         max.Should().BeGreaterThan(0);
         avg.Should().BeGreaterThan(0);
+        // In base states with no money or resources, the best action should be to move
+        subject.ExplorationProbability = 0;
+        foreach (var state in AllStates().Where(s => s.MoneyBalance == 0 && s.ResourceBalance == 0))
+        {
+            // Skipping states where all actions have a Q value of 0,
+            // because the agent never learning anything about that state.
+            if (!AllActions.All(action => subject.Q(state, action) == 0))
+                subject.ChooseAction(state)
+                       .Should()
+                       .BeOneOf([QAction.MoveLeft, QAction.MoveRight], $"for state <{state}>");
+        }
     }
 }
