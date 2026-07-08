@@ -1,5 +1,6 @@
 namespace Wrecs.Tests.Sandboxes;
 
+using Wrecs.Systems;
 using static Wrecs.Tests.Sandboxes.Sandbox1D1Agent;
 using QAction = Sandbox1D1Agent.ExplorerAction;
 using QState = Sandbox1D1Agent.ExplorerObservation;
@@ -327,21 +328,22 @@ public class QLearningTests
         var subject = new QLearning(seed: 42)
         {
             RewardFunction = Reward,
-            ExplorationProbability = 0.5f
+            LearningRate = 0.10f,
+            DiscountFactor = 0.95f,
+            ExplorationProbability = 0.8f // Starting
         };
         var worlds = 100;
-        var ticks = 100;
+        var ticks = 1000;
         for (int i = 0; i < worlds; i++)
         {
             // Must reset the policy here because it holds the last state
             var explorerPolicy = new QLearningExplorerPolicy(subject);
-            var sim = new World(explorerPolicy)
+            // Ramp epsilon from 80% to 5% over the course of the simulation
+            var learningRamp = new RampSnapshot(0.8f, 0.05f, ticks);
+            var sim = new World(explorerPolicy, learningRamp)
             {
                 LearningRampHandler = e =>
-                {
-                    // Ramp the learning rate from 1 to 0 over time
-                    subject.LearningRate = 1 - e.CurrentValue;
-                }
+                    subject.ExplorationProbability = e.CurrentValue
             };
             for (int t = 0; t < ticks; t++)
             {

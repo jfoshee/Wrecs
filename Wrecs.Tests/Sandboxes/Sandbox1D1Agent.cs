@@ -211,7 +211,7 @@ public class Sandbox1D1Agent
         public readonly ProximityResourceSource Source = new(resourcesGranted: 10, intervalTicks: 1, proximity: 0);
         public readonly IEntity LearningRampEntity = new Entity(nameof(LearningRampEntity));
 
-        public World(IExplorerPolicy? explorerPolicy = null)
+        public World(IExplorerPolicy? explorerPolicy = null, RampSnapshot? learningRamp = null)
         {
             Agent = new ExplorerAgent(explorerPolicy ?? new ScriptedExplorerPolicy());
 
@@ -230,7 +230,7 @@ public class Sandbox1D1Agent
                 (Agent, []),
                 (Buyer, [new Spatial1DSnapshot(10), new CommercialSnapshot(MoneyBalance: 1000)]),
                 (Source, [new Spatial1DSnapshot(5)]),
-                (LearningRampEntity, [new RampSnapshot(CurrentValue: 0, EndingValue: 1, TickCount: 100)])
+                (LearningRampEntity, [learningRamp ?? default(RampSnapshot)])
             );
         }
 
