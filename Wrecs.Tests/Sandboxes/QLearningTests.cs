@@ -320,4 +320,8 @@ public class QLearningTests
                        .BeOneOf([QAction.MoveLeft, QAction.MoveRight], $"for state <{state}>");
         }
     }
+
+    // TODO: Ramp parameters
+    // TODO: Vary worlds (resource, buyer locations)
+    // TODO: Measure performance (money earned over time)
 }

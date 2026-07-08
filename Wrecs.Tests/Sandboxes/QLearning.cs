@@ -99,6 +99,7 @@ class QLearning(int? seed = null)
 
     public QAction ChooseAction(QState state)
     {
+        // TODO: Restrict to legal/allowed actions (set could be passed in)
         bool explore = _random.NextDouble() < ExplorationProbability;
         if (_q.TryGetValue(state, out QActionRow? row) && !explore)
         {
