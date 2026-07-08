@@ -225,7 +225,7 @@ public class QLearningTests
     [Fact(DisplayName = "Exploration: Randomness in Next State selection")]
     public void RandomnessInNextStateSelection()
     {
-        var subject = new QLearning
+        var subject = new QLearning(seed: 486)
         {
             ExplorationProbability = 1, // <- Always explore random action
         };
@@ -321,7 +321,59 @@ public class QLearningTests
         }
     }
 
-    // TODO: Ramp parameters
+    [Fact(DisplayName = "Learning Loop with Ramped Learning")]
+    public void LearningLoopRamped()
+    {
+        var subject = new QLearning(seed: 42)
+        {
+            RewardFunction = Reward,
+            ExplorationProbability = 0.5f
+        };
+        var worlds = 100;
+        var ticks = 100;
+        for (int i = 0; i < worlds; i++)
+        {
+            // Must reset the policy here because it holds the last state
+            var explorerPolicy = new QLearningExplorerPolicy(subject);
+            var sim = new World(explorerPolicy)
+            {
+                LearningRampHandler = e =>
+                {
+                    // Ramp the learning rate from 1 to 0 over time
+                    subject.LearningRate = 1 - e.CurrentValue;
+                }
+            };
+            for (int t = 0; t < ticks; t++)
+            {
+                sim.Tick();
+            }
+        }
+        var initialState = new QState(0, 0, false, false, false, false);
+        // Every action should have a value
+        foreach (var action in AllActions)
+        {
+            subject.Q(initialState, action).Should().NotBe(0);
+        }
+        // Check stats on all Q values
+        var allQValues = subject.GetAllQValues().ToArray();
+        allQValues.Length.Should().BeGreaterThan(100);
+        var (min, max, avg) = (allQValues.Min(), allQValues.Max(), allQValues.Average());
+        min.Should().BeLessThan(0);
+        max.Should().BeGreaterThan(0);
+        avg.Should().BeGreaterThan(0);
+        // In base states with no money or resources, the best action should be to move
+        subject.ExplorationProbability = 0;
+        foreach (var state in AllStates().Where(s => s.MoneyBalance == 0 && s.ResourceBalance == 0))
+        {
+            // Skipping states where all actions have a Q value of 0,
+            // because the agent never learning anything about that state.
+            if (!AllActions.All(action => subject.Q(state, action) == 0))
+                subject.ChooseAction(state)
+                       .Should()
+                       .BeOneOf([QAction.MoveLeft, QAction.MoveRight], $"for state <{state}>");
+        }
+    }
+
     // TODO: Vary worlds (resource, buyer locations)
     // TODO: Measure performance (money earned over time)
 }

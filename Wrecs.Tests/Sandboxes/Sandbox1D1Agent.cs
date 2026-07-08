@@ -209,6 +209,7 @@ public class Sandbox1D1Agent
         public readonly ExplorerAgent Agent;
         public readonly Merchant Buyer = new();
         public readonly ProximityResourceSource Source = new(resourcesGranted: 10, intervalTicks: 1, proximity: 0);
+        public readonly IEntity LearningRampEntity = new Entity(nameof(LearningRampEntity));
 
         public World(IExplorerPolicy? explorerPolicy = null)
         {
@@ -221,14 +222,19 @@ public class Sandbox1D1Agent
                 new Spatial1DSystem(),
                 new WrapAroundSystem1D(size: WorldSize),
                 new ResourceSourcesController([Source]),
-                new VisibilitySystem(maxDistance: 1)
+                new VisibilitySystem(maxDistance: 1),
+                new RampSystem(),
+                new RampEventDelegateHandler(LearningRampEntity, e => LearningRampHandler(e))
             );
             _sim.InitEntities(
                 (Agent, []),
                 (Buyer, [new Spatial1DSnapshot(10), new CommercialSnapshot(MoneyBalance: 1000)]),
-                (Source, [new Spatial1DSnapshot(5)])
+                (Source, [new Spatial1DSnapshot(5)]),
+                (LearningRampEntity, [new RampSnapshot(CurrentValue: 0, EndingValue: 1, TickCount: 100)])
             );
         }
+
+        public Action<RampEvent> LearningRampHandler { get; set; } = _ => { };
 
         public void Tick() => _sim.Tick();
 

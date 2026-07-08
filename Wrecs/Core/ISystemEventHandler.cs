@@ -1,6 +1,6 @@
 namespace Wrecs.Core;
 
-public interface ISystemEventHandler
+public interface ISystemEventHandler : ISystem
 {
     void Handle(IEvent e);
 }

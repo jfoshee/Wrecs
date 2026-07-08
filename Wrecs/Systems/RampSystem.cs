@@ -6,7 +6,7 @@ public interface IRampEntity : IEntity;
 public record struct RampSnapshot(float CurrentValue,
                                   float EndingValue,
                                   int TickCount) : IStateSnapshot<RampSystem>;
-public record struct RampEvent(IEntity Entity, float Value) : IEvent;
+public record struct RampEvent(IEntity Entity, float CurrentValue) : IEvent;
 
 public class RampSystem :
     ISystemWithInternalUpdates,
@@ -62,5 +62,14 @@ public class RampSystem :
         {
             yield return new(entity, _values[entity]);
         }
+    }
+}
+
+public class RampEventDelegateHandler(IEntity Entity, Action<RampEvent> Callback) : ISystemEventHandler<RampEvent>
+{
+    public void HandleTyped(RampEvent e)
+    {
+        if (e.Entity == Entity)
+            Callback(e);
     }
 }
