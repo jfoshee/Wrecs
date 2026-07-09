@@ -5,7 +5,7 @@ namespace Wrecs.Systems.Commercial;
 
 public interface IInventoryEntity : IEntity;
 
-public record struct InventorySnapshot : IStateSnapshot<InventorySystem>
+public readonly record struct InventorySnapshot : IStateSnapshot<InventorySystem>
 {
     private readonly ImmutableArray<(string Type, int Amount)> _inventory;
 

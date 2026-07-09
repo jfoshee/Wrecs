@@ -230,7 +230,7 @@ public class Sandbox1D1Agent
                 (Agent, []),
                 (Buyer, [new Spatial1DSnapshot(10), new CommercialSnapshot(MoneyBalance: 1000)]),
                 (Source, [new Spatial1DSnapshot(5)]),
-                (LearningRampEntity, [learningRamp ?? default(RampSnapshot)])
+                (LearningRampEntity, [learningRamp ?? default])
             );
         }
 

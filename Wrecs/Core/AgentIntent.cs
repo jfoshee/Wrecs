@@ -1,6 +1,6 @@
 namespace Wrecs.Core;
 
-public interface IAgentIntentAction { }
+public interface IAgentIntentAction;
 
 public record AgentIntent(IEnumerable<IAgentIntentAction> Actions)
 {
