@@ -22,6 +22,8 @@ if (!SDL.CreateWindowAndRenderer("SDL3 Create Window", 800, 600, 0, out var wind
 }
 
 
+
+
 var loop = true;
 var startCounter = SDL.GetPerformanceCounter();
 var frequency = SDL.GetPerformanceFrequency();
@@ -32,9 +34,21 @@ while (loop)
 {
     while (SDL.PollEvent(out var e))
     {
-        if ((SDL.EventType)e.Type == SDL.EventType.Quit)
+        var type = (SDL.EventType)e.Type;
+        if (type == SDL.EventType.Quit)
         {
             loop = false;
+        }
+        else if (type == SDL.EventType.KeyDown || type == SDL.EventType.KeyUp)
+        {
+            if (e.Key.Key == SDL.Keycode.Escape)
+            {
+                loop = false;
+            }
+            if (!e.Key.Repeat)
+            {
+                HandleKey(e.Key.Key, e.Key.Mod, type == SDL.EventType.KeyDown);
+            }
         }
     }
 
@@ -59,3 +73,15 @@ SDL.DestroyRenderer(renderer);
 SDL.DestroyWindow(window);
 
 SDL.Quit();
+
+static void HandleKey(SDL.Keycode keycode, SDL.Keymod mod, bool isPressed)
+{
+    if (isPressed)
+    {
+        Console.WriteLine($"Key Pressed: {keycode}, Modifiers: {mod}");
+    }
+    else
+    {
+        Console.WriteLine($"Key Released: {keycode}, Modifiers: {mod}");
+    }
+}
