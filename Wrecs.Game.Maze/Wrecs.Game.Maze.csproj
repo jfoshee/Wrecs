@@ -8,8 +8,7 @@
   </PropertyGroup>
 
   <!-- Windows executable (no console) -->
-  <PropertyGroup
-    Condition="$([MSBuild]::IsOSPlatform('Windows')) and '$(Configuration)' == 'Release'">
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows')) and '$(Configuration)' == 'Release'">
     <OutputType>WinExe</OutputType>
   </PropertyGroup>
 
@@ -20,13 +19,13 @@
   <ItemGroup>
     <PackageReference Include="SDL3-CS" Version="3.4.12.3" />
 
-    <PackageReference Include="SDL3-CS.Windows"
-      Version="3.4.12.1"
-      Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    <PackageReference Include="SDL3-CS.Windows" Version="3.4.12.1" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
 
-    <PackageReference Include="SDL3-CS.MacOS"
-      Version="3.4.12.1"
-      Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+    <PackageReference Include="SDL3-CS.MacOS" Version="3.4.12.1" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Wrecs\Wrecs.csproj" />
   </ItemGroup>
 
 </Project>

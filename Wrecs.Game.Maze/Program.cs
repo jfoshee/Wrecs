@@ -1,6 +1,16 @@
 ﻿using SDL3;
+using Wrecs;
+using Wrecs.Core;
+using Wrecs.Systems;
 
 Console.WriteLine("Initializing...");
+
+// Setup Wrecs Sim
+var sim = new Sim();
+var spatial2DSystem = new Spatial2DSystem();
+sim.AddSystem(spatial2DSystem);
+var player = new Entity("Player");
+sim.InitEntities((player, [new Spatial2DSnapshot(new(20, 80))]));
 
 // HACK: Switch to STA Single Threaded Apartment
 #if WINDOWS
@@ -24,7 +34,6 @@ if (!SDL.CreateWindowAndRenderer("SDL3 Create Window", 800, 600, 0, out var wind
 var loop = true;
 var startCounter = SDL.GetPerformanceCounter();
 var frequency = SDL.GetPerformanceFrequency();
-float x = 10, y = 50;
 
 Console.WriteLine("Let's go!");
 
@@ -45,7 +54,7 @@ while (loop)
             }
             if (!e.Key.Repeat)
             {
-                HandleKey(e.Key.Key, e.Key.Mod, type == SDL.EventType.KeyDown);
+                // HandleKey(e.Key.Key, e.Key.Mod, type == SDL.EventType.KeyDown);
             }
         }
     }
@@ -58,8 +67,9 @@ while (loop)
     SDL.SetRenderDrawColor(renderer, 100, 149, 237, 255);
     SDL.RenderClear(renderer);
 
-    // Draw rect
-    var rect = new SDL.FRect { X = x, Y = y, W = 100, H = 100 };
+    // Draw player rect
+    var playerPosition = spatial2DSystem.GetTypedState(player).Position;
+    var rect = new SDL.FRect { X = playerPosition.X, Y = playerPosition.Y, W = 100, H = 100 };
     SDL.SetRenderDrawColor(renderer, 255, 0, 0, 255);
     SDL.RenderFillRect(renderer, in rect);
 
@@ -75,29 +85,30 @@ SDL.DestroyWindow(window);
 
 SDL.Quit();
 
-void HandleKey(SDL.Keycode keycode, SDL.Keymod mod, bool isPressed)
-{
-    if (isPressed)
-    {
-        switch (keycode)
-        {
-            case SDL.Keycode.Up:
-            case SDL.Keycode.Space:
-            case SDL.Keycode.W:
-                y -= 10;
-                break;
-            case SDL.Keycode.Down:
-            case SDL.Keycode.S:
-                y += 10;
-                break;
-            case SDL.Keycode.Left:
-            case SDL.Keycode.A:
-                x -= 10;
-                break;
-            case SDL.Keycode.Right:
-            case SDL.Keycode.D:
-                x += 10;
-                break;
-        }
-    }
-}
+// TODO: Player agent movement
+// void HandleKey(SDL.Keycode keycode, SDL.Keymod mod, bool isPressed)
+// {
+//     if (isPressed)
+//     {
+//         switch (keycode)
+//         {
+//             case SDL.Keycode.Up:
+//             case SDL.Keycode.Space:
+//             case SDL.Keycode.W:
+//                 y -= 10;
+//                 break;
+//             case SDL.Keycode.Down:
+//             case SDL.Keycode.S:
+//                 y += 10;
+//                 break;
+//             case SDL.Keycode.Left:
+//             case SDL.Keycode.A:
+//                 x -= 10;
+//                 break;
+//             case SDL.Keycode.Right:
+//             case SDL.Keycode.D:
+//                 x += 10;
+//                 break;
+//         }
+//     }
+// }
