@@ -48,6 +48,10 @@ while (loop)
     SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL.RenderDebugText(renderer, 10, 10, $"Elapsed Time: {elapsed:F3} seconds");
 
+    var rect = new SDL.FRect { X = 100, Y = 100, W = 100, H = 100 };
+    SDL.SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL.RenderFillRect(renderer, in rect);
+
     SDL.RenderPresent(renderer);
 }
 
