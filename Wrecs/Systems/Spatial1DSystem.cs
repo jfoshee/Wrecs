@@ -55,6 +55,7 @@ public class Spatial1DSystem :
     {
         foreach (var update in updates)
         {
+            // NOTE: does not enforce that entity is already present in the system
             _entityPositions[update.Entity] = update.State;
         }
     }
@@ -71,13 +72,11 @@ public class Spatial1DSystem :
         return new([new Spatial1DUpdate(agent, newPosition)]);
     }
 
-    public float GetDistance(IEntity e1, IEntity e2)
-    {
-        return GetDistance(_entityPositions[e1], _entityPositions[e2]);
-    }
+    public float GetDistance(IEntity e1, IEntity e2) => GetDistance(_entityPositions[e1], _entityPositions[e2]);
 
     private static float GetDistance(Position p1, Position p2)
     {
+        // NOTE: Could overflow for large distances
         return Math.Abs(p1 - p2);
     }
 }
