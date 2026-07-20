@@ -21,12 +21,10 @@ if (!SDL.CreateWindowAndRenderer("SDL3 Create Window", 800, 600, 0, out var wind
     return;
 }
 
-
-
-
 var loop = true;
 var startCounter = SDL.GetPerformanceCounter();
 var frequency = SDL.GetPerformanceFrequency();
+float x = 10, y = 50;
 
 Console.WriteLine("Let's go!");
 
@@ -56,15 +54,18 @@ while (loop)
     var currentCounter = SDL.GetPerformanceCounter();
     var elapsed = (currentCounter - startCounter) / (double)frequency;
 
+    // Clear
     SDL.SetRenderDrawColor(renderer, 100, 149, 237, 255);
     SDL.RenderClear(renderer);
 
-    SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL.RenderDebugText(renderer, 10, 10, $"Elapsed Time: {elapsed:F3} seconds");
-
-    var rect = new SDL.FRect { X = 100, Y = 100, W = 100, H = 100 };
+    // Draw rect
+    var rect = new SDL.FRect { X = x, Y = y, W = 100, H = 100 };
     SDL.SetRenderDrawColor(renderer, 255, 0, 0, 255);
     SDL.RenderFillRect(renderer, in rect);
+
+    // Draw overlay
+    SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL.RenderDebugText(renderer, 10, 10, $"Elapsed Time: {elapsed:F3} seconds");
 
     SDL.RenderPresent(renderer);
 }
@@ -74,14 +75,28 @@ SDL.DestroyWindow(window);
 
 SDL.Quit();
 
-static void HandleKey(SDL.Keycode keycode, SDL.Keymod mod, bool isPressed)
+void HandleKey(SDL.Keycode keycode, SDL.Keymod mod, bool isPressed)
 {
     if (isPressed)
     {
-        Console.WriteLine($"Key Pressed: {keycode}, Modifiers: {mod}");
-    }
-    else
-    {
-        Console.WriteLine($"Key Released: {keycode}, Modifiers: {mod}");
+        switch (keycode)
+        {
+            case SDL.Keycode.Up:
+            case SDL.Keycode.W:
+                y -= 10;
+                break;
+            case SDL.Keycode.Down:
+            case SDL.Keycode.S:
+                y += 10;
+                break;
+            case SDL.Keycode.Left:
+            case SDL.Keycode.A:
+                x -= 10;
+                break;
+            case SDL.Keycode.Right:
+            case SDL.Keycode.D:
+                x += 10;
+                break;
+        }
     }
 }
