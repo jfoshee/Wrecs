@@ -82,6 +82,7 @@ void HandleKey(SDL.Keycode keycode, SDL.Keymod mod, bool isPressed)
         switch (keycode)
         {
             case SDL.Keycode.Up:
+            case SDL.Keycode.Space:
             case SDL.Keycode.W:
                 y -= 10;
                 break;
