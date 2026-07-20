@@ -51,12 +51,10 @@ while (loop)
             {
                 loop = false;
             }
-            if (!e.Key.Repeat)
-            {
-                player.HandleKey(e.Key.Key, e.Key.Mod, type == SDL.EventType.KeyDown);
-            }
         }
     }
+    player.HandleKeyboard();
+
 
     // Calculate elapsed time
     var currentCounter = SDL.GetPerformanceCounter();
