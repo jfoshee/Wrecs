@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Wrecs.Systems;
 
 namespace Wrecs.Tests.Sandboxes;
@@ -49,13 +48,15 @@ public record struct TicTacToeUpdateSnapshot(int Row, int Column) : IStateSnapsh
 // Keeps track of state of a TicTacToe board
 public class TicTacToeBoardSystem :
     ISystemAgentContextProvider<TicTacToeBoardSnapshot>,
-    ISystemAgentIntentTranslator<TicTacToeAction>
+    ISystemAgentIntentTranslator<TicTacToeAction>,
+    ISystemUpdateAcceptor<TicTacToeUpdateSnapshot>
 {
+    private readonly Dictionary<IEntity, TicTacToeValue> _playerValues = [];
     private readonly TicTacToeValue[,] _board = new TicTacToeValue[3, 3];
 
     public TicTacToeBoardSnapshot? BuildSnapshot(IAgent agent)
     {
-        return new TicTacToeBoardSnapshot(_board, agent.Id == 1 ? TicTacToeValue.X : TicTacToeValue.O);
+        return new(_board, _playerValues[agent]);
     }
 
     public UpdateSet TranslateIntent(IAgent agent, TicTacToeAction action)
@@ -65,12 +66,19 @@ public class TicTacToeBoardSystem :
             throw new InvalidOperationException($"Cell ({action.Row}, {action.Column}) is already occupied.");
         }
 
-        // _board[action.Row, action.Column] = agent.Id == 1 ? TicTacToeValue.X : TicTacToeValue.O;
-
         return new UpdateSet(
         [
             new EntityUpdate<TicTacToeUpdateSnapshot>(agent, new(action.Row, action.Column))
         ]);
+    }
+
+    public void ApplyUpdates(IEnumerable<EntityUpdate<TicTacToeUpdateSnapshot>> updates)
+    {
+        foreach (var update in updates)
+        {
+            var playerValue = _playerValues[update.Entity];
+            _board[update.State.Row, update.State.Column] = playerValue;
+        }
     }
 }
 
