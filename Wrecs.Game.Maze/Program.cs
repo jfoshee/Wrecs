@@ -2,6 +2,13 @@
 
 Console.WriteLine("Initializing...");
 
+// HACK: Switch to STA Single Threaded Apartment
+#if WINDOWS
+#pragma warning disable CA1416 // Validate platform compatibility
+Thread.CurrentThread.SetApartmentState(ApartmentState.Unknown);
+Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
+#endif
+
 if (!SDL.Init(SDL.InitFlags.Video))
 {
     SDL.LogError(SDL.LogCategory.System, $"SDL could not initialize: {SDL.GetError()}");
@@ -18,6 +25,8 @@ if (!SDL.CreateWindowAndRenderer("SDL3 Create Window", 800, 600, 0, out var wind
 var loop = true;
 var startCounter = SDL.GetPerformanceCounter();
 var frequency = SDL.GetPerformanceFrequency();
+
+Console.WriteLine("Let's go!");
 
 while (loop)
 {
