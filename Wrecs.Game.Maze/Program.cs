@@ -1,6 +1,5 @@
 ﻿using SDL3;
 using Wrecs;
-using Wrecs.Core;
 using Wrecs.Systems;
 
 Console.WriteLine("Initializing...");
@@ -9,7 +8,7 @@ Console.WriteLine("Initializing...");
 var sim = new Sim();
 var spatial2DSystem = new Spatial2DSystem();
 sim.AddSystem(spatial2DSystem);
-var player = new Entity("Player");
+var player = new PlayerAgent();
 sim.InitEntities((player, [new Spatial2DSnapshot(new(20, 80))]));
 
 // HACK: Switch to STA Single Threaded Apartment
@@ -54,7 +53,7 @@ while (loop)
             }
             if (!e.Key.Repeat)
             {
-                // HandleKey(e.Key.Key, e.Key.Mod, type == SDL.EventType.KeyDown);
+                player.HandleKey(e.Key.Key, e.Key.Mod, type == SDL.EventType.KeyDown);
             }
         }
     }
@@ -78,37 +77,11 @@ while (loop)
     SDL.RenderDebugText(renderer, 10, 10, $"Elapsed Time: {elapsed:F3} seconds");
 
     SDL.RenderPresent(renderer);
+
+    sim.Tick();
 }
 
 SDL.DestroyRenderer(renderer);
 SDL.DestroyWindow(window);
 
 SDL.Quit();
-
-// TODO: Player agent movement
-// void HandleKey(SDL.Keycode keycode, SDL.Keymod mod, bool isPressed)
-// {
-//     if (isPressed)
-//     {
-//         switch (keycode)
-//         {
-//             case SDL.Keycode.Up:
-//             case SDL.Keycode.Space:
-//             case SDL.Keycode.W:
-//                 y -= 10;
-//                 break;
-//             case SDL.Keycode.Down:
-//             case SDL.Keycode.S:
-//                 y += 10;
-//                 break;
-//             case SDL.Keycode.Left:
-//             case SDL.Keycode.A:
-//                 x -= 10;
-//                 break;
-//             case SDL.Keycode.Right:
-//             case SDL.Keycode.D:
-//                 x += 10;
-//                 break;
-//         }
-//     }
-// }
