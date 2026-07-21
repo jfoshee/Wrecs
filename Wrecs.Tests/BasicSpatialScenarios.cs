@@ -124,7 +124,7 @@ public class BasicSpatial1DScenarios
         s1.GetTypedState(agent).Position.Should().Be(-3);
     }
 
-    private static ISpatial1DAgent MockSpatial1DAgent(int step)
+    internal static ISpatial1DAgent MockSpatial1DAgent(int step)
     {
         var id = EntityId.Next();
         var mock = new Mock<ISpatial1DAgent>();

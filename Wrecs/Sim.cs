@@ -35,7 +35,7 @@ public class Sim
         EnsureDependenciesInjected();
 
         // Preparation Phase
-        List<UpdateSet> sharedUpdates = [];
+        List<UpdateSet> proposedUpdates = [];
         foreach (var system in _systems.OfType<ISystemInternalUpdatePreparer>())
         {
             system.PrepareInternalUpdates();
@@ -43,7 +43,7 @@ public class Sim
         foreach (var system in _systems.OfType<ISystemSharedUpdates>())
         {
             var updateSet = system.PrepareSharedUpdates();
-            sharedUpdates.AddRange(updateSet);
+            proposedUpdates.AddRange(updateSet);
         }
 
         // Agent invocation phase: Sim builds each agent's context and dispatches intent actions to translators
@@ -60,9 +60,27 @@ public class Sim
                 foreach (var translator in _systems.OfType<ISystemAgentIntentTranslator>())
                 {
                     if (translator.CanTranslate(action))
-                        sharedUpdates.Add(translator.Translate(agent, action));
+                        proposedUpdates.Add(translator.Translate(agent, action));
                 }
             }
+        }
+
+        // Enforce constraints: Check each update set
+        List<UpdateSet> validUpdates = new(proposedUpdates.Count);
+        foreach (var updateSet in proposedUpdates)
+        {
+            bool rejected = false;
+            foreach (var constraint in _systems.OfType<ISystemConstraint>())
+            {
+                var result = constraint.Validate(updateSet);
+                if (!result.IsValid)
+                {
+                    rejected = true;
+                    // TODO: raise events
+                }
+            }
+            if (!rejected)
+                validUpdates.Add(updateSet);
         }
 
         // Get events to raise
@@ -85,7 +103,7 @@ public class Sim
         }
 
         // HACK: Put all shared updates into one big bucket
-        var allUpdates = sharedUpdates.SelectMany(cu => cu.Updates);
+        var allUpdates = validUpdates.SelectMany(cu => cu.Updates);
 
         // Update Phase
         foreach (var system in _systems.OfType<ISystemInternalUpdateApplier>())
