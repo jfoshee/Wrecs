@@ -4,6 +4,10 @@ using Wrecs.Systems;
 
 Console.WriteLine("Initializing...");
 
+// Create random maze
+var maze = MazeGenerator.Generate(10, 10);
+const float mazeScale = 100f;
+
 // Setup Wrecs Sim
 var sim = new Sim();
 var spatial2DSystem = new Spatial2DSystem();
@@ -25,7 +29,7 @@ if (!SDL.Init(SDL.InitFlags.Video))
     return;
 }
 
-if (!SDL.CreateWindowAndRenderer("SDL3 Create Window", 800, 600, 0, out var window, out var renderer))
+if (!SDL.CreateWindowAndRenderer("SDL3 Create Window", 1001, 1001, 0, out var window, out var renderer))
 {
     SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
     return;
@@ -66,6 +70,30 @@ while (loop)
     // Clear
     SDL.SetRenderDrawColor(renderer, 100, 149, 237, 255);
     SDL.RenderClear(renderer);
+
+    // Draw maze walls
+    SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    for (var x = 0; x < maze.Width; x++)
+    {
+        for (var y = 0; y < maze.Height; y++)
+        {
+            var left = x * mazeScale;
+            var top = y * mazeScale;
+            var right = left + mazeScale;
+            var bottom = top + mazeScale;
+
+            if (maze.HasWall(x, y, WallSides.North))
+                SDL.RenderLine(renderer, left, top, right, top);
+            if (maze.HasWall(x, y, WallSides.West))
+                SDL.RenderLine(renderer, left, top, left, bottom);
+
+            // Interior east/south walls are drawn by the neighboring cell.
+            if (x == maze.Width - 1 && maze.HasWall(x, y, WallSides.East))
+                SDL.RenderLine(renderer, right, top, right, bottom);
+            if (y == maze.Height - 1 && maze.HasWall(x, y, WallSides.South))
+                SDL.RenderLine(renderer, left, bottom, right, bottom);
+        }
+    }
 
     // Draw player rect
     var playerPosition = spatial2DSystem.GetTypedState(player).Position;
