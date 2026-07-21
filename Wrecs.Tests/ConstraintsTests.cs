@@ -12,7 +12,7 @@ public class ConstraintsTests
         result.Events.Should().BeEmpty();
     }
 
-    class TestEvent : IEvent;
+    public class TestEvent : IEvent;
 
     [Fact(DisplayName = "ConstraintResult.Reject() returns an invalid result with the specified events")]
     public void TestConstraintReject()
@@ -35,7 +35,7 @@ public class ConstraintsTests
             {
                 if (update is Spatial1DUpdate spatialUpdate && spatialUpdate.State.Position < 0)
                 {
-                    return ConstraintResult.Reject();
+                    return ConstraintResult.Reject(new TestEvent());
                 }
             }
             return ConstraintResult.Accept();
@@ -67,4 +67,22 @@ public class ConstraintsTests
         s1.GetTypedState(agent).Position.Should().Be(0, "the constraint should prevent the agent from moving to a negative position");
     }
 
+    [Fact(DisplayName = "Constraint raises events when an update is rejected")]
+    public void ConstraintRaisesEventsOnRejection()
+    {
+        // Setup 1D Spatial system with a constraint that prevents negative positions
+        var sim = new Sim();
+        var s1 = new Spatial1DSystem();
+        var handler = new Mock<ISystemEventHandler<TestEvent>>();
+        var constraint = new PositivePositionConstraint();
+        sim.AddSystems(s1, constraint, handler.Object);
+        // Setup an Agent that starts at X = 0 and moves left by 1 each tick
+        var agent = BasicSpatial1DScenarios.MockSpatial1DAgent(step: -1);
+        sim.InitEntities((agent, [new Spatial1DSnapshot(0)]));
+
+        // Tick 1: Agent attempts to move to X = -1, but constraint prevents it
+        sim.Tick();
+        s1.GetTypedState(agent).Position.Should().Be(0, "the constraint should prevent the agent from moving to a negative position");
+        handler.Verify(h => h.Handle(It.IsAny<TestEvent>()), Times.Once);
+    }
 }

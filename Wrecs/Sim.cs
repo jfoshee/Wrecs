@@ -66,6 +66,7 @@ public class Sim
         }
 
         // Enforce constraints: Check each update set
+        var eventQueue = new List<IEvent>();
         List<UpdateSet> validUpdates = new(proposedUpdates.Count);
         foreach (var updateSet in proposedUpdates)
         {
@@ -76,7 +77,7 @@ public class Sim
                 if (!result.IsValid)
                 {
                     rejected = true;
-                    // TODO: raise events
+                    eventQueue.AddRange(result.Events);
                 }
             }
             if (!rejected)
@@ -84,7 +85,6 @@ public class Sim
         }
 
         // Get events to raise
-        var eventQueue = new List<IEvent>();
         var eventRaisers = _systems.OfType<ISystemEventRaiser>();
         foreach (var raiser in eventRaisers)
         {
