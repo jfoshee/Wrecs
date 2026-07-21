@@ -32,7 +32,9 @@ if (!SDL.CreateWindowAndRenderer("SDL3 Create Window", 800, 600, 0, out var wind
 
 var loop = true;
 var startCounter = SDL.GetPerformanceCounter();
+var lastTickCounter = startCounter;
 var frequency = SDL.GetPerformanceFrequency();
+var tickInterval = frequency / 30.0;
 
 Console.WriteLine("Let's go!");
 
@@ -76,7 +78,11 @@ while (loop)
 
     SDL.RenderPresent(renderer);
 
-    sim.Tick();
+    if (currentCounter - lastTickCounter >= tickInterval)
+    {
+        sim.Tick();
+        lastTickCounter = currentCounter;
+    }
 }
 
 SDL.DestroyRenderer(renderer);

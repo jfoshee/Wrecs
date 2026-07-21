@@ -10,7 +10,7 @@ class PlayerAgent : ISpatial2DAgent
     public int Id { get; } = EntityId.Next();
     public string Name => "Player";
     private Vector2 _step = new(0, 0);
-    const float speed = 0.02f;
+    const float speed = 2f;
 
     public AgentIntent GetIntent(IAgentContext context)
     {
