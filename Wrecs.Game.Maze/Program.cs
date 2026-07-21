@@ -7,7 +7,8 @@ Console.WriteLine("Initializing...");
 // Setup Wrecs Sim
 var sim = new Sim();
 var spatial2DSystem = new Spatial2DSystem();
-sim.AddSystem(spatial2DSystem);
+var bounds = new GameBoundsConstraint();
+sim.AddSystems(spatial2DSystem, bounds);
 var player = new PlayerAgent();
 sim.InitEntities((player, [new Spatial2DSnapshot(new(20, 80))]));
 
