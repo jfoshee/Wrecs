@@ -132,6 +132,9 @@ public class Sim
 
     public void EnableSystem<T>() where T : ISystem
     {
+        // If system is already enabled, silently do nothing. This allows for idempotent calls to EnableSystem<T>() without throwing an exception.
+        if (_systems.OfType<T>().Any())
+            return;
         var system = _disabledSystems.OfType<T>().Single();
         _disabledSystems.Remove(system);
         _systems.Add(system);

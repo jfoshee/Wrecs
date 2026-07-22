@@ -69,6 +69,9 @@ while (loop)
                 case SDL.Keycode.C:
                     sim.DisableSystem<MazeWallsConstraint>();
                     break;
+                case SDL.Keycode.K:
+                    sim.EnableSystem<MazeWallsConstraint>();
+                    break;
             }
         }
     }
