@@ -15,6 +15,7 @@ class Maze
 {
     public int Width { get; }
     public int Height { get; }
+    public (int X, int Y) Goal { get; internal set; }
 
     private readonly WallSides[,] _walls;
 

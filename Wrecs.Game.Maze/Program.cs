@@ -101,6 +101,18 @@ while (loop)
         }
     }
 
+    // Draw the goal in the cell farthest from the starting cell.
+    const float GoalInset = 25f;
+    var goalRect = new SDL.FRect
+    {
+        X = maze.Goal.X * MazeScale + GoalInset,
+        Y = maze.Goal.Y * MazeScale + GoalInset,
+        W = MazeScale - GoalInset * 2,
+        H = MazeScale - GoalInset * 2,
+    };
+    SDL.SetRenderDrawColor(renderer, 255, 215, 0, 255);
+    SDL.RenderFillRect(renderer, in goalRect);
+
     // Draw player rect
     var playerPosition = sim.GetSystem<Spatial2DSystem>().GetTypedState(player).Position;
     var rect = new SDL.FRect { X = playerPosition.X, Y = playerPosition.Y, W = PlayerSize, H = PlayerSize };

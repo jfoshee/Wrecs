@@ -11,6 +11,8 @@ static class MazeGenerator
         var stack = new Stack<(int X, int Y)>();
 
         var start = (X: 0, Y: 0);
+        var goal = start;
+        var greatestDepth = 1;
         visited[start.X, start.Y] = true;
         stack.Push(start);
 
@@ -30,8 +32,17 @@ static class MazeGenerator
             maze.RemoveWall(next.X, next.Y, Opposite(side));
             visited[next.X, next.Y] = true;
             stack.Push(next);
+
+            // A generated maze is a tree, so stack depth is also the unique
+            // path distance from the start. Keep the most distant cell.
+            if (stack.Count > greatestDepth)
+            {
+                greatestDepth = stack.Count;
+                goal = next;
+            }
         }
 
+        maze.Goal = goal;
         return maze;
     }
 
