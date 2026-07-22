@@ -85,4 +85,55 @@ public class ConstraintsTests
         s1.GetTypedState(agent).Position.Should().Be(0, "the constraint should prevent the agent from moving to a negative position");
         handler.Verify(h => h.Handle(It.IsAny<TestEvent>()), Times.Once);
     }
+
+    [Fact(DisplayName = "Disabling a constraint allows previously rejected updates to succeed")]
+    public void DisablingConstraintAllowsUpdates()
+    {
+        var sim = new Sim();
+        var s1 = new Spatial1DSystem();
+        var constraint = new PositivePositionConstraint();
+        sim.AddSystems(s1, constraint);
+        var agent = BasicSpatial1DScenarios.MockSpatial1DAgent(step: -1);
+        sim.InitEntities((agent, [new Spatial1DSnapshot(0)]));
+
+        // Tick 1: Agent attempts to move to X = -1, but constraint prevents it
+        sim.Tick();
+        s1.GetTypedState(agent).Position.Should().Be(0);
+
+        // Disable the constraint
+        sim.DisableSystem<PositivePositionConstraint>();
+
+        // Tick 2: Agent should now be able to move to X = -1
+        sim.Tick();
+        s1.GetTypedState(agent).Position.Should().Be(-1);
+    }
+
+    [Fact(DisplayName = "Re-enabling a constraint enforces it again")]
+    public void ReEnablingConstraintEnforcesIt()
+    {
+        var sim = new Sim();
+        var s1 = new Spatial1DSystem();
+        var constraint = new PositivePositionConstraint();
+        sim.AddSystems(s1, constraint);
+        var agent = BasicSpatial1DScenarios.MockSpatial1DAgent(step: -1);
+        sim.InitEntities((agent, [new Spatial1DSnapshot(0)]));
+
+        // Tick 1: Agent attempts to move to X = -1, but constraint prevents it
+        sim.Tick();
+        s1.GetTypedState(agent).Position.Should().Be(0);
+
+        // Disable the constraint
+        sim.DisableSystem<PositivePositionConstraint>();
+
+        // Tick 2: Agent should now be able to move to X = -1
+        sim.Tick();
+        s1.GetTypedState(agent).Position.Should().Be(-1);
+
+        // Re-enable the constraint
+        sim.EnableSystem<PositivePositionConstraint>();
+
+        // Tick 3: Agent attempts to move to X = -2, but constraint prevents it
+        sim.Tick();
+        s1.GetTypedState(agent).Position.Should().Be(-1);
+    }
 }

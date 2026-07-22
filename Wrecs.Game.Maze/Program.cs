@@ -60,9 +60,15 @@ while (loop)
         }
         else if (type == SDL.EventType.KeyDown || type == SDL.EventType.KeyUp)
         {
-            if (e.Key.Key == SDL.Keycode.Escape)
+            switch (e.Key.Key)
             {
-                loop = false;
+                case SDL.Keycode.Q:
+                case SDL.Keycode.Escape:
+                    loop = false;
+                    break;
+                case SDL.Keycode.C:
+                    sim.DisableSystem<MazeWallsConstraint>();
+                    break;
             }
         }
     }

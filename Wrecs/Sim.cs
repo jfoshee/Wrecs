@@ -5,6 +5,7 @@ namespace Wrecs;
 public class Sim
 {
     private readonly List<ISystem> _systems = [];
+    private readonly List<ISystem> _disabledSystems = [];
     private readonly List<IEntity> _entities = [];
     private bool _dependenciesInjected = false;
 
@@ -118,6 +119,23 @@ public class Sim
 
     public T GetSystem<T>() where T : ISystem =>
         _systems.OfType<T>().Single();
+
+    public void DisableSystem<T>() where T : ISystem
+    {
+        var system = _systems.OfType<T>().SingleOrDefault();
+        // If system is already disabled, silently do nothing. This allows for idempotent calls to DisableSystem<T>() without throwing an exception.
+        if (system is null)
+            return;
+        _systems.Remove(system);
+        _disabledSystems.Add(system);
+    }
+
+    public void EnableSystem<T>() where T : ISystem
+    {
+        var system = _disabledSystems.OfType<T>().Single();
+        _disabledSystems.Remove(system);
+        _systems.Add(system);
+    }
 
     private void EnsureDependenciesInjected()
     {
