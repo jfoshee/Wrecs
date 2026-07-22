@@ -1,5 +1,7 @@
-﻿using SDL3;
+﻿using System.Numerics;
+using SDL3;
 using Wrecs;
+using Wrecs.Core;
 using Wrecs.Systems;
 
 Console.WriteLine("Initializing...");
@@ -7,6 +9,7 @@ Console.WriteLine("Initializing...");
 
 const float PlayerSize = 80f;
 const float PlayerSpeed = 8f;
+Vector2 PlayerStart = new(10f, 10f);
 const float MazeScale = 100f;
 const int MazeCells = 15;
 const float MazeSize = MazeCells * MazeScale;
@@ -20,7 +23,11 @@ sim.AddSystems(new Spatial2DSystem(),
                new GameBoundsConstraint(MazeSize + 1, MazeSize + 1, PlayerSize),
                new MazeWallsConstraint(maze, MazeScale, PlayerSize));
 var player = new PlayerAgent(PlayerSpeed);
-sim.InitEntities((player, [new Spatial2DSnapshot(new(10, 10))]));
+var goal = new Entity("Goal");
+var goalPosition = new Vector2(maze.Goal.X * MazeScale, maze.Goal.Y * MazeScale);
+sim.InitEntities((player, [new Spatial2DSnapshot(PlayerStart)]),
+                 (goal, [new Spatial2DSnapshot(goalPosition)]));
+
 
 // HACK: Switch to STA Single Threaded Apartment
 #if WINDOWS
@@ -35,7 +42,7 @@ if (!SDL.Init(SDL.InitFlags.Video))
     return;
 }
 
-if (!SDL.CreateWindowAndRenderer("SDL3 Create Window", (int)MazeSize + 1, (int)MazeSize + 1, 0, out var window, out var renderer))
+if (!SDL.CreateWindowAndRenderer("Maze", (int)MazeSize + 1, (int)MazeSize + 1, 0, out var window, out var renderer))
 {
     SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
     return;
@@ -110,12 +117,12 @@ while (loop)
         }
     }
 
-    // Draw the goal in the cell farthest from the starting cell.
+    // Draw the goal
     const float GoalInset = 25f;
     var goalRect = new SDL.FRect
     {
-        X = maze.Goal.X * MazeScale + GoalInset,
-        Y = maze.Goal.Y * MazeScale + GoalInset,
+        X = goalPosition.X + GoalInset,
+        Y = goalPosition.Y + GoalInset,
         W = MazeScale - GoalInset * 2,
         H = MazeScale - GoalInset * 2,
     };
