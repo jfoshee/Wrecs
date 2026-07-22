@@ -8,7 +8,7 @@ Console.WriteLine("Initializing...");
 const float PlayerSize = 80f;
 const float PlayerSpeed = 8f;
 const float MazeScale = 100f;
-const int MazeCells = 10;
+const int MazeCells = 15;
 const float MazeSize = MazeCells * MazeScale;
 
 // Create random maze
@@ -35,7 +35,7 @@ if (!SDL.Init(SDL.InitFlags.Video))
     return;
 }
 
-if (!SDL.CreateWindowAndRenderer("SDL3 Create Window", 1001, 1001, 0, out var window, out var renderer))
+if (!SDL.CreateWindowAndRenderer("SDL3 Create Window", (int)MazeSize + 1, (int)MazeSize + 1, 0, out var window, out var renderer))
 {
     SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
     return;
