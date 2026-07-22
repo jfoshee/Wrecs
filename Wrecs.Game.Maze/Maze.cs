@@ -32,7 +32,14 @@ class Maze
         }
     }
 
-    public WallSides GetWalls(int x, int y) => _walls[x, y];
+    public WallSides GetWalls(int x, int y)
+    {
+        // To simplify collision detection, allow requesting walls for out-of-bounds cells, which will return None (no walls).
+        if (x >= Width || y >= Height)
+            return WallSides.None;
+        return _walls[x, y];
+    }
+
 
     public bool HasWall(int x, int y, WallSides side) => (_walls[x, y] & side) != 0;
 

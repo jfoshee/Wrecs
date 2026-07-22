@@ -4,17 +4,23 @@ using Wrecs.Systems;
 
 Console.WriteLine("Initializing...");
 
+
+const float PlayerSize = 80f;
+const float PlayerSpeed = 4f;
+const float MazeScale = 100f;
+const int MazeCells = 10;
+const float MazeSize = MazeCells * MazeScale;
+
 // Create random maze
-var maze = MazeGenerator.Generate(10, 10);
-const float mazeScale = 100f;
+var maze = MazeGenerator.Generate(MazeCells, MazeCells);
 
 // Setup Wrecs Sim
 var sim = new Sim();
-var spatial2DSystem = new Spatial2DSystem();
-var bounds = new GameBoundsConstraint();
-sim.AddSystems(spatial2DSystem, bounds);
-var player = new PlayerAgent();
-sim.InitEntities((player, [new Spatial2DSnapshot(new(20, 80))]));
+sim.AddSystems(new Spatial2DSystem(),
+               new GameBoundsConstraint(MazeSize + 1, MazeSize + 1, PlayerSize),
+               new MazeWallsConstraint(maze, MazeScale, PlayerSize));
+var player = new PlayerAgent(PlayerSpeed);
+sim.InitEntities((player, [new Spatial2DSnapshot(new(10, 10))]));
 
 // HACK: Switch to STA Single Threaded Apartment
 #if WINDOWS
@@ -77,10 +83,10 @@ while (loop)
     {
         for (var y = 0; y < maze.Height; y++)
         {
-            var left = x * mazeScale;
-            var top = y * mazeScale;
-            var right = left + mazeScale;
-            var bottom = top + mazeScale;
+            var left = x * MazeScale;
+            var top = y * MazeScale;
+            var right = left + MazeScale;
+            var bottom = top + MazeScale;
 
             if (maze.HasWall(x, y, WallSides.North))
                 SDL.RenderLine(renderer, left, top, right, top);
@@ -96,8 +102,8 @@ while (loop)
     }
 
     // Draw player rect
-    var playerPosition = spatial2DSystem.GetTypedState(player).Position;
-    var rect = new SDL.FRect { X = playerPosition.X, Y = playerPosition.Y, W = 100, H = 100 };
+    var playerPosition = sim.GetSystem<Spatial2DSystem>().GetTypedState(player).Position;
+    var rect = new SDL.FRect { X = playerPosition.X, Y = playerPosition.Y, W = PlayerSize, H = PlayerSize };
     SDL.SetRenderDrawColor(renderer, 255, 0, 0, 255);
     SDL.RenderFillRect(renderer, in rect);
 

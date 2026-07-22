@@ -3,10 +3,8 @@ using Wrecs.Systems;
 
 namespace Wrecs.Game.Maze;
 
-class GameBoundsConstraint : ISystemConstraint
+class GameBoundsConstraint(float Width, float Height, float PlayerSize) : ISystemConstraint
 {
-    const float PlayerSize = 100;
-
     public ConstraintResult Validate(UpdateSet candidate)
     {
         foreach (var update in candidate.Updates)
@@ -14,7 +12,7 @@ class GameBoundsConstraint : ISystemConstraint
             if (update is Spatial2DUpdate spatialUpdate)
             {
                 var pos = spatialUpdate.State.Position;
-                if (pos.X < 0 || pos.Y < 0 || pos.X > 800 - PlayerSize || pos.Y > 600 - PlayerSize)
+                if (pos.X < 0 || pos.Y < 0 || pos.X > Width - PlayerSize || pos.Y > Height - PlayerSize)
                 {
                     return ConstraintResult.Reject();
                 }
