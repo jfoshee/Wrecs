@@ -6,7 +6,7 @@ Console.WriteLine("Initializing...");
 
 
 const float PlayerSize = 80f;
-const float PlayerSpeed = 4f;
+const float PlayerSpeed = 8f;
 const float MazeScale = 100f;
 const int MazeCells = 10;
 const float MazeSize = MazeCells * MazeScale;

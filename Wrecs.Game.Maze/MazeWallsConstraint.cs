@@ -24,7 +24,8 @@ class MazeWallsConstraint(Maze Maze, float MazeScale, float PlayerSize) : ISyste
 
     private bool IsIntersectingWall(Vector2 playerPosition)
     {
-
+        // The player position is just the top-left corner of the player square.
+        // We need to check the cell that the player is in, and the cells to the right and below, since the player can overlap those walls.
         var cell_x = (int)(playerPosition.X / MazeScale);
         var cell_y = (int)(playerPosition.Y / MazeScale);
 
