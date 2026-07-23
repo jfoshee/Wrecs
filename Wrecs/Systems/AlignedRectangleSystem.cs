@@ -3,6 +3,8 @@ using Wrecs.Geometry;
 
 namespace Wrecs.Systems;
 
+public interface IAlignedRectangleEntity : IEntity;
+
 public record struct AlignedRectangleSnapshot(AlignedRectangle Rectangle)
     : IStateSnapshot<AlignedRectangleSystem>
 {
@@ -26,28 +28,22 @@ public record AlignedRectangleUpdate : EntityUpdate<AlignedRectangleSnapshot>
 /// Entities without an initial rectangle use <see cref="AlignedRectangle.Empty"/>.
 /// </summary>
 public class AlignedRectangleSystem :
-    ISystemWithEntities<IEntity, AlignedRectangleSnapshot>,
+    ISystemWithEntities<IAlignedRectangleEntity, AlignedRectangleSnapshot>,
     ISystemAgentContextProvider<AlignedRectangleSnapshot>,
     ISystemUpdateAcceptor<AlignedRectangleSnapshot>
 {
-    private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, AlignedRectangle> _rectangles = [];
 
-    public IReadOnlyList<IEntity> GetEntities() => _entities;
+    public IReadOnlyList<IEntity> GetEntities() => [.. _rectangles.Keys];
 
     public AlignedRectangleSnapshot GetTypedState(IEntity entity) => new(_rectangles[entity]);
 
-    public void InitEntities(
-        params (IEntity entity, AlignedRectangleSnapshot? initialState)[] initialEntities)
+    public void InitEntities(params (IEntity entity, AlignedRectangleSnapshot? initialState)[] initialEntities)
     {
-        _entities.Clear();
         _rectangles.Clear();
-
         foreach (var (entity, initialState) in initialEntities)
         {
-            // TODO: only add entities that have initial state or implement marker interface
-            _entities.Add(entity);
-            _rectangles[entity] = initialState?.Rectangle ?? AlignedRectangle.Empty;
+            _rectangles[entity] = initialState ?? AlignedRectangle.Empty;
         }
     }
 

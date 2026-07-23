@@ -5,8 +5,8 @@ namespace Wrecs.Tests;
 
 public class AlignedRectangleSystemTests
 {
-    [Fact(DisplayName = "Every entity is registered with an aligned rectangle")]
-    public void EveryEntityIsRegisteredWithAnAlignedRectangle()
+    [Fact(DisplayName = "Unrelated entities are not registered")]
+    public void UnrelatedEntitiesAreNotRegistered()
     {
         var system = new AlignedRectangleSystem();
         var sim = new Sim();
@@ -17,10 +17,23 @@ public class AlignedRectangleSystemTests
 
         // The entity does not have initial state, nor implement a marker interface, so it should not be registered with the system
         system.GetEntities().Should().BeEmpty();
-        // system.GetTypedState(entity).Rectangle.Should().Be(AlignedRectangle.Empty);
     }
 
-    [Fact(DisplayName = "Initial snapshot sets an entity's aligned rectangle")]
+    [Fact(DisplayName = "Entity implementing marker interface is registered")]
+    public void EntityImplementingMarkerInterfaceIsRegistered()
+    {
+        var system = new AlignedRectangleSystem();
+        var sim = new Sim();
+        var entity = Mock.Of<IAlignedRectangleEntity>();
+        sim.AddSystem(system);
+
+        sim.InitEntities((entity, []));
+
+        system.GetEntities().Should().Contain(entity);
+        system.GetTypedState(entity).Rectangle.Should().Be(AlignedRectangle.Empty);
+    }
+
+    [Fact(DisplayName = "Entity with initial state is registered and has correct aligned rectangle")]
     public void InitialSnapshotSetsAnEntityAlignedRectangle()
     {
         var system = new AlignedRectangleSystem();
@@ -31,6 +44,7 @@ public class AlignedRectangleSystemTests
 
         sim.InitEntities((entity, [new AlignedRectangleSnapshot(rectangle)]));
 
+        system.GetEntities().Should().Contain(entity);
         system.GetTypedState(entity).Rectangle.Should().Be(rectangle);
     }
 

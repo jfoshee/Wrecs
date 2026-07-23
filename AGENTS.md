@@ -63,29 +63,32 @@ public record struct Spatial1DSnapshot(Position Position) : IStateSnapshot<Spati
 
 ## Defining a System
 
-Use `ISystem<TMarkerInterface, TStateSnapshot>` as the base when the system tracks per-entity state. This composite interface provides a default `InitEntities` implementation that:
+Use `ISystemWithEntities<TMarkerInterface, TStateSnapshot>` as the base when the system tracks per-entity state. This composite interface provides a default `InitEntities` implementation that:
 
 - Includes entities implementing `TMarkerInterface`, **or**
 - Includes entities that carry an initial `TStateSnapshot` in their `IStateSnapshot[]` array.
 
+Do not use `IEntity` as the marker interface; that defeats the purpose!
+
 Minimal pattern:
 
 ```csharp
+public interface IMyEntity : IEntity;
+public record struct MySnapshot(MyState ...) : IStateSnapshot<MySystem>;
 public class MySystem : ISystem<IMyEntity, MySnapshot>
 {
-    private List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, MyState> _states = [];
 
     public void InitEntities(params (IEntity entity, MySnapshot? initialState)[] initialEntities)
     {
-        _entities = [.. initialEntities.Select(e => e.entity)];
+        _states.Clear();
         foreach (var (entity, initialState) in initialEntities)
             _states[entity] = initialState ?? default;
     }
 
-    public IReadOnlyList<IEntity> GetEntities() => _entities;
+    public IReadOnlyList<IEntity> GetEntities() => [..._states.Keys];
 
-    public MySnapshot GetTypedState(IEntity entity) => _states[entity];
+    public MySnapshot GetTypedState(IEntity entity) => new(_states[entity]);
 }
 ```
 
