@@ -21,14 +21,14 @@ class MazeWallsConstraint(Maze Maze, float MazeScale, float PlayerSize) : ISyste
 
             // TODO: Just implement player as rectangle?? not as a lone position
             // HACK: Repeat for aligned rectangle update (Because we have 2 representations of the player position)
-            if (update is AlignedRectangleUpdate rectUpdate)
-            {
-                var position = rectUpdate.State.Rectangle.BottomLeft;
-                if (IsIntersectingWall(position))
-                {
-                    return ConstraintResult.Reject();
-                }
-            }
+            // if (update is AlignedRectangleUpdate rectUpdate)
+            // {
+            //     var position = rectUpdate.State.Rectangle.BottomLeft;
+            //     if (IsIntersectingWall(position))
+            //     {
+            //         return ConstraintResult.Reject();
+            //     }
+            // }
         }
 
         return ConstraintResult.Accept();

@@ -30,8 +30,8 @@ public record AlignedRectangleUpdate : EntityUpdate<AlignedRectangleSnapshot>
 public class AlignedRectangleSystem :
     ISystemWithEntities<IAlignedRectangleEntity, AlignedRectangleSnapshot>,
     ISystemAgentContextProvider<AlignedRectangleSnapshot>,
-    ISystemAgentIntentTranslator<Move2DAction>,
-    ISystemUpdateAcceptor<AlignedRectangleSnapshot>
+    ISystemUpdateAcceptor<AlignedRectangleSnapshot>,
+    ISystemUpdateAcceptor<Spatial2DSnapshot>
 {
     private readonly Dictionary<IEntity, AlignedRectangle> _rectangles = [];
 
@@ -53,22 +53,35 @@ public class AlignedRectangleSystem :
             ? new(rectangle)
             : null;
 
+
+    // HACK: Explicit implementation required because this system accepts two update types.
+    void ISystemUpdateAcceptor.ApplyUpdates(IEnumerable<IEntityUpdate> updates)
+    {
+        var all = updates.ToList();
+        ApplyUpdates(all.OfType<EntityUpdate<AlignedRectangleSnapshot>>());
+        ApplyUpdates(all.OfType<EntityUpdate<Spatial2DSnapshot>>());
+    }
+
     public void ApplyUpdates(IEnumerable<EntityUpdate<AlignedRectangleSnapshot>> updates)
     {
         foreach (var update in updates)
+            // NOTE: does not enforce that entity is already present in the system
             _rectangles[update.Entity] = update.State.Rectangle;
     }
 
-    public UpdateSet TranslateIntent(IAgent agent, Move2DAction action)
+    public void ApplyUpdates(IEnumerable<EntityUpdate<Spatial2DSnapshot>> updates)
     {
-        if (!_rectangles.TryGetValue(agent, out var rectangle))
-            throw new InvalidOperationException($"Agent {agent.Name} does not have a rectangle in {nameof(AlignedRectangleSystem)}");
-
-        var newRectangle = rectangle with
+        foreach (var update in updates)
         {
-            BottomLeft = rectangle.BottomLeft + action.Step
-        };
-
-        return new UpdateSet([new AlignedRectangleUpdate(agent, newRectangle)]);
+            if (!_rectangles.TryGetValue(update.Entity, out var rectangle))
+                // Ignore updates to entities that are not in this system
+                continue;
+            var position = update.State.Position;
+            var newRectangle = rectangle with
+            {
+                BottomLeft = position
+            };
+            _rectangles[update.Entity] = newRectangle;
+        }
     }
 }
