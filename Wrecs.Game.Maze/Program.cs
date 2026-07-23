@@ -1,7 +1,6 @@
 ﻿using System.Numerics;
 using SDL3;
 using Wrecs;
-using Wrecs.Core;
 using Wrecs.Systems;
 
 Console.WriteLine("Initializing...");
@@ -11,8 +10,9 @@ const float PlayerSize = 80f;
 const float PlayerSpeed = 8f;
 Vector2 PlayerStart = new(10f, 10f);
 const float MazeScale = 100f;
-const int MazeCells = 15;
+const int MazeCells = 4;
 const float MazeSize = MazeCells * MazeScale;
+const float GoalSize = 60f;
 
 // Create random maze
 var maze = MazeGenerator.Generate(MazeCells, MazeCells);
@@ -21,12 +21,15 @@ var maze = MazeGenerator.Generate(MazeCells, MazeCells);
 var sim = new Sim();
 sim.AddSystems(new Spatial2DSystem(),
                new GameBoundsConstraint(MazeSize + 1, MazeSize + 1, PlayerSize),
-               new MazeWallsConstraint(maze, MazeScale, PlayerSize));
+               new MazeWallsConstraint(maze, MazeScale, PlayerSize),
+               new AlignedRectangleSystem(),
+               new AlignedRectangleCollisionEventSystem(),
+               new PlayerGoalCollisionHandler());
 var player = new PlayerAgent(PlayerSpeed);
-var goal = new Entity("Goal");
+var goal = new GoalEntity();
 var goalPosition = new Vector2(maze.Goal.X * MazeScale, maze.Goal.Y * MazeScale);
-sim.InitEntities((player, [new Spatial2DSnapshot(PlayerStart)]),
-                 (goal, [new Spatial2DSnapshot(goalPosition)]));
+sim.InitEntities((player, [new Spatial2DSnapshot(PlayerStart), new AlignedRectangleSnapshot(new(PlayerStart, PlayerSize, PlayerSize))]),
+                 (goal, [new Spatial2DSnapshot(goalPosition), new AlignedRectangleSnapshot(new(goalPosition, GoalSize, GoalSize))]));
 
 
 // HACK: Switch to STA Single Threaded Apartment
@@ -118,22 +121,28 @@ while (loop)
     }
 
     // Draw the goal
-    const float GoalInset = 25f;
-    var goalRect = new SDL.FRect
+    var goalRect = sim.GetSystem<AlignedRectangleSystem>().GetTypedState(goal).Rectangle;
+    var sdlGoalRect = new SDL.FRect
     {
-        X = goalPosition.X + GoalInset,
-        Y = goalPosition.Y + GoalInset,
-        W = MazeScale - GoalInset * 2,
-        H = MazeScale - GoalInset * 2,
+        X = goalRect.BottomLeft.X,
+        Y = goalRect.BottomLeft.Y,
+        W = goalRect.Width,
+        H = goalRect.Height,
     };
     SDL.SetRenderDrawColor(renderer, 255, 215, 0, 255);
-    SDL.RenderFillRect(renderer, in goalRect);
+    SDL.RenderFillRect(renderer, in sdlGoalRect);
 
     // Draw player rect
-    var playerPosition = sim.GetSystem<Spatial2DSystem>().GetTypedState(player).Position;
-    var rect = new SDL.FRect { X = playerPosition.X, Y = playerPosition.Y, W = PlayerSize, H = PlayerSize };
+    var playerRect = sim.GetSystem<AlignedRectangleSystem>().GetTypedState(player).Rectangle;
+    var sdlPlayerRect = new SDL.FRect { X = playerRect.BottomLeft.X, Y = playerRect.BottomLeft.Y, W = playerRect.Width, H = playerRect.Height };
     SDL.SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL.RenderFillRect(renderer, in rect);
+    SDL.RenderFillRect(renderer, in sdlPlayerRect);
+
+    // Draw player position
+    var playerPosition = sim.GetSystem<Spatial2DSystem>().GetTypedState(player).Position;
+    var sdlPlayerPositionRect = new SDL.FRect { X = playerPosition.X - 2, Y = playerPosition.Y - 2, W = 4, H = 4 };
+    SDL.SetRenderDrawColor(renderer, 127, 255, 127, 255);
+    SDL.RenderFillRect(renderer, in sdlPlayerPositionRect);
 
     // Draw overlay
     SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);

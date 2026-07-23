@@ -30,6 +30,7 @@ public record AlignedRectangleUpdate : EntityUpdate<AlignedRectangleSnapshot>
 public class AlignedRectangleSystem :
     ISystemWithEntities<IAlignedRectangleEntity, AlignedRectangleSnapshot>,
     ISystemAgentContextProvider<AlignedRectangleSnapshot>,
+    ISystemAgentIntentTranslator<Move2DAction>,
     ISystemUpdateAcceptor<AlignedRectangleSnapshot>
 {
     private readonly Dictionary<IEntity, AlignedRectangle> _rectangles = [];
@@ -56,5 +57,18 @@ public class AlignedRectangleSystem :
     {
         foreach (var update in updates)
             _rectangles[update.Entity] = update.State.Rectangle;
+    }
+
+    public UpdateSet TranslateIntent(IAgent agent, Move2DAction action)
+    {
+        if (!_rectangles.TryGetValue(agent, out var rectangle))
+            throw new InvalidOperationException($"Agent {agent.Name} does not have a rectangle in {nameof(AlignedRectangleSystem)}");
+
+        var newRectangle = rectangle with
+        {
+            BottomLeft = rectangle.BottomLeft + action.Step
+        };
+
+        return new UpdateSet([new AlignedRectangleUpdate(agent, newRectangle)]);
     }
 }

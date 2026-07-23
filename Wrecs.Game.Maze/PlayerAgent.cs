@@ -5,13 +5,19 @@ using Wrecs.Systems;
 
 namespace Wrecs.Game.Maze;
 
-class PlayerAgent(float Speed) : ISpatial2DAgent
+class PlayerAgent(float Speed) : ISpatial2DAgent, IAlignedRectangleEntity
 {
     public int Id { get; } = EntityId.Next();
     public string Name => "Player";
     private Vector2 _step = new(0, 0);
 
-    public AgentIntent GetIntent(IAgentContext context) => new(new Move2DAction(_step));
+    public AgentIntent GetIntent(IAgentContext context)
+    {
+        // Optimization: If the player is not moving, don't create a Move2DAction
+        if (_step == Vector2.Zero)
+            return AgentIntent.Empty;
+        return new(new Move2DAction(_step));
+    }
 
     public void HandleKeyboard()
     {
