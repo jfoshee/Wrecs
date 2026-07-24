@@ -21,7 +21,7 @@ var maze = MazeGenerator.Generate(MazeCells, MazeCells);
 var sim = new Sim();
 sim.AddSystems(new Spatial2DSystem(),
                new GameBoundsConstraint(MazeSize + 1, MazeSize + 1, PlayerSize),
-               new MazeWallsConstraint(maze, MazeScale, PlayerSize),
+               new MazeWallsConstraint(maze, MazeScale),
                new AlignedRectangleSystem(),
                new AlignedRectangleCollisionEventSystem(),
                new PlayerGoalCollisionHandler());
