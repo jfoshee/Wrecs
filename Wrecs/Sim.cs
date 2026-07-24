@@ -45,8 +45,8 @@ public class Sim
         }
         foreach (var system in _systems.OfType<ISystemSharedUpdates>())
         {
-            var updateSet = system.PrepareSharedUpdates();
-            proposedUpdates.AddRange(updateSet);
+            var updateSets = system.PrepareSharedUpdates();
+            proposedUpdates.AddRange(updateSets);
         }
 
         // Agent invocation phase: Sim builds each agent's context and dispatches intent actions to translators
@@ -60,10 +60,18 @@ public class Sim
                 continue;
             foreach (var action in intent.Actions)
             {
+                // Merge the update sets from all translators so that an intent action becomes a single atomic update set.
+                // This prevents systems from getting out of sync if one translator rejects an update set but another approves it.
+                var actionUpdates = new List<UpdateSet>();
                 foreach (var translator in _systems.OfType<ISystemAgentIntentTranslator>())
                 {
                     if (translator.CanTranslate(action))
-                        proposedUpdates.Add(translator.Translate(agent, action));
+                        actionUpdates.Add(translator.Translate(agent, action));
+                }
+                if (actionUpdates.Count > 0)
+                {
+                    var actionUpdate = MergeUpdateSets(actionUpdates);
+                    proposedUpdates.Add(actionUpdate);
                 }
             }
         }
@@ -184,5 +192,15 @@ public class Sim
             var injectMethod = dependencyContract.GetMethod(nameof(IRequire<ISystem>.Inject))!;
             injectMethod.Invoke(entity, [matches[0]]);
         }
+    }
+
+    private static UpdateSet MergeUpdateSets(List<UpdateSet> actionUpdates)
+    {
+        var mergedUpdates = new List<IEntityUpdate>();
+        foreach (var updateSet in actionUpdates)
+        {
+            mergedUpdates.AddRange(updateSet.Updates);
+        }
+        return new UpdateSet(mergedUpdates);
     }
 }

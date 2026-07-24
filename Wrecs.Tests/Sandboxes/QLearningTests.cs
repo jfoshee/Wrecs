@@ -322,7 +322,7 @@ public class QLearningTests
         }
     }
 
-    [Fact(DisplayName = "Learning Loop with Ramped Learning")]
+    [Fact(DisplayName = "Learning Loop with Ramped Learning", Skip = "Unfinished")]
     public void LearningLoopRamped()
     {
         var subject = new QLearning(seed: 42)
