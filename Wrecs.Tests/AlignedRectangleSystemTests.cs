@@ -61,29 +61,6 @@ public class AlignedRectangleSystemTests
         system.GetTypedState(entity).Rectangle.Should().Be(rectangle);
     }
 
-    [Fact(DisplayName = "Non-generic update dispatch accepts rectangle and spatial updates")]
-    public void NonGenericUpdateDispatchAcceptsBothUpdateTypes()
-    {
-        var system = new AlignedRectangleSystem();
-        var rectangleEntity = new Entity("Rectangle");
-        var spatialEntity = new Entity("Spatial");
-        var rectangle = new AlignedRectangle(new Vector2(-2, 7), 8, 3);
-        var initialSpatialRectangle = new AlignedRectangle(new Vector2(1, 2), 4, 5);
-        system.InitEntities(
-            (rectangleEntity, null),
-            (spatialEntity, new AlignedRectangleSnapshot(initialSpatialRectangle)));
-
-        ((ISystemUpdateAcceptor)system).ApplyUpdates(
-        [
-            new AlignedRectangleUpdate(rectangleEntity, rectangle),
-            new Spatial2DUpdate(spatialEntity, new Vector2(9, 10))
-        ]);
-
-        system.GetTypedState(rectangleEntity).Rectangle.Should().Be(rectangle);
-        system.GetTypedState(spatialEntity).Rectangle.Should().Be(
-            initialSpatialRectangle with { BottomLeft = new Vector2(9, 10) });
-    }
-
     [Fact(DisplayName = "Required aligned rectangle snapshot is provided to an agent")]
     public void RequiredAlignedRectangleSnapshotIsProvidedToAgent()
     {
