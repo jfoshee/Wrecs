@@ -10,19 +10,9 @@ class MazeWallsConstraint(Maze Maze, float MazeScale, float PlayerSize) : ISyste
     {
         foreach (var update in candidate.Updates)
         {
-            if (update is Spatial2DUpdate spatialUpdate)
-            {
-                var position = spatialUpdate.State.Position;
-                if (IsIntersectingWall(position))
-                {
-                    return ConstraintResult.Reject();
-                }
-            }
-
-            // TODO: Just implement player as rectangle?? not as a lone position
-            // HACK: Repeat for aligned rectangle update (Because we have 2 representations of the player position)
             if (update is AlignedRectangleUpdate rectUpdate)
             {
+                // TODO: Use rectangle to do the collision detection
                 var position = rectUpdate.State.Rectangle.BottomLeft;
                 if (IsIntersectingWall(position))
                 {

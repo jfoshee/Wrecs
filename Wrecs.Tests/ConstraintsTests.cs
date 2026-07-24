@@ -1,3 +1,4 @@
+using Wrecs.Geometry;
 using Wrecs.Systems;
 
 namespace Wrecs.Tests;
@@ -86,6 +87,56 @@ public class ConstraintsTests
         handler.Verify(h => h.Handle(It.IsAny<TestEvent>()), Times.Once);
     }
 
+    [Fact(DisplayName = "Constraint rejection rejects all updates derived from one intent action")]
+    public void ConstraintRejectionRejectsAllUpdatesFromOneIntentAction()
+    {
+        var sim = new Sim();
+        var spatial = new Spatial2DSystem();
+        var rectangles = new AlignedRectangleSystem();
+        var constraint = new Positive2DPositionConstraint();
+        sim.AddSystems(spatial, rectangles, constraint);
+        var agent = MockSpatial2DAgent(new Move2DAction(new Vector2(-1, 0)));
+        var initialRectangle = AlignedRectangle.UnitSquare;
+        sim.InitEntities((agent, [
+            new Spatial2DSnapshot(Vector2.Zero),
+            new AlignedRectangleSnapshot(initialRectangle)
+        ]));
+
+        sim.Tick();
+
+        spatial.GetTypedState(agent).Position.Should().Be(
+            Vector2.Zero,
+            "the rejected action must not update any translating system");
+        rectangles.GetTypedState(agent).Rectangle.Should().Be(
+            initialRectangle,
+            "updates derived from the same action are applied atomically");
+    }
+
+    [Fact(DisplayName = "Each action in an agent intent is constrained independently")]
+    public void EachActionInIntentIsConstrainedIndependently()
+    {
+        var sim = new Sim();
+        var spatial = new Spatial2DSystem();
+        var rectangles = new AlignedRectangleSystem();
+        var constraint = new Positive2DPositionConstraint();
+        sim.AddSystems(spatial, rectangles, constraint);
+        var acceptedStep = new Vector2(1, 0);
+        var agent = MockSpatial2DAgent(
+            new Move2DAction(acceptedStep),
+            new Move2DAction(new Vector2(-1, 0)));
+        var initialRectangle = AlignedRectangle.UnitSquare;
+        sim.InitEntities((agent, [
+            new Spatial2DSnapshot(Vector2.Zero),
+            new AlignedRectangleSnapshot(initialRectangle)
+        ]));
+
+        sim.Tick();
+
+        spatial.GetTypedState(agent).Position.Should().Be(acceptedStep);
+        rectangles.GetTypedState(agent).Rectangle.BottomLeft.Should().Be(
+            initialRectangle.BottomLeft + acceptedStep);
+    }
+
     [Fact(DisplayName = "Disabling a constraint allows previously rejected updates to succeed")]
     public void DisablingConstraintAllowsUpdates()
     {
@@ -135,5 +186,24 @@ public class ConstraintsTests
         // Tick 3: Agent attempts to move to X = -2, but constraint prevents it
         sim.Tick();
         s1.GetTypedState(agent).Position.Should().Be(-1);
+    }
+
+    private sealed class Positive2DPositionConstraint : ISystemConstraint
+    {
+        public ConstraintResult Validate(UpdateSet candidate) =>
+            candidate.Updates
+                .OfType<Spatial2DUpdate>()
+                .Any(update => update.State.Position.X < 0)
+                ? ConstraintResult.Reject()
+                : ConstraintResult.Accept();
+    }
+
+    private static ISpatial2DAgent MockSpatial2DAgent(params Move2DAction[] actions)
+    {
+        var mock = new Mock<ISpatial2DAgent>();
+        mock.Setup(agent => agent.Id).Returns(EntityId.Next());
+        mock.Setup(agent => agent.GetIntent(It.IsAny<IAgentContext>()))
+            .Returns(new AgentIntent(actions.Cast<IAgentIntentAction>()));
+        return mock.Object;
     }
 }
