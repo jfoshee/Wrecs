@@ -43,6 +43,24 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
                Top > other.Bottom;
     }
 
+    public readonly bool Intersects(AxisAlignedSegment2 segment)
+    {
+        return segment.Axis switch
+        {
+            Axis2.X =>
+                segment.Anchor.Y >= Bottom &&
+                segment.Anchor.Y <= Top &&
+                segment.Interval.Max >= Left &&
+                segment.Interval.Min <= Right,
+            Axis2.Y =>
+                segment.Anchor.X >= Left &&
+                segment.Anchor.X <= Right &&
+                segment.Interval.Max >= Bottom &&
+                segment.Interval.Min <= Top,
+            _ => false
+        };
+    }
+
     /// <summary>
     /// Determines the relative position of the specified point with respect to this rectangle.
     /// </summary>

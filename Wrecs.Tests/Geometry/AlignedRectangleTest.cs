@@ -102,6 +102,52 @@ public class AlignedRectangleTests
         resultB.Should().Be(expected, because: scenario);
     }
 
+    [Theory(DisplayName = "Axis-aligned segment intersection")]
+    [InlineData(3, -2, 4, 6, Axis2.X, 0, 2, 8, true, "Horizontal segment crosses offset rectangle")]
+    [InlineData(3, -2, 4, 6, Axis2.X, 0, 4, 6, true, "Horizontal segment is contained")]
+    [InlineData(3, -2, 4, 6, Axis2.X, 4, 1, 3, true, "Horizontal endpoint touches top-left corner")]
+    [InlineData(3, -2, 4, 6, Axis2.X, -2, 4, 6, true, "Horizontal segment lies on bottom edge")]
+    [InlineData(3, -2, 4, 6, Axis2.X, 0, 8, 9, false, "Horizontal segment is beyond right edge")]
+    [InlineData(3, -2, 4, 6, Axis2.X, 5, 4, 6, false, "Horizontal segment is above rectangle")]
+    [InlineData(3, -2, 4, 6, Axis2.Y, 5, -3, 5, true, "Vertical segment crosses offset rectangle")]
+    [InlineData(3, -2, 4, 6, Axis2.Y, 5, -1, 3, true, "Vertical segment is contained")]
+    [InlineData(3, -2, 4, 6, Axis2.Y, 7, -4, -2, true, "Vertical endpoint touches bottom-right corner")]
+    [InlineData(3, -2, 4, 6, Axis2.Y, 3, -1, 3, true, "Vertical segment lies on left edge")]
+    [InlineData(3, -2, 4, 6, Axis2.Y, 5, 5, 6, false, "Vertical segment is above rectangle")]
+    [InlineData(3, -2, 4, 6, Axis2.Y, 8, -1, 3, false, "Vertical segment is beyond right edge")]
+    [InlineData(0, 0, 4, 4, Axis2.X, 2, -1, 5, true, "Horizontal segment crosses rectangle at origin")]
+    public void Intersects_AxisAlignedSegment_ReturnsExpectedResult(
+        float rectangleX,
+        float rectangleY,
+        float rectangleWidth,
+        float rectangleHeight,
+        Axis2 axis,
+        float fixedCoordinate,
+        float extentMin,
+        float extentMax,
+        bool expected,
+        string scenario)
+    {
+        var rectangle = new AlignedRectangle(
+            new Vector2(rectangleX, rectangleY),
+            rectangleWidth,
+            rectangleHeight);
+        var anchor = axis switch
+        {
+            Axis2.X => new Vector2(0, fixedCoordinate),
+            Axis2.Y => new Vector2(fixedCoordinate, 0),
+            _ => throw new ArgumentOutOfRangeException(nameof(axis))
+        };
+        var segment = new AxisAlignedSegment2(
+            axis,
+            anchor,
+            new Interval(extentMin, extentMax));
+
+        var result = rectangle.Intersects(segment);
+
+        result.Should().Be(expected, because: scenario);
+    }
+
     [Theory(DisplayName = "Relative Position")]
     [InlineData(0, 0, 2, 2, 3, 3, RelativePosition.Above | RelativePosition.Right, "Above and to the right")]
     [InlineData(0, 0, 2, 2, 1, 3, RelativePosition.Above, "Above")]
