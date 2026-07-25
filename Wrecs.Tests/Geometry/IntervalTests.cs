@@ -18,11 +18,11 @@ public class IntervalTests
     [InlineData(10, true)]
     [InlineData(1.99, false)]
     [InlineData(10.01, false)]
-    public void Contains_Value_ReturnsExpectedResult(double value, bool expected)
+    public void Contains_Value_ReturnsExpectedResult(float value, bool expected)
     {
         var interval = new Wrecs.Geometry.Interval(2, 10);
 
-        interval.Contains((float)value).Should().Be(expected);
+        interval.Contains(value).Should().Be(expected);
     }
 
     [Fact(DisplayName = "Interval permits equal bounds")]
