@@ -35,6 +35,15 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
                point.Y >= Bottom && point.Y <= Top;
     }
 
+    /// <summary>
+    /// Returns true if vertically or horizontally aligned with the other rectangle.
+    /// </summary>
+    public readonly bool IsAlignedWith(AlignedRectangle other)
+    {
+        return (BottomLeft.X == other.BottomLeft.X && Width == other.Width) ||
+               (BottomLeft.Y == other.BottomLeft.Y && Height == other.Height);
+    }
+
     public readonly bool Intersects(AlignedRectangle other)
     {
         return Left < other.Right &&
@@ -118,9 +127,7 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
     public readonly AlignedRectangle Sweep(AlignedRectangle destination)
     {
         var isSameSize = Width == destination.Width && Height == destination.Height;
-        var isAxisAlignedTranslation =
-            BottomLeft.X == destination.BottomLeft.X ||
-            BottomLeft.Y == destination.BottomLeft.Y;
+        var isAxisAlignedTranslation = IsAlignedWith(destination);
 
         if (!isSameSize || !isAxisAlignedTranslation)
         {

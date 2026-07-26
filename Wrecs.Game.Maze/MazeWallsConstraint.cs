@@ -4,18 +4,24 @@ using Wrecs.Systems;
 
 namespace Wrecs.Game.Maze;
 
-class MazeWallsConstraint(Maze Maze, float MazeScale) : ISystemConstraint
+class MazeWallsConstraint(Maze Maze, float MazeScale) :
+    ISystemConstraint,
+    IRequire<AlignedRectangleSystem>
 {
+    private AlignedRectangleSystem _alignedRectangleSystem = null!;
+    public void Inject(AlignedRectangleSystem dependency) => _alignedRectangleSystem = dependency;
+
     public ConstraintResult Validate(UpdateSet candidate)
     {
-        foreach (var update in candidate.Updates)
+        foreach (var update in candidate.Updates.OfType<AlignedRectangleUpdate>())
         {
-            if (update is AlignedRectangleUpdate rectUpdate)
+            var startingRectangle = _alignedRectangleSystem.GetTypedState(update.Entity);
+            var testRectangle = startingRectangle.Rectangle.IsAlignedWith(update.State.Rectangle)
+                ? startingRectangle.Rectangle.Sweep(update.State.Rectangle)
+                : update.State.Rectangle;
+            if (IsIntersectingWall(testRectangle))
             {
-                if (IsIntersectingWall(rectUpdate.State.Rectangle))
-                {
-                    return ConstraintResult.Reject();
-                }
+                return ConstraintResult.Reject();
             }
         }
 

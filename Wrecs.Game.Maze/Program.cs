@@ -7,7 +7,7 @@ Console.WriteLine("Initializing...");
 
 
 const float PlayerSize = 20;
-const float PlayerSpeed = 4;
+const float PlayerSpeed = 10;
 Vector2 PlayerStart = new(1, 1);
 const float MazeScale = 40;
 const int MazeCells = 8;
