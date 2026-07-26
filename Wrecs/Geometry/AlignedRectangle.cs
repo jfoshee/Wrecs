@@ -103,6 +103,39 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
         return FromLBRT(left, bottom, right, top);
     }
 
+    /// <summary>
+    /// Returns the axis-aligned rectangle swept out by translating this rectangle
+    /// horizontally or vertically to <paramref name="destination"/>.
+    /// </summary>
+    /// <param name="destination">
+    /// A rectangle of the same size whose bottom-left corner shares an X or Y
+    /// coordinate with this rectangle.
+    /// </param>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <paramref name="destination"/> is not a horizontal or vertical
+    /// translation of this rectangle.
+    /// </exception>
+    public readonly AlignedRectangle Sweep(AlignedRectangle destination)
+    {
+        var isSameSize = Width == destination.Width && Height == destination.Height;
+        var isAxisAlignedTranslation =
+            BottomLeft.X == destination.BottomLeft.X ||
+            BottomLeft.Y == destination.BottomLeft.Y;
+
+        if (!isSameSize || !isAxisAlignedTranslation)
+        {
+            throw new ArgumentException(
+                "Destination must be a horizontal or vertical translation of the same rectangle.",
+                nameof(destination));
+        }
+
+        var left = Math.Min(Left, destination.Left);
+        var right = Math.Max(Right, destination.Right);
+        var bottom = Math.Min(Bottom, destination.Bottom);
+        var top = Math.Max(Top, destination.Top);
+        return FromLBRT(left, bottom, right, top);
+    }
+
     public readonly AlignedRectangle Dilate(float padding)
     {
         return FromLBRT(Left - padding, Bottom - padding, Right + padding, Top + padding);

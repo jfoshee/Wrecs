@@ -116,32 +116,29 @@ public class AlignedRectangleTests
     [InlineData(3, -2, 4, 6, Axis2.Y, 5, 5, 6, false, "Vertical segment is above rectangle")]
     [InlineData(3, -2, 4, 6, Axis2.Y, 8, -1, 3, false, "Vertical segment is beyond right edge")]
     [InlineData(0, 0, 4, 4, Axis2.X, 2, -1, 5, true, "Horizontal segment crosses rectangle at origin")]
-    public void Intersects_AxisAlignedSegment_ReturnsExpectedResult(
-        float rectangleX,
-        float rectangleY,
-        float rectangleWidth,
-        float rectangleHeight,
-        Axis2 axis,
-        float fixedCoordinate,
-        float extentMin,
-        float extentMax,
-        bool expected,
-        string scenario)
+    public void Intersects_AxisAlignedSegment_ReturnsExpectedResult(float rectangleX,
+                                                                    float rectangleY,
+                                                                    float rectangleWidth,
+                                                                    float rectangleHeight,
+                                                                    Axis2 axis,
+                                                                    float fixedCoordinate,
+                                                                    float extentMin,
+                                                                    float extentMax,
+                                                                    bool expected,
+                                                                    string scenario)
     {
-        var rectangle = new AlignedRectangle(
-            new Vector2(rectangleX, rectangleY),
-            rectangleWidth,
-            rectangleHeight);
+        var rectangle = new AlignedRectangle(new(rectangleX, rectangleY),
+                                             rectangleWidth,
+                                             rectangleHeight);
         var anchor = axis switch
         {
             Axis2.X => new Vector2(0, fixedCoordinate),
             Axis2.Y => new Vector2(fixedCoordinate, 0),
             _ => throw new ArgumentOutOfRangeException(nameof(axis))
         };
-        var segment = new AxisAlignedSegment2(
-            axis,
-            anchor,
-            new Interval(extentMin, extentMax));
+        var segment = new AxisAlignedSegment2(axis,
+                                              anchor,
+                                              new(extentMin, extentMax));
 
         var result = rectangle.Intersects(segment);
 
@@ -180,7 +177,7 @@ public class AlignedRectangleTests
     public void UnionWithEmptyRectangle_ShouldReturnOriginalRectangle()
     {
         // Arrange
-        var rectangle = new AlignedRectangle(new Vector2(1, 1), 3, 2);
+        var rectangle = new AlignedRectangle(new(1, 1), 3, 2);
         var empty = AlignedRectangle.Empty;
 
         // Act
@@ -196,13 +193,120 @@ public class AlignedRectangleTests
     public void UnionWithNonEmptyRectangle_ShouldReturnUnion()
     {
         // Arrange
-        var rectangle = new AlignedRectangle(new Vector2(1, 1), 3, 2);
-        var other = new AlignedRectangle(new Vector2(2, 2), 2, 3);
+        var rectangle = new AlignedRectangle(new(1, 1), 3, 2);
+        var other = new AlignedRectangle(new(2, 2), 2, 3);
 
         // Act
         var union = rectangle.Union(other);
 
         // Assert
-        union.Should().Be(new AlignedRectangle(new Vector2(1, 1), 3, 4));
+        union.Should().Be(new AlignedRectangle(new(1, 1), 3, 4));
+    }
+
+    [Theory(DisplayName = "Swept path includes both rectangles and the space between them")]
+    [InlineData(2.5f, -3.25f, 4.5f, 2.75f, 11.25f, -3.25f, 2.5f, -3.25f, 13.25f, 2.75f,
+        "Horizontal translation to the right")]
+    [InlineData(-1.75f, 6.5f, 3.25f, 5.5f, -9.5f, 6.5f, -9.5f, 6.5f, 11, 5.5f,
+        "Horizontal translation to the left")]
+    [InlineData(7.25f, -4.5f, 6.75f, 3.5f, 7.25f, 8.25f, 7.25f, -4.5f, 6.75f, 16.25f,
+        "Vertical translation upward")]
+    [InlineData(-8.5f, 9.75f, 2.25f, 4.75f, -8.5f, -6.25f, -8.5f, -6.25f, 2.25f, 20.75f,
+        "Vertical translation downward")]
+    [InlineData(3.5f, 2.25f, 4.25f, 6.75f, 7.75f, 2.25f, 3.5f, 2.25f, 8.5f, 6.75f,
+        "Destination touches the starting right edge")]
+    public void Sweep_ReturnsExpectedRectangleInBothDirections(float startX,
+                                                               float startY,
+                                                               float width,
+                                                               float height,
+                                                               float destinationX,
+                                                               float destinationY,
+                                                               float expectedX,
+                                                               float expectedY,
+                                                               float expectedWidth,
+                                                               float expectedHeight,
+                                                               string scenario)
+    {
+        var start = new AlignedRectangle(new(startX, startY), width, height);
+        var destination = new AlignedRectangle(new(destinationX, destinationY),
+                                               width,
+                                               height);
+        var expected = new AlignedRectangle(new(expectedX, expectedY),
+                                            expectedWidth,
+                                            expectedHeight);
+
+        var forward = start.Sweep(destination);
+        var reverse = destination.Sweep(start);
+
+        forward.Should().Be(expected, because: scenario);
+        reverse.Should().Be(expected, because: $"{scenario}; the operation is commutative");
+    }
+
+    [Fact(DisplayName = "Swept path to the same place is the starting rectangle")]
+    public void Sweep_SameStartAndDestination_ReturnsStartingRectangle()
+    {
+        var rectangle = new AlignedRectangle(new(-3.25f, 8.5f), 5.75f, 2.5f);
+
+        var result = rectangle.Sweep(rectangle);
+
+        result.Should().Be(rectangle);
+    }
+
+    [Theory(DisplayName = "Swept path supports zero-area rectangles")]
+    [InlineData(2, 3, 0, 4, 9, 3, 2, 3, 7, 4, "Zero width")]
+    [InlineData(-5, 6, 3, 0, -5, -2, -5, -2, 3, 8, "Zero height")]
+    [InlineData(0, 0, 0, 0, 5, 0, 0, 0, 5, 0, "Point swept horizontally")]
+    public void Sweep_ZeroAreaRectangle_ReturnsExpectedRectangle(float startX,
+                                                                 float startY,
+                                                                 float width,
+                                                                 float height,
+                                                                 float destinationX,
+                                                                 float destinationY,
+                                                                 float expectedX,
+                                                                 float expectedY,
+                                                                 float expectedWidth,
+                                                                 float expectedHeight,
+                                                                 string scenario)
+    {
+        var start = new AlignedRectangle(new(startX, startY), width, height);
+        var destination = new AlignedRectangle(new(destinationX, destinationY),
+                                               width,
+                                               height);
+        var expected = new AlignedRectangle(
+            new(expectedX, expectedY),
+            expectedWidth,
+            expectedHeight);
+
+        start.Sweep(destination).Should().Be(expected, because: scenario);
+        destination.Sweep(start).Should().Be(
+            expected,
+            because: $"{scenario}; the operation is commutative");
+    }
+
+    [Theory(DisplayName = "Swept path rejects destinations that are not translations on one axis")]
+    [InlineData(1, 2, 4, 5, 7, 9, 4, 5, "Diagonal movement")]
+    [InlineData(1, 2, 4, 5, 7, 2, 6, 5, "Width changed")]
+    [InlineData(1, 2, 4, 5, 1, 9, 4, 3, "Height changed")]
+    public void Sweep_InvalidDestination_ThrowsArgumentException(float startX,
+                                                                 float startY,
+                                                                 float startWidth,
+                                                                 float startHeight,
+                                                                 float destinationX,
+                                                                 float destinationY,
+                                                                 float destinationWidth,
+                                                                 float destinationHeight,
+                                                                 string scenario)
+    {
+        var start = new AlignedRectangle(new(startX, startY),
+                                         startWidth,
+                                         startHeight);
+        var destination = new AlignedRectangle(new(destinationX, destinationY),
+                                               destinationWidth,
+                                               destinationHeight);
+
+        var act = () => start.Sweep(destination);
+
+        act.Should()
+           .Throw<ArgumentException>(because: scenario)
+           .WithParameterName(nameof(destination));
     }
 }
