@@ -22,8 +22,6 @@ class MazeWallsConstraint(Maze Maze, float MazeScale) : ISystemConstraint
         return ConstraintResult.Accept();
     }
 
-    // TODO: Add AlignedLineSegment to Geometry and use it here to check for intersections with walls
-
     private bool IsIntersectingWall(AlignedRectangle rectangle)
     {
         var minCellX = (int)MathF.Floor(rectangle.Left / MazeScale);
@@ -49,19 +47,21 @@ class MazeWallsConstraint(Maze Maze, float MazeScale) : ISystemConstraint
         if (walls == WallSides.None)
             return false;
 
-        var left = cellX * MazeScale;
-        var right = left + MazeScale;
-        var bottom = cellY * MazeScale;
-        var top = bottom + MazeScale;
-        var overlapsHorizontally = rectangle.Right >= left && rectangle.Left <= right;
-        var overlapsVertically = rectangle.Top >= bottom && rectangle.Bottom <= top;
+        var west = cellX * MazeScale;
+        var east = west + MazeScale;
+        var north = cellY * MazeScale;
+        var south = north + MazeScale;
+        var horizontalInterval = new Interval(west, east);
+        var verticalInterval = new Interval(north, south);
 
         return
-            (overlapsVertically &&
-             (((walls & WallSides.West) != 0 && rectangle.Left <= left && rectangle.Right >= left) ||
-              ((walls & WallSides.East) != 0 && rectangle.Left <= right && rectangle.Right >= right))) ||
-            (overlapsHorizontally &&
-             (((walls & WallSides.North) != 0 && rectangle.Bottom <= bottom && rectangle.Top >= bottom) ||
-              ((walls & WallSides.South) != 0 && rectangle.Bottom <= top && rectangle.Top >= top)));
+            (walls.HasFlag(WallSides.North) &&
+             rectangle.Intersects(new AxisAlignedSegment2(Axis2.X, new(0, north), horizontalInterval))) ||
+            (walls.HasFlag(WallSides.East) &&
+             rectangle.Intersects(new AxisAlignedSegment2(Axis2.Y, new(east, 0), verticalInterval))) ||
+            (walls.HasFlag(WallSides.South) &&
+             rectangle.Intersects(new AxisAlignedSegment2(Axis2.X, new(0, south), horizontalInterval))) ||
+            (walls.HasFlag(WallSides.West) &&
+             rectangle.Intersects(new AxisAlignedSegment2(Axis2.Y, new(west, 0), verticalInterval)));
     }
 }

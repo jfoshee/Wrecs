@@ -6,13 +6,13 @@ using Wrecs.Systems;
 Console.WriteLine("Initializing...");
 
 
-const float PlayerSize = 5;
+const float PlayerSize = 20;
 const float PlayerSpeed = 4;
 Vector2 PlayerStart = new(1, 1);
-const float MazeScale = 15;
-const int MazeCells = 45;
+const float MazeScale = 40;
+const int MazeCells = 8;
 const float MazeSize = MazeCells * MazeScale;
-const float GoalSize = 60f;
+const float GoalSize = 30f;
 
 // Create random maze
 var maze = MazeGenerator.Generate(MazeCells, MazeCells);
