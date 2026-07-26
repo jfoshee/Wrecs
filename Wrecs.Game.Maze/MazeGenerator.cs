@@ -3,11 +3,11 @@ namespace Wrecs.Game.Maze;
 static class MazeGenerator
 {
     // Randomized depth-first search (recursive back-tracker).
-    public static GridMaze Generate(int width, int height, Random? random = null)
+    public static GridMaze Generate(int columns, int rows, Random? random = null)
     {
         random ??= Random.Shared;
-        var maze = new GridMaze(width, height);
-        var visited = new bool[width, height];
+        var maze = new GridMaze(columns, rows);
+        var visited = new bool[columns, rows];
         var stack = new Stack<(int X, int Y)>();
 
         var start = (X: 0, Y: 0);
@@ -19,7 +19,7 @@ static class MazeGenerator
         while (stack.Count > 0)
         {
             var current = stack.Peek();
-            var neighbors = GetUnvisitedNeighbors(current, width, height, visited);
+            var neighbors = GetUnvisitedNeighbors(current, columns, rows, visited);
 
             if (neighbors.Count == 0)
             {
@@ -46,8 +46,10 @@ static class MazeGenerator
         return maze;
     }
 
-    private static List<((int X, int Y) Cell, WallSides Side)> GetUnvisitedNeighbors(
-        (int X, int Y) cell, int width, int height, bool[,] visited)
+    private static List<((int X, int Y) Cell, WallSides Side)> GetUnvisitedNeighbors((int X, int Y) cell,
+                                                                                     int columns,
+                                                                                     int rows,
+                                                                                     bool[,] visited)
     {
         var result = new List<((int X, int Y), WallSides)>();
 
@@ -55,26 +57,26 @@ static class MazeGenerator
         {
             var nx = cell.X + dx;
             var ny = cell.Y + dy;
-            if (nx >= 0 && nx < width && ny >= 0 && ny < height && !visited[nx, ny])
+            if (nx >= 0 && nx < columns && ny >= 0 && ny < rows && !visited[nx, ny])
             {
                 result.Add(((nx, ny), side));
             }
         }
 
-        TryAdd(0, -1, WallSides.North);
-        TryAdd(1, 0, WallSides.East);
-        TryAdd(0, 1, WallSides.South);
-        TryAdd(-1, 0, WallSides.West);
+        TryAdd(0, -1, WallSides.Bottom);
+        TryAdd(1, 0, WallSides.Right);
+        TryAdd(0, 1, WallSides.Top);
+        TryAdd(-1, 0, WallSides.Left);
 
         return result;
     }
 
     private static WallSides Opposite(WallSides side) => side switch
     {
-        WallSides.North => WallSides.South,
-        WallSides.South => WallSides.North,
-        WallSides.East => WallSides.West,
-        WallSides.West => WallSides.East,
+        WallSides.Bottom => WallSides.Top,
+        WallSides.Top => WallSides.Bottom,
+        WallSides.Right => WallSides.Left,
+        WallSides.Left => WallSides.Right,
         _ => throw new ArgumentOutOfRangeException(nameof(side)),
     };
 }
