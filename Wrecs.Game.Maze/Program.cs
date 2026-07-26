@@ -15,19 +15,20 @@ const float MazeSize = MazeCells * MazeScale;
 const float GoalSize = 30f;
 
 // Create random maze
-var maze = MazeGenerator.Generate(MazeCells, MazeCells);
+var baseMaze = MazeGenerator.Generate(MazeCells, MazeCells);
+var maze = new ScaledMaze(baseMaze, MazeScale);
 
 // Setup Wrecs Sim
 var sim = new Sim();
 sim.AddSystems(new Spatial2DSystem(),
                new GameBoundsConstraint(MazeSize + 1, MazeSize + 1, PlayerSize),
-               new MazeWallsConstraint(maze, MazeScale),
+               new MazeWallsConstraint(maze),
                new AlignedRectangleSystem(),
                new AlignedRectangleCollisionEventSystem(),
                new PlayerGoalCollisionHandler());
 var player = new PlayerAgent(PlayerSpeed);
 var goal = new GoalEntity();
-var goalPosition = new Vector2(maze.Goal.X * MazeScale, maze.Goal.Y * MazeScale);
+var goalPosition = maze.GoalPosition;
 sim.InitEntities((player, [new Spatial2DSnapshot(PlayerStart), new AlignedRectangleSnapshot(new(PlayerStart, PlayerSize, PlayerSize))]),
                  (goal, [new Spatial2DSnapshot(goalPosition), new AlignedRectangleSnapshot(new(goalPosition, GoalSize, GoalSize))]));
 
@@ -98,26 +99,9 @@ while (loop)
 
     // Draw maze walls
     SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    for (var x = 0; x < maze.Width; x++)
+    foreach (var wall in maze.GetWalls())
     {
-        for (var y = 0; y < maze.Height; y++)
-        {
-            var left = x * MazeScale;
-            var top = y * MazeScale;
-            var right = left + MazeScale;
-            var bottom = top + MazeScale;
-
-            if (maze.HasWall(x, y, WallSides.North))
-                SDL.RenderLine(renderer, left, top, right, top);
-            if (maze.HasWall(x, y, WallSides.West))
-                SDL.RenderLine(renderer, left, top, left, bottom);
-
-            // Interior east/south walls are drawn by the neighboring cell.
-            if (x == maze.Width - 1 && maze.HasWall(x, y, WallSides.East))
-                SDL.RenderLine(renderer, right, top, right, bottom);
-            if (y == maze.Height - 1 && maze.HasWall(x, y, WallSides.South))
-                SDL.RenderLine(renderer, left, bottom, right, bottom);
-        }
+        SDL.RenderLine(renderer, wall.Start.X, wall.Start.Y, wall.End.X, wall.End.Y);
     }
 
     // Draw the goal

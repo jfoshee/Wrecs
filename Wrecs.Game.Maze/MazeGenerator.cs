@@ -3,10 +3,10 @@ namespace Wrecs.Game.Maze;
 static class MazeGenerator
 {
     // Randomized depth-first search (recursive back-tracker).
-    public static Maze Generate(int width, int height, Random? random = null)
+    public static GridMaze Generate(int width, int height, Random? random = null)
     {
         random ??= Random.Shared;
-        var maze = new Maze(width, height);
+        var maze = new GridMaze(width, height);
         var visited = new bool[width, height];
         var stack = new Stack<(int X, int Y)>();
 

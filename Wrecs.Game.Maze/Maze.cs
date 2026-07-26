@@ -1,3 +1,6 @@
+using System.Numerics;
+using Wrecs.Geometry;
+
 namespace Wrecs.Game.Maze;
 
 [Flags]
@@ -11,7 +14,11 @@ enum WallSides
     All = North | East | South | West,
 }
 
-class Maze
+/// <summary>
+/// Represents a maze as a grid of cells, each with walls on its sides.
+/// The maze has integral size because it is generated as a grid of cells.
+/// </summary>
+class GridMaze
 {
     public int Width { get; }
     public int Height { get; }
@@ -19,7 +26,7 @@ class Maze
 
     private readonly WallSides[,] _walls;
 
-    public Maze(int width, int height)
+    public GridMaze(int width, int height)
     {
         Width = width;
         Height = height;
@@ -47,5 +54,36 @@ class Maze
     public void RemoveWall(int x, int y, WallSides side)
     {
         _walls[x, y] &= ~side;
+    }
+}
+
+class ScaledMaze(GridMaze Maze, float Scale)
+{
+    public float Width => Maze.Width * Scale;
+    public float Height => Maze.Height * Scale;
+    public Vector2 GoalPosition => new(Maze.Goal.X * Scale, Maze.Goal.Y * Scale);
+
+    public IEnumerable<AxisAlignedSegment2> GetWalls()
+    {
+        // TODO: Cache wall segments
+        for (var x = 0; x < Maze.Width; x++)
+        {
+            for (var y = 0; y < Maze.Height; y++)
+            {
+                var left = x * Scale;
+                var right = left + Scale;
+                var bottom = y * Scale;
+                var top = bottom + Scale;
+
+                if (Maze.HasWall(x, y, WallSides.South))
+                    yield return new AxisAlignedSegment2(Axis2.X, new(0, top), new Interval(left, right));
+                if (Maze.HasWall(x, y, WallSides.East))
+                    yield return new AxisAlignedSegment2(Axis2.Y, new(right, 0), new Interval(bottom, top));
+                if (Maze.HasWall(x, y, WallSides.North))
+                    yield return new AxisAlignedSegment2(Axis2.X, new(0, bottom), new Interval(left, right));
+                if (Maze.HasWall(x, y, WallSides.West))
+                    yield return new AxisAlignedSegment2(Axis2.Y, new(left, 0), new Interval(bottom, top));
+            }
+        }
     }
 }
