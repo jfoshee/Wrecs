@@ -6,11 +6,11 @@ using Wrecs.Systems;
 Console.WriteLine("Initializing...");
 
 
-const float PlayerSize = 80f;
-const float PlayerSpeed = 8f;
-Vector2 PlayerStart = new(10f, 10f);
-const float MazeScale = 100f;
-const int MazeCells = 4;
+const float PlayerSize = 5;
+const float PlayerSpeed = 4;
+Vector2 PlayerStart = new(1, 1);
+const float MazeScale = 15;
+const int MazeCells = 45;
 const float MazeSize = MazeCells * MazeScale;
 const float GoalSize = 60f;
 
