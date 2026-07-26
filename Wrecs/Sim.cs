@@ -15,6 +15,12 @@ public class Sim
         _dependenciesInjected = false;
     }
 
+    public void AddSystems(params ISystem[] systems)
+    {
+        _systems.AddRange(systems);
+        _dependenciesInjected = false;
+    }
+
     public void InitEntities(params (IEntity entity, IStateSnapshot[] initialStates)[] entitiesWithState)
     {
         _entities.Clear();
