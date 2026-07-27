@@ -15,13 +15,26 @@ class MazeWallsConstraint(ScaledMaze Maze) :
     {
         foreach (var update in candidate.Updates.OfType<AlignedRectangleUpdate>())
         {
-            var startingRectangle = _alignedRectangleSystem.GetTypedState(update.Entity);
-            var testRectangle = startingRectangle.Rectangle.IsAlignedWith(update.State.Rectangle)
-                ? startingRectangle.Rectangle.Sweep(update.State.Rectangle)
-                : update.State.Rectangle;
-            if (IsIntersectingWall(testRectangle))
+            var startingRectangle = _alignedRectangleSystem.GetTypedState(update.Entity).Rectangle;
+            var endingRectangle = update.State.Rectangle;
+            if (startingRectangle.IsAlignedWith(endingRectangle))
             {
-                return ConstraintResult.Reject();
+                // Optimization: If the update is only a horizontal or vertical translation,
+                // the path of the rectangle is also an aligned rectangle
+                // So we can construct that rectangle and just check if it intersects any walls instead of a complex sweep test
+                var sweepRectangle = startingRectangle.Sweep(endingRectangle);
+                if (IsIntersectingWall(sweepRectangle))
+                {
+                    return ConstraintResult.Reject();
+                }
+            }
+            else
+            {
+                // Otherwise we need to do a more complex sweep test, which is a bit more expensive
+                if (IsRectPathIntersectingWall(startingRectangle, endingRectangle))
+                {
+                    return ConstraintResult.Reject();
+                }
             }
         }
 
@@ -34,6 +47,19 @@ class MazeWallsConstraint(ScaledMaze Maze) :
         foreach (var wall in Maze.GetWalls())
         {
             if (rectangle.Intersects(wall))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private bool IsRectPathIntersectingWall(AlignedRectangle start, AlignedRectangle end)
+    {
+        // TODO: Only check nearby walls
+        foreach (var wall in Maze.GetWalls())
+        {
+            if (start.SweepIntersects(end, wall))
             {
                 return true;
             }
