@@ -49,13 +49,14 @@ public class Sim
         {
             system.PrepareInternalUpdates();
         }
+        // Allow Systems to propose updates to other Systems
         foreach (var system in _systems.OfType<ISystemSharedUpdates>())
         {
             var updateSets = system.PrepareSharedUpdates();
             proposedUpdates.AddRange(updateSets);
         }
 
-        // Agent invocation phase: Sim builds each agent's context and dispatches intent actions to translators
+        // Agent Phase: Allow agents to propose updates by way of Intents
         foreach (var agent in _entities.OfType<IAgent>())
         {
             var ctx = new AgentContext();
@@ -64,10 +65,9 @@ public class Sim
             var intent = agent.GetIntent(ctx);
             if (intent is null)
                 continue;
+            // Convert each agent intent into an UpdateSet
             foreach (var action in intent.Actions)
             {
-                // Merge the update sets from all translators so that an intent action becomes a single atomic update set.
-                // This prevents systems from getting out of sync if one translator rejects an update set but another approves it.
                 var actionUpdates = new List<UpdateSet>();
                 foreach (var translator in _systems.OfType<ISystemAgentIntentTranslator>())
                 {
@@ -76,13 +76,30 @@ public class Sim
                 }
                 if (actionUpdates.Count > 0)
                 {
+                    // Merge the update sets so that an intent action becomes a single atomic update set.
+                    // This prevents systems from getting out of sync;
+                    // if a Constraint rejects one of the updates for the action the entire action is effectively rejected
                     var actionUpdate = MergeUpdateSets(actionUpdates);
                     proposedUpdates.Add(actionUpdate);
                 }
             }
         }
 
-        // Enforce constraints: Check each update set
+        // Resolve conflicts: Let each system resolve conflicts in the proposed update sets
+        for (var i = 0; i < proposedUpdates.Count; i++)
+        {
+            foreach (var resolver in _systems.OfType<ISystemUpdateResolver>())
+            {
+                var result = resolver.ResolveUpdates(proposedUpdates[i]);
+                if (result.ConflictResolved)
+                {
+                    // Replace in place so we preserve ordering and avoid modifying the collection during enumeration.
+                    proposedUpdates[i] = result.UpdateSet;
+                }
+            }
+        }
+
+        // Enforce constraints: Check each update set and prevent updates that violate constraints
         var eventQueue = new List<IEvent>();
         List<UpdateSet> validUpdates = new(proposedUpdates.Count);
         foreach (var updateSet in proposedUpdates)
@@ -119,14 +136,12 @@ public class Sim
             }
         }
 
-        // HACK: Put all shared updates into one big bucket
-        var allUpdates = validUpdates.SelectMany(cu => cu.Updates);
-
-        // Update Phase
+        // Update Phase: Apply valid updates
         foreach (var system in _systems.OfType<ISystemInternalUpdateApplier>())
         {
             system.ApplyInternalUpdates();
         }
+        var allUpdates = validUpdates.SelectMany(cu => cu.Updates);
         foreach (var system in _systems.OfType<ISystemUpdateAcceptor>())
         {
             system.ApplyUpdates(allUpdates);
