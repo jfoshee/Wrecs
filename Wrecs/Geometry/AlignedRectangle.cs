@@ -218,50 +218,19 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
                 nameof(destination));
         }
 
-        float obstacleLeft;
-        float obstacleRight;
-        float obstacleBottom;
-        float obstacleTop;
-
-        // Replace the stationary segment with the set of all bottom-left-corner
-        // positions that would make this rectangle touch that segment.
+        // Treat the moving rectangle as its bottom-left corner. Expand the
+        // stationary segment into every corner position that would cause the
+        // rectangle to touch it.
         //
-        // Once this expanded obstacle has been constructed, the moving rectangle
-        // can be treated as a single moving point: its bottom-left corner.
-        switch (segment.Axis)
-        {
-            case Axis2.X:
-                // For a horizontal segment:
-                //
-                // The moving rectangle can reach Width units to the right of its
-                // bottom-left corner, so valid corner positions extend Width units
-                // to the left of the segment.
-                //
-                // It can also reach Height units above its bottom-left corner, so
-                // valid corner positions extend Height units below the segment.
-                obstacleLeft = segment.Interval.Min - Width;
-                obstacleRight = segment.Interval.Max;
-                obstacleBottom = segment.Anchor.Y - Height;
-                obstacleTop = segment.Anchor.Y;
-                break;
+        // Because the rectangle extends rightward by Width and upward by Height
+        // from its bottom-left corner, the segment's bounds are expanded leftward
+        // and downward by those amounts.
+        var obstacle = segment.Bounds.Dilate(
+            left: Width,
+            right: 0f,
+            bottom: Height,
+            top: 0f);
 
-            case Axis2.Y:
-                // For a vertical segment:
-                //
-                // Valid bottom-left-corner positions extend Width units left of
-                // the segment and Height units below its lower endpoint.
-                obstacleLeft = segment.Anchor.X - Width;
-                obstacleRight = segment.Anchor.X;
-                obstacleBottom = segment.Interval.Min - Height;
-                obstacleTop = segment.Interval.Max;
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException(
-                    nameof(segment),
-                    segment.Axis,
-                    "The segment must be aligned with either the X or Y axis.");
-        }
 
         // Describe the bottom-left corner's path as:
         //
@@ -281,8 +250,8 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
         if (!RestrictTimeRangeToAxis(
                 BottomLeft.X,
                 movement.X,
-                obstacleLeft,
-                obstacleRight,
+                obstacle.Left,
+                obstacle.Right,
                 ref entryTime,
                 ref exitTime))
         {
@@ -292,8 +261,8 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
         return RestrictTimeRangeToAxis(
             BottomLeft.Y,
             movement.Y,
-            obstacleBottom,
-            obstacleTop,
+            obstacle.Bottom,
+            obstacle.Top,
             ref entryTime,
             ref exitTime);
     }
@@ -371,7 +340,12 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
 
     public readonly AlignedRectangle Dilate(float padding)
     {
-        return FromLBRT(Left - padding, Bottom - padding, Right + padding, Top + padding);
+        return Dilate(padding, padding, padding, padding);
+    }
+
+    public readonly AlignedRectangle Dilate(float left, float bottom, float right, float top)
+    {
+        return FromLBRT(Left - left, Bottom - bottom, Right + right, Top + top);
     }
 
     public readonly AlignedRectangle Scale(Vector2 scale)

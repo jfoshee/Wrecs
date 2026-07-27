@@ -4,6 +4,17 @@ namespace Wrecs.Tests.Geometry;
 
 public class AlignedRectangleTests
 {
+    [Fact(DisplayName = "Construction")]
+    public void ARect_Construction()
+    {
+        var rect = new AlignedRectangle(new(1, 2), 3, 4);
+
+        rect.Left.Should().Be(1);
+        rect.Bottom.Should().Be(2);
+        rect.Width.Should().Be(3);
+        rect.Height.Should().Be(4);
+    }
+
     [Fact(DisplayName = "Calculate Center")]
     public void Center_ShouldBeCorrect()
     {

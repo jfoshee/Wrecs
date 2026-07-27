@@ -125,4 +125,32 @@ public class AxisAlignedSegment2Tests
             .Throw<ArgumentOutOfRangeException>()
             .WithParameterName("axis");
     }
+
+    [Fact(DisplayName = "X-aligned segment bounds form a horizontal zero-height rectangle")]
+    public void Bounds_XAxis_ReturnsHorizontalRectangle()
+    {
+        var segment = new AxisAlignedSegment2(
+            Axis2.X,
+            new Vector2(99, 5),
+            new Interval(2, 10));
+
+        segment.Bounds.Should().Be(new AlignedRectangle(
+            new Vector2(2, 5),
+            Width: 8,
+            Height: 0));
+    }
+
+    [Fact(DisplayName = "Y-aligned segment bounds form a vertical zero-width rectangle")]
+    public void Bounds_YAxis_ReturnsVerticalRectangle()
+    {
+        var segment = new AxisAlignedSegment2(
+            Axis2.Y,
+            new Vector2(3, 99),
+            new Interval(-4, 6));
+
+        segment.Bounds.Should().Be(new AlignedRectangle(
+            new Vector2(3, -4),
+            Width: 0,
+            Height: 10));
+    }
 }

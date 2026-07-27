@@ -54,4 +54,17 @@ public readonly record struct AxisAlignedSegment2
             Axis2.Y => new Vector2(Anchor.X, coordinate),
             _ => throw new UnreachableException("Axis must be X or Y.")
         };
+
+    public readonly AlignedRectangle Bounds => Axis switch
+    {
+        Axis2.X => new AlignedRectangle(
+            new Vector2(Interval.Min, Anchor.Y),
+            new Vector2(Interval.Length, 0)),
+
+        Axis2.Y => new AlignedRectangle(
+            new Vector2(Anchor.X, Interval.Min),
+            new Vector2(0, Interval.Length)),
+
+        _ => throw new InvalidOperationException($"Unsupported axis: {Axis}.")
+    };
 }
