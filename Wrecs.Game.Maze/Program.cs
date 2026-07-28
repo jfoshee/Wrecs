@@ -6,8 +6,8 @@ using Wrecs.Systems;
 Console.WriteLine("Initializing...");
 
 
-const float PlayerSize = 5;
-const float PlayerSpeed = 10;
+const float PlayerSize = 10;
+const float PlayerSpeed = 40;
 Vector2 PlayerStart = new(1, 1);
 const float MazeScale = 40;
 const int MazeCells = 20;
@@ -22,7 +22,7 @@ var maze = new ScaledMaze(baseMaze, MazeScale);
 var sim = new Sim();
 sim.AddSystems(new Spatial2DSystem(),
                new GameBoundsConstraint(MazeSize + 1, MazeSize + 1, PlayerSize),
-               new MazeWallsConstraint(maze),
+               new MazeWallsUpdateResolver(maze.GetWalls()),
                new AlignedRectangleSystem(),
                new AlignedRectangleCollisionEventSystem(),
                new PlayerGoalCollisionHandler());
@@ -78,10 +78,10 @@ while (loop)
                     loop = false;
                     break;
                 case SDL.Keycode.C:
-                    sim.DisableSystem<MazeWallsConstraint>();
+                    sim.DisableSystem<MazeWallsUpdateResolver>();
                     break;
                 case SDL.Keycode.K:
-                    sim.EnableSystem<MazeWallsConstraint>();
+                    sim.EnableSystem<MazeWallsUpdateResolver>();
                     break;
             }
         }
