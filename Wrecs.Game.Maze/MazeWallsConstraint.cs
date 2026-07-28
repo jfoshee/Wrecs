@@ -59,7 +59,7 @@ class MazeWallsConstraint(ScaledMaze Maze) :
         // TODO: Only check nearby walls
         foreach (var wall in Maze.GetWalls())
         {
-            if (start.SweepIntersects(end, wall))
+            if (start.TrySweepIntersection(end, wall, out _))
             {
                 return true;
             }

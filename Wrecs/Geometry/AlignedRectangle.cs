@@ -3,6 +3,51 @@
 namespace Wrecs.Geometry;
 
 /// <summary>
+/// Describes the first contact found while sweeping an aligned rectangle.
+/// </summary>
+/// <param name="Time">
+/// The normalized time of contact, where 0 is the starting position and 1 is
+/// the requested destination.
+/// </param>
+/// <param name="ContactBottomLeft">
+/// The rectangle's bottom-left corner at the time of contact.
+/// </param>
+/// <param name="Normal">
+/// The outward-facing collision normal. This can be <see cref="Vector2.Zero"/>
+/// when the sweep starts in contact rather than entering through a face.
+/// </param>
+public readonly record struct SweepHit(
+    float Time,
+    Vector2 ContactBottomLeft,
+    Vector2 Normal)
+{
+    /// <summary>
+    /// Shortens a requested movement so that it stops at or before contact.
+    /// </summary>
+    /// <param name="requestedMovement">The complete requested movement.</param>
+    /// <param name="clearance">
+    /// The distance to leave between the rectangle and obstacle. A value of zero
+    /// stops at exact contact.
+    /// </param>
+    public Vector2 GetAllowedMovement(Vector2 requestedMovement, float clearance = 0f)
+    {
+        if (Time <= 0f)
+            return Vector2.Zero;
+
+        if (clearance <= 0f || Normal == Vector2.Zero)
+            return requestedMovement * Time;
+
+        var approachDistance = -Vector2.Dot(requestedMovement, Normal);
+        if (approachDistance <= 0f)
+            return requestedMovement * Time;
+
+        var clearanceTime = clearance / approachDistance;
+        var allowedTime = MathF.Max(0f, Time - clearanceTime);
+        return requestedMovement * allowedTime;
+    }
+}
+
+/// <summary>
 /// Axis-aligned rectangle.
 /// Assumes the Y-axis is pointing up.
 /// </summary>
@@ -144,9 +189,11 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
         var top = Math.Max(Top, destination.Top);
         return FromLBRT(left, bottom, right, top);
     }
+
     /// <summary>
-    /// Determines whether this rectangle touches or crosses an axis-aligned segment
-    /// while moving in a straight line to <paramref name="destination"/>.
+    /// Finds the first point at which this rectangle touches or crosses an
+    /// axis-aligned segment while moving in a straight line to
+    /// <paramref name="destination"/>.
     /// </summary>
     /// <param name="destination">
     /// The rectangle's final position. It must have the same width and height as
@@ -156,10 +203,13 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
     /// <param name="segment">
     /// The stationary horizontal or vertical segment to test.
     /// </param>
+    /// <param name="hit">
+    /// When this method returns <see langword="true"/>, contains the first contact's
+    /// normalized time, rectangle position, and outward-facing normal.
+    /// </param>
     /// <returns>
-    /// <see langword="true"/> if the rectangle intersects or touches the segment at
-    /// any point during the movement, including at its starting or ending position;
-    /// otherwise, <see langword="false"/>.
+    /// <see langword="true"/> if the rectangle intersects or touches the segment
+    /// during the movement; otherwise, <see langword="false"/>.
     /// </returns>
     /// <remarks>
     /// <para>
@@ -204,12 +254,20 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
     /// range of the expanded obstacle. A collision occurs when the valid X and Y
     /// time ranges overlap.
     /// </para>
+    ///
+    /// <para>
+    /// Contact at the starting position is ignored when the movement immediately
+    /// separates the rectangle from the segment.
+    /// </para>
     /// </remarks>
     /// <exception cref="ArgumentException">
     /// <paramref name="destination"/> does not have the same dimensions as this
     /// rectangle.
     /// </exception>
-    public readonly bool SweepIntersects(AlignedRectangle destination, AxisAlignedSegment2 segment)
+    public readonly bool TrySweepIntersection(
+        AlignedRectangle destination,
+        AxisAlignedSegment2 segment,
+        out SweepHit hit)
     {
         if (Width != destination.Width || Height != destination.Height)
         {
@@ -246,25 +304,61 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
         // Each axis test narrows this range.
         var entryTime = 0f;
         var exitTime = 1f;
+        var entryNormal = Vector2.Zero;
 
         if (!RestrictTimeRangeToAxis(
                 BottomLeft.X,
                 movement.X,
                 obstacle.Left,
                 obstacle.Right,
+                negativeFaceNormal: -Vector2.UnitX,
+                positiveFaceNormal: Vector2.UnitX,
                 ref entryTime,
-                ref exitTime))
+                ref exitTime,
+                ref entryNormal))
         {
+            hit = default;
             return false;
         }
 
-        return RestrictTimeRangeToAxis(
-            BottomLeft.Y,
-            movement.Y,
-            obstacle.Bottom,
-            obstacle.Top,
-            ref entryTime,
-            ref exitTime);
+        if (!RestrictTimeRangeToAxis(
+                BottomLeft.Y,
+                movement.Y,
+                obstacle.Bottom,
+                obstacle.Top,
+                negativeFaceNormal: -Vector2.UnitY,
+                positiveFaceNormal: Vector2.UnitY,
+                ref entryTime,
+                ref exitTime,
+                ref entryNormal))
+        {
+            hit = default;
+            return false;
+        }
+
+        var startedInside =
+            BottomLeft.X > obstacle.Left &&
+            BottomLeft.X < obstacle.Right &&
+            BottomLeft.Y > obstacle.Bottom &&
+            BottomLeft.Y < obstacle.Top;
+
+        // Ignore contact that exists only at t = 0 while moving away. This lets
+        // a rectangle that starts adjacent to a wall move away from it.
+        if (!startedInside && exitTime <= 0f)
+        {
+            hit = default;
+            return false;
+        }
+
+        if (entryNormal != Vector2.Zero)
+            entryNormal = Vector2.Normalize(entryNormal);
+
+        hit = new SweepHit(
+            entryTime,
+            BottomLeft + movement * entryTime,
+            entryNormal);
+
+        return true;
     }
 
     /// <summary>
@@ -284,6 +378,12 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
     /// <param name="rangeMax">
     /// The inclusive upper boundary of the obstacle on this axis.
     /// </param>
+    /// <param name="negativeFaceNormal">
+    /// The outward normal of the boundary at <paramref name="rangeMin"/>.
+    /// </param>
+    /// <param name="positiveFaceNormal">
+    /// The outward normal of the boundary at <paramref name="rangeMax"/>.
+    /// </param>
     /// <param name="entryTime">
     /// On input, the earliest time still valid after testing previous axes. On
     /// output, the later of that value and this axis's entry time.
@@ -291,6 +391,10 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
     /// <param name="exitTime">
     /// On input, the latest time still valid after testing previous axes. On
     /// output, the earlier of that value and this axis's exit time.
+    /// </param>
+    /// <param name="entryNormal">
+    /// The outward normal of the boundary responsible for
+    /// <paramref name="entryTime"/>.
     /// </param>
     /// <returns>
     /// <see langword="true"/> if some time remains valid after considering this
@@ -301,8 +405,11 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
                                                 float movement,
                                                 float rangeMin,
                                                 float rangeMax,
+                                                Vector2 negativeFaceNormal,
+                                                Vector2 positiveFaceNormal,
                                                 ref float entryTime,
-                                                ref float exitTime)
+                                                ref float exitTime,
+                                                ref Vector2 entryNormal)
     {
         // This coordinate does not change during the movement. It can satisfy this
         // axis for the entire movement only when it is already within the obstacle's
@@ -319,18 +426,37 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
         //     t = (boundary - origin) / movement
         //
         // When movement is negative, the maximum boundary is encountered before
-        // the minimum boundary, so the two times are reordered below.
-        var inverseMovement = 1f / movement;
-        var axisEntryTime = (rangeMin - origin) * inverseMovement;
-        var axisExitTime = (rangeMax - origin) * inverseMovement;
+        // the minimum boundary.
+        float axisEntryTime;
+        float axisExitTime;
+        Vector2 axisEntryNormal;
 
-        if (axisEntryTime > axisExitTime)
-            (axisEntryTime, axisExitTime) = (axisExitTime, axisEntryTime);
+        if (movement > 0f)
+        {
+            axisEntryTime = (rangeMin - origin) / movement;
+            axisExitTime = (rangeMax - origin) / movement;
+            axisEntryNormal = negativeFaceNormal;
+        }
+        else
+        {
+            axisEntryTime = (rangeMax - origin) / movement;
+            axisExitTime = (rangeMin - origin) / movement;
+            axisEntryNormal = positiveFaceNormal;
+        }
 
         // A collision requires the X and Y coordinates to be inside their
         // respective ranges at the same time. Intersect this axis's valid time
         // interval with the interval retained from the previously tested axes.
-        entryTime = MathF.Max(entryTime, axisEntryTime);
+        if (axisEntryTime > entryTime)
+        {
+            entryTime = axisEntryTime;
+            entryNormal = axisEntryNormal;
+        }
+        else if (axisEntryTime == entryTime)
+        {
+            entryNormal += axisEntryNormal;
+        }
+
         exitTime = MathF.Min(exitTime, axisExitTime);
 
         // Equality represents touching the obstacle at exactly one instant and

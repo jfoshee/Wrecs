@@ -358,14 +358,14 @@ public class AlignedRectangleTests
     [InlineData("Move down-left by (-1, -2) putting rect at origin; Horizontal Segment intersects destination left", -1, -2, Axis2.X, 2, -0.1, 0.1, true)] // y=2 is between dest bottom=0 and top=5, crosses left of destination which is at x=0
     // TODO: touching
     // TODO: Degenerate segments (min == max) (include a case passing through origin)
-    public void SweepIntersectsCases(string name,
-                                     float rectDx,
-                                     float rectDy,
-                                     Axis2 segmentAxis,
-                                     float segmentIntercept,
-                                     float segmentMin,
-                                     float segmentMax,
-                                     bool expected)
+    public void TrySweepIntersectionCases(string name,
+                                          float rectDx,
+                                          float rectDy,
+                                          Axis2 segmentAxis,
+                                          float segmentIntercept,
+                                          float segmentMin,
+                                          float segmentMax,
+                                          bool expected)
     {
         var width = 3;
         var height = 5;
@@ -373,19 +373,70 @@ public class AlignedRectangleTests
         var destination = new AlignedRectangle(new(1 + rectDx, 2 + rectDy), width, height);
         var segment = new AxisAlignedSegment2(segmentAxis, new(segmentIntercept, segmentIntercept), new(segmentMin, segmentMax));
 
-        start.SweepIntersects(destination, segment).Should().Be(expected, name);
-        destination.SweepIntersects(start, segment).Should().Be(expected, name + " (reversed)");
+        start.TrySweepIntersection(destination, segment, out _).Should().Be(expected, name);
+        destination.TrySweepIntersection(start, segment, out _).Should().Be(expected, name + " (reversed)");
     }
 
     [Fact(DisplayName = "Swept rectangle rejects a destination with a different size")]
-    public void SweepIntersects_DifferentSize_ThrowsArgumentException()
+    public void TrySweepIntersection_DifferentSize_ThrowsArgumentException()
     {
         var start = new AlignedRectangle(new(0, 0), 2, 2);
         var destination = new AlignedRectangle(new(10, 10), 3, 2);
         var segment = new AxisAlignedSegment2(Axis2.X, new(0, 5), new(0, 10));
 
-        var act = () => start.SweepIntersects(destination, segment);
+        var act = () => start.TrySweepIntersection(destination, segment, out _);
 
         act.Should().Throw<ArgumentException>().WithParameterName(nameof(destination));
+    }
+
+    [Fact(DisplayName = "Swept rectangle returns first contact information")]
+    public void TrySweepIntersection_ReturnsFirstContact()
+    {
+        var start = new AlignedRectangle(new(1, 2), 3, 5);
+        var destination = start with { BottomLeft = new Vector2(21, 22) };
+        var segment = new AxisAlignedSegment2(Axis2.Y, new(14, 0), new(-100, 100));
+
+        var intersects = start.TrySweepIntersection(destination, segment, out var hit);
+
+        intersects.Should().BeTrue();
+        hit.Time.Should().Be(0.5f);
+        hit.ContactBottomLeft.Should().Be(new Vector2(11, 12));
+        hit.Normal.Should().Be(-Vector2.UnitX);
+    }
+
+    [Fact(DisplayName = "Swept rectangle combines normals at a corner contact")]
+    public void TrySweepIntersection_CornerContact_ReturnsDiagonalNormal()
+    {
+        var start = new AlignedRectangle(new(1, 2), 3, 5);
+        var destination = start with { BottomLeft = new Vector2(21, 22) };
+        var point = new AxisAlignedSegment2(Axis2.Y, new(14, 0), new(17, 17));
+
+        var intersects = start.TrySweepIntersection(destination, point, out var hit);
+
+        intersects.Should().BeTrue();
+        hit.Time.Should().Be(0.5f);
+        hit.ContactBottomLeft.Should().Be(new Vector2(11, 12));
+        hit.Normal.Should().Be(Vector2.Normalize(new Vector2(-1, -1)));
+    }
+
+    [Fact(DisplayName = "Swept rectangle can move away from an adjacent segment")]
+    public void TrySweepIntersection_MovingAwayFromContact_ReturnsFalse()
+    {
+        var start = new AlignedRectangle(new(1, 2), 3, 5);
+        var destination = start with { BottomLeft = new Vector2(0, 2) };
+        var segment = new AxisAlignedSegment2(Axis2.Y, new(4, 0), new(2, 7));
+
+        start.TrySweepIntersection(destination, segment, out _).Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "Sweep hit shortens movement to requested clearance")]
+    public void SweepHit_GetAllowedMovement_AppliesClearance()
+    {
+        var hit = new SweepHit(0.5f, new Vector2(11, 7), -Vector2.UnitX);
+        var requestedMovement = new Vector2(20, 10);
+
+        hit.GetAllowedMovement(requestedMovement).Should().Be(new Vector2(10, 5));
+        hit.GetAllowedMovement(requestedMovement, clearance: 1f)
+            .Should().Be(new Vector2(9, 4.5f));
     }
 }
