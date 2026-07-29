@@ -2,8 +2,6 @@ using Wrecs.Core;
 
 namespace Wrecs.Systems;
 
-public struct EndGameEvent : IEvent;
-
 /// <summary>
 /// Marker interface for entities that participate in taking turns.
 /// </summary>

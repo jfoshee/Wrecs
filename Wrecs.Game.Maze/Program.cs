@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 using SDL3;
 using Wrecs;
 using Wrecs.Systems;
@@ -11,7 +12,7 @@ const float PlayerSpeed = 10;
 const float PlayerSprintMultiplier = 8;
 Vector2 PlayerStart = new(1, 1);
 const float MazeScale = 40;
-const int MazeCells = 20;
+const int MazeCells = 2;
 const float MazeSize = MazeCells * MazeScale;
 const float GoalSize = 30f;
 
@@ -21,18 +22,19 @@ var maze = new ScaledMaze(baseMaze, MazeScale);
 
 // Setup Wrecs Sim
 var sim = new Sim();
+var isGameEnded = new StrongBox<bool>(false);
 sim.AddSystems(new Spatial2DSystem(),
                new GameBoundsConstraint(MazeSize + 1, MazeSize + 1, PlayerSize),
                new MazeWallsUpdateResolver(maze.GetWalls()),
                new AlignedRectangleSystem(),
                new AlignedRectangleCollisionEventSystem(),
-               new PlayerGoalCollisionHandler());
+               new PlayerGoalCollisionHandler(),
+               new EndGameLatchSystem(isGameEnded));
 var player = new PlayerAgent(PlayerSpeed, PlayerSprintMultiplier);
 var goal = new GoalEntity();
 var goalPosition = maze.GoalPosition;
 sim.InitEntities((player, [new Spatial2DSnapshot(PlayerStart), new AlignedRectangleSnapshot(new(PlayerStart, PlayerSize, PlayerSize))]),
                  (goal, [new Spatial2DSnapshot(goalPosition), new AlignedRectangleSnapshot(new(goalPosition, GoalSize, GoalSize))]));
-
 
 // HACK: Switch to STA Single Threaded Apartment
 #if WINDOWS
@@ -53,7 +55,7 @@ if (!SDL.CreateWindowAndRenderer("Maze", (int)MazeSize + 1, (int)MazeSize + 1, 0
     return;
 }
 
-var loop = true;
+var playerQuit = false;
 var startCounter = SDL.GetPerformanceCounter();
 var lastTickCounter = startCounter;
 var frequency = SDL.GetPerformanceFrequency();
@@ -61,14 +63,14 @@ var tickInterval = frequency / 30.0;
 
 Console.WriteLine("Let's go!");
 
-while (loop)
+while (!playerQuit && !isGameEnded.Value)
 {
     while (SDL.PollEvent(out var e))
     {
         var type = (SDL.EventType)e.Type;
         if (type == SDL.EventType.Quit)
         {
-            loop = false;
+            playerQuit = true;
         }
         else if (type == SDL.EventType.KeyDown || type == SDL.EventType.KeyUp)
         {
@@ -76,7 +78,7 @@ while (loop)
             {
                 case SDL.Keycode.Q:
                 case SDL.Keycode.Escape:
-                    loop = false;
+                    playerQuit = true;
                     break;
                 case SDL.Keycode.C:
                     sim.DisableSystem<MazeWallsUpdateResolver>();
