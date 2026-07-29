@@ -127,7 +127,7 @@ public class MyController : ISystemSharedUpdates, IRequire<MySystem>
     private MySystem? _mySystem;
     public void Inject(MySystem dep) => _mySystem = dep;
 
-    public IEnumerable<UpdateSet> PrepareSharedUpdates()
+    public IEnumerable<UpdateSet> ProposeUpdates()
     {
         var updates = _mySystem!.GetEntities()
             .Select(e => (IEntityUpdate)new MyUpdate(e, ComputeNewState(e)));

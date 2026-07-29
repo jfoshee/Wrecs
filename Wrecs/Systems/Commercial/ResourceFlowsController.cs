@@ -4,7 +4,7 @@ namespace Wrecs.Systems.Commercial;
 
 public abstract class ResourceFlowsController<TResourceFlowOrigin>(IEnumerable<TResourceFlowOrigin> flowOrigins,
                                                                    IEnumerable<IResourceFlowPolicy> flowPolicies)
-    : ISystemSharedUpdates, IRequire<InventorySystem>
+    : ISystemUpdateProposer, IRequire<InventorySystem>
     where TResourceFlowOrigin : IResourceFlowOrigin
 {
     private readonly List<TResourceFlowOrigin> _flowOrigins = [.. flowOrigins];
@@ -14,7 +14,7 @@ public abstract class ResourceFlowsController<TResourceFlowOrigin>(IEnumerable<T
 
     public void Inject(InventorySystem system) => _inventorySystem = system;
 
-    public IEnumerable<UpdateSet> PrepareSharedUpdates()
+    public IEnumerable<UpdateSet> ProposeUpdates()
     {
         if (_inventorySystem == null)
             throw new InvalidOperationException("Dependencies not injected");

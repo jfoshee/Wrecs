@@ -4,7 +4,7 @@ namespace Wrecs.Systems.Commercial;
 
 public abstract class MoneyFlowsController<TMoneyFlowOrigin>(IEnumerable<TMoneyFlowOrigin> flowOrigins,
                                                              IEnumerable<IMoneyFlowPolicy> flowPolicies)
-    : ISystemSharedUpdates, IRequire<MoneySystem>
+    : ISystemUpdateProposer, IRequire<MoneySystem>
     where TMoneyFlowOrigin : IMoneyFlowOrigin
 {
     private readonly List<TMoneyFlowOrigin> _flowOrigins = [.. flowOrigins];
@@ -14,7 +14,7 @@ public abstract class MoneyFlowsController<TMoneyFlowOrigin>(IEnumerable<TMoneyF
 
     public void Inject(MoneySystem system) => _moneySystem = system;
 
-    public IEnumerable<UpdateSet> PrepareSharedUpdates()
+    public IEnumerable<UpdateSet> ProposeUpdates()
     {
         if (_moneySystem == null)
             throw new InvalidOperationException("Dependencies not injected");

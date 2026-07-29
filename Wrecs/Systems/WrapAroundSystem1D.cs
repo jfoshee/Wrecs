@@ -8,7 +8,7 @@ namespace Wrecs.Systems;
 public record struct WrapAround1DEvent(IEntity Entity, int OldPosition, int NewPosition) : IEvent;
 
 public class WrapAroundSystem1D(int size) :
-    ISystemSharedUpdates,
+    ISystemUpdateProposer,
     IRequire<Spatial1DSystem>,
     ISystemEventRaiser<WrapAround1DEvent>
 {
@@ -17,7 +17,7 @@ public class WrapAroundSystem1D(int size) :
 
     public void Inject(Spatial1DSystem dependency) => _spatial1dSystem = dependency;
 
-    public IEnumerable<UpdateSet> PrepareSharedUpdates()
+    public IEnumerable<UpdateSet> ProposeUpdates()
     {
         if (_spatial1dSystem is null)
             throw new InvalidOperationException($"{nameof(Spatial1DSystem)} is required for {nameof(WrapAroundSystem1D)}");

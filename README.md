@@ -46,7 +46,7 @@ State mutations happen via explicitly declared bundles instead of direct assignm
 - **`IEntityUpdate`**: A delayed application of a new state (`IStateSnapshot`) for a specific entity.
 - **`UpdateSet`**: A grouping of `IEntityUpdate` records that conceptually represent an atomic transaction. If multiple systems coordinate on something (e.g., Deduct Money from System A, Give Item in System B), they are bundled up here.
 - Application Lifecycle Interfaces for Systems:
-  - **`ISystemInternalUpdatePreparer` / `IPrepareSharedUpdates`**: Hook for proposing updates during phase 1.
+  - **`ISystemInternalUpdatePreparer` / `IProposeUpdates`**: Hook for proposing updates during phase 1.
   - **`ISystemInternalUpdateApplier`**: Hook for committing strict internal state during phase 4.
   - **`ISystemUpdateAcceptor`**: Hook for receiving the big bucket of `IEntityUpdate` instances across the whole simulation and committing them to internal state.
 

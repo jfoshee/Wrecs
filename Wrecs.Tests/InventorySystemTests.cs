@@ -200,12 +200,12 @@ public class InventorySystemTests
         inventorySystem.GetTypedState(entity).GetAmount("wood").Should().Be(8);
     }
 
-    private class AddItemController(string type, int qty) : ISystemSharedUpdates, IRequire<InventorySystem>
+    private class AddItemController(string type, int qty) : ISystemUpdateProposer, IRequire<InventorySystem>
     {
         private InventorySystem? _inventorySystem;
         public void Inject(InventorySystem system) => _inventorySystem = system;
 
-        public IEnumerable<UpdateSet> PrepareSharedUpdates()
+        public IEnumerable<UpdateSet> ProposeUpdates()
         {
             var entities = _inventorySystem!.GetEntities();
             var updates = entities.Select(entity =>

@@ -53,7 +53,7 @@ public class MonopolyRentControllerTests
         controller.Inject(inventorySystem);
 
         // Act
-        var updateSets = controller.PrepareSharedUpdates().ToList();
+        var updateSets = controller.ProposeUpdates().ToList();
         var allUpdates = updateSets.SelectMany(us => us.Updates).OfType<EntityUpdate<MoneySnapshot>>().ToList();
         var tenantUpdate = allUpdates.FirstOrDefault(u => u.Entity == tenant);
         var landlordUpdate = allUpdates.FirstOrDefault(u => u.Entity == landlord);

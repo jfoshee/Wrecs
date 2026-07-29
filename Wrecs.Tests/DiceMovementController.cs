@@ -3,7 +3,7 @@ using Wrecs.Systems;
 namespace Wrecs.Tests;
 
 class DiceMovementController(IGameDice dice) :
-    ISystemSharedUpdates,
+    ISystemUpdateProposer,
     IRequire<TurnSystem>,
     IRequire<Spatial1DSystem>
 {
@@ -13,7 +13,7 @@ class DiceMovementController(IGameDice dice) :
     public void Inject(TurnSystem dependency) => _turnSystem = dependency;
     public void Inject(Spatial1DSystem dependency) => _spatial1dSystem = dependency;
 
-    public IEnumerable<UpdateSet> PrepareSharedUpdates()
+    public IEnumerable<UpdateSet> ProposeUpdates()
     {
         if (_turnSystem is null)
             throw new InvalidOperationException($"{nameof(TurnSystem)} is required for {nameof(DiceMovementController)}");

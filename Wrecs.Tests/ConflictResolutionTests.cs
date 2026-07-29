@@ -138,9 +138,9 @@ public class ConflictResolutionTests
         public int GetValue(IEntity entity) => _states[entity];
     }
 
-    private sealed class FixedConflictUpdateSource(params UpdateSet[] updateSets) : ISystemSharedUpdates
+    private sealed class FixedConflictUpdateSource(params UpdateSet[] updateSets) : ISystemUpdateProposer
     {
-        public IEnumerable<UpdateSet> PrepareSharedUpdates() => updateSets;
+        public IEnumerable<UpdateSet> ProposeUpdates() => updateSets;
     }
 
     private sealed class ReplaceValueResolver(int from, int to) : ISystemUpdateResolver

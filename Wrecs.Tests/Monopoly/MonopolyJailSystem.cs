@@ -70,13 +70,13 @@ class MonopolyJailSystem :
     internal IEnumerable<IEntity> GetInmates() => _turnsRemaining.Keys;
 }
 
-class MonopolyJailController : ISystemSharedUpdates, IRequire<Spatial1DSystem>
+class MonopolyJailController : ISystemUpdateProposer, IRequire<Spatial1DSystem>
 {
     private Spatial1DSystem? _spatial1dSystem;
 
     public void Inject(Spatial1DSystem dependency) => _spatial1dSystem = dependency;
 
-    public IEnumerable<UpdateSet> PrepareSharedUpdates()
+    public IEnumerable<UpdateSet> ProposeUpdates()
     {
         // Return entities that are on the 30th tile which is the "Go to Jail" space
         foreach (var entity in _spatial1dSystem!.GetEntities().Where(e => _spatial1dSystem.GetTypedState(e) == 30))

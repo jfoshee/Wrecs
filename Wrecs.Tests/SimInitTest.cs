@@ -14,12 +14,12 @@ public class SimInitTest
     {
     }
 
-    class MoveAllController : ISystemSharedUpdates, IRequire<Spatial1DSystem>
+    class MoveAllController : ISystemUpdateProposer, IRequire<Spatial1DSystem>
     {
         private Spatial1DSystem? _spatial1dSystem;
         public void Inject(Spatial1DSystem system) => _spatial1dSystem = system;
 
-        public IEnumerable<UpdateSet> PrepareSharedUpdates()
+        public IEnumerable<UpdateSet> ProposeUpdates()
         {
             var updates = _spatial1dSystem!.GetEntities()
                 .Select(e => (IEntityUpdate)new Spatial1DUpdate(e, _spatial1dSystem.GetTypedState(e).Position + 1));

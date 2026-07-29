@@ -137,12 +137,12 @@ public class MoneySystemTests
         moneySystem.GetTypedState(entity).MoneyBalance.Should().Be(150);
     }
 
-    private class AddMoneyController(int amount) : ISystemSharedUpdates, IRequire<MoneySystem>
+    private class AddMoneyController(int amount) : ISystemUpdateProposer, IRequire<MoneySystem>
     {
         private MoneySystem? _moneySystem;
         public void Inject(MoneySystem system) => _moneySystem = system;
 
-        public IEnumerable<UpdateSet> PrepareSharedUpdates()
+        public IEnumerable<UpdateSet> ProposeUpdates()
         {
             var entities = _moneySystem!.GetEntities();
             var updates = entities.Select(e =>

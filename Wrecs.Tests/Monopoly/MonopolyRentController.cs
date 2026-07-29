@@ -7,7 +7,7 @@ namespace Wrecs.Tests.Monopoly;
 /// and giving the money to the owning player.
 /// </summary>
 public class MonopolyRentController(MonopolyProperty?[] boardConfig)
-    : ISystemSharedUpdates,
+    : ISystemUpdateProposer,
       IRequire<TurnSystem>,
       IRequire<Spatial1DSystem>,
       IRequire<MoneySystem>,
@@ -25,7 +25,7 @@ public class MonopolyRentController(MonopolyProperty?[] boardConfig)
     public void Inject(MoneySystem dependency) => _moneySystem = dependency;
     public void Inject(InventorySystem dependency) => _inventorySystem = dependency;
 
-    public IEnumerable<UpdateSet> PrepareSharedUpdates()
+    public IEnumerable<UpdateSet> ProposeUpdates()
     {
         // Get current player and their position
         var currentPlayer = _turnSystem.CurrentPlayer;

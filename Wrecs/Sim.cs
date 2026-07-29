@@ -50,9 +50,9 @@ public class Sim
             system.PrepareInternalUpdates();
         }
         // Allow Systems to propose updates to other Systems
-        foreach (var system in _systems.OfType<ISystemSharedUpdates>())
+        foreach (var system in _systems.OfType<ISystemUpdateProposer>())
         {
-            var updateSets = system.PrepareSharedUpdates();
+            var updateSets = system.ProposeUpdates();
             proposedUpdates.AddRange(updateSets);
         }
 
