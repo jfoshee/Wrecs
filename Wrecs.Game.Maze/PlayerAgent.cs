@@ -5,7 +5,7 @@ using Wrecs.Systems;
 
 namespace Wrecs.Game.Maze;
 
-class PlayerAgent(float Speed) : ISpatial2DAgent, IAlignedRectangleEntity
+class PlayerAgent(float Speed, float SprintMultiplier) : ISpatial2DAgent, IAlignedRectangleEntity
 {
     public int Id { get; } = EntityId.Next();
     public string Name => "Player";
@@ -24,7 +24,7 @@ class PlayerAgent(float Speed) : ISpatial2DAgent, IAlignedRectangleEntity
         var pressed = SDL.GetKeyboardState(out var _);
 
         var speed = pressed[(int)SDL.Scancode.LShift] || pressed[(int)SDL.Scancode.RShift]
-            ? Speed * 2
+            ? Speed * SprintMultiplier
             : Speed;
 
         var left = pressed[(int)SDL.Scancode.Left] && !pressed[(int)SDL.Scancode.Right];

@@ -7,7 +7,8 @@ Console.WriteLine("Initializing...");
 
 
 const float PlayerSize = 10;
-const float PlayerSpeed = 40;
+const float PlayerSpeed = 10;
+const float PlayerSprintMultiplier = 8;
 Vector2 PlayerStart = new(1, 1);
 const float MazeScale = 40;
 const int MazeCells = 20;
@@ -26,7 +27,7 @@ sim.AddSystems(new Spatial2DSystem(),
                new AlignedRectangleSystem(),
                new AlignedRectangleCollisionEventSystem(),
                new PlayerGoalCollisionHandler());
-var player = new PlayerAgent(PlayerSpeed);
+var player = new PlayerAgent(PlayerSpeed, PlayerSprintMultiplier);
 var goal = new GoalEntity();
 var goalPosition = maze.GoalPosition;
 sim.InitEntities((player, [new Spatial2DSnapshot(PlayerStart), new AlignedRectangleSnapshot(new(PlayerStart, PlayerSize, PlayerSize))]),
