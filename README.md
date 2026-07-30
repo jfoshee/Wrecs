@@ -16,11 +16,13 @@ This makes Wrecs highly suited for:
 
 In Wrecs, data mutations are primarily deferred. A single simulation tick (`Sim.Tick()`) moves through a rigid set of phases:
 
-1. **Wait and Inject (Initialization):** Before ticks begin, systems and requiring-entities are linked together using a built-in dependency injection interface.
-2. **Preparation Phase:** Systems analyze their localized state and propose updates (both internal and shared multi-system transactions) safely, _before_ any actor logic acts upon the world.
-3. **Agent Invocation Phase:** Agents (active entities) look at the world via read-only state snapshots, evaluate, and declare their **Intents**. Systems subsequently act as translators, converting these business logic intents into proposed state updates.
-4. **Event Phase:** Systems can raise cross-cutting events. These are immediately flushed to and handled by any listening systems, allowing for side effects (like logging or visual updates).
-5. **Update Phase:** All accumulated proposed updates (Internal updates, Agent intents, and Shared updates) are finally committed to the systems' underlying states, shifting the simulation into the next tick.
+1. **Dependency Injection Gate:** At tick start, the simulation ensures `IRequire<T>` dependencies are injected for systems and requiring entities. This runs lazily (first tick, and again after systems/entities are changed).
+2. **Preparation + Proposal Phase:** Systems prepare internal updates (`ISystemInternalUpdatePreparer`) and propose cross-system update sets (`ISystemUpdateProposer`) before any agent logic executes.
+3. **Agent Intent Translation Phase:** Agents read context snapshots, produce intents, and translators convert each action into update sets. Per-action update sets are merged so each action becomes a single atomic `UpdateSet`.
+4. **Conflict Resolution Phase:** Each proposed `UpdateSet` is passed through all `ISystemUpdateResolver` implementations, allowing in-place conflict resolution while preserving proposal order.
+5. **Constraint Validation Phase:** Each resolved `UpdateSet` is validated by all `ISystemConstraint` implementations. Invalid sets are rejected; constraint-produced events are queued.
+6. **Event Collection + Dispatch Phase:** System-raised events (`ISystemEventRaiser`) are collected, appended to queued constraint events, then dispatched to all `ISystemEventHandler` implementations.
+7. **Commit Phase:** Internal updates are applied (`ISystemInternalUpdateApplier`), then accepted external/entity updates are applied (`ISystemUpdateAcceptor`) from all valid `UpdateSet` entries.
 
 Because state isn't mutated in the middle of a tick, an agent evaluating the world will not read a partially updated state caused by another agent that happened to act earlier in the same phase.
 
