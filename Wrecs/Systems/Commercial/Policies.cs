@@ -1,5 +1,7 @@
 namespace Wrecs.Systems.Commercial;
 
+// TODO: Replace ITradePolicy with ISystemConstraint
+[Obsolete("Use ISystemConstraint instead")]
 public interface ITradePolicy
 {
     /// <summary>
