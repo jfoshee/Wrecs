@@ -40,13 +40,10 @@ public class MazeWallsUpdateResolver(IEnumerable<AxisAlignedSegment2> walls) :
         {
             var start = alignedRectangleSystem.GetTypedState(update.Entity).Rectangle;
             var destination = update.State.Rectangle;
-
-            if (!TryFindFirstHit(start, destination, out var hit))
-                continue;
-
             var requestedMovement = destination.BottomLeft - start.BottomLeft;
-            var allowedMovement = hit.GetAllowedMovement(
+            var allowedMovement = start.GetAllowedSlidingMovement(
                 requestedMovement,
+                _walls,
                 CollisionClearance);
             var resolvedBottomLeft = start.BottomLeft + allowedMovement;
 
@@ -79,29 +76,6 @@ public class MazeWallsUpdateResolver(IEnumerable<AxisAlignedSegment2> walls) :
         });
 
         return new ResolutionResult(true, new UpdateSet(resolvedUpdates));
-    }
-
-    private bool TryFindFirstHit(
-        AlignedRectangle start,
-        AlignedRectangle destination,
-        out SweepHit firstHit)
-    {
-        firstHit = default;
-        var foundHit = false;
-
-        foreach (var wall in _walls)
-        {
-            if (!start.TrySweepIntersection(destination, wall, out var hit))
-                continue;
-
-            if (!foundHit || hit.Time < firstHit.Time)
-            {
-                firstHit = hit;
-                foundHit = true;
-            }
-        }
-
-        return foundHit;
     }
 
     private readonly record struct RectangleResolution(

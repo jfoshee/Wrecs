@@ -83,6 +83,78 @@ public class MazeWallsUpdateResolverTests
         result.UpdateSet.Should().BeSameAs(proposed);
     }
 
+    [Fact(DisplayName = "Maze wall resolver slides along first wall when diagonal movement collides")]
+    public void ResolveUpdates_DiagonalIntoVerticalWall_SlidesAlongWall()
+    {
+        var wall = new AxisAlignedSegment2(Axis2.Y, new(10, 0), new(-10, 50));
+        var (resolver, entity) = CreateResolver(wall);
+        var destination = new AlignedRectangle(new(21, 21), 2, 2);
+        var proposed = new UpdateSet([
+            new AlignedRectangleUpdate(entity, destination),
+            new Spatial2DUpdate(entity, destination.BottomLeft)
+        ]);
+
+        var result = resolver.ResolveUpdates(proposed);
+
+        result.ConflictResolved.Should().BeTrue();
+
+        var rectangle = result.UpdateSet.Updates
+            .OfType<AlignedRectangleUpdate>()
+            .Single()
+            .State.Rectangle;
+        var position = result.UpdateSet.Updates
+            .OfType<Spatial2DUpdate>()
+            .Single()
+            .State.Position;
+
+        var expectedX = 10f - 2f - MazeWallsUpdateResolver.CollisionClearance;
+        rectangle.BottomLeft.X.Should().BeApproximately(expectedX, 0.00001f);
+        position.X.Should().BeApproximately(expectedX, 0.00001f);
+
+        rectangle.BottomLeft.Y.Should().BeApproximately(destination.BottomLeft.Y, 0.00001f);
+        position.Y.Should().BeApproximately(destination.BottomLeft.Y, 0.00001f);
+    }
+
+    [Fact(DisplayName = "Maze wall resolver slide still stops at second wall")]
+    public void ResolveUpdates_DiagonalSlideIntoCeiling_StopsAtCeiling()
+    {
+        var walls = new[]
+        {
+            new AxisAlignedSegment2(Axis2.Y, new(10, 0), new(-10, 50)),
+            new AxisAlignedSegment2(Axis2.X, new(0, 14), new(-10, 50))
+        };
+        var (resolver, entity) = CreateResolver(walls);
+        var destination = new AlignedRectangle(new(21, 21), 2, 2);
+        var proposed = new UpdateSet([
+            new AlignedRectangleUpdate(entity, destination),
+            new Spatial2DUpdate(entity, destination.BottomLeft)
+        ]);
+
+        var result = resolver.ResolveUpdates(proposed);
+
+        result.ConflictResolved.Should().BeTrue();
+
+        var rectangle = result.UpdateSet.Updates
+            .OfType<AlignedRectangleUpdate>()
+            .Single()
+            .State.Rectangle;
+        var position = result.UpdateSet.Updates
+            .OfType<Spatial2DUpdate>()
+            .Single()
+            .State.Position;
+
+        var expectedX = 10f - 2f - MazeWallsUpdateResolver.CollisionClearance;
+        var expectedY = 14f - 2f - MazeWallsUpdateResolver.CollisionClearance;
+
+        rectangle.BottomLeft.X.Should().BeApproximately(expectedX, 0.00001f);
+        position.X.Should().BeApproximately(expectedX, 0.00001f);
+        rectangle.BottomLeft.Y.Should().BeApproximately(expectedY, 0.00001f);
+        position.Y.Should().BeApproximately(expectedY, 0.00001f);
+
+        rectangle.Right.Should().BeLessThan(10f);
+        rectangle.Top.Should().BeLessThan(14f);
+    }
+
     private static (MazeWallsUpdateResolver Resolver, TestEntity Entity) CreateResolver(
         params AxisAlignedSegment2[] walls)
     {

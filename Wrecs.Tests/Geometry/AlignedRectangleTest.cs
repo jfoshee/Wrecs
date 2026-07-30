@@ -439,4 +439,42 @@ public class AlignedRectangleTests
         hit.GetAllowedMovement(requestedMovement, clearance: 1f)
             .Should().Be(new Vector2(9, 4.5f));
     }
+
+    [Fact(DisplayName = "Sliding movement preserves tangent component after wall hit")]
+    public void GetAllowedSlidingMovement_DiagonalIntoVerticalWall_SlidesUp()
+    {
+        var start = new AlignedRectangle(new(1, 1), 2, 2);
+        var requested = new Vector2(20, 20);
+        var wall = new AxisAlignedSegment2(Axis2.Y, new(10, 0), new(-10, 50));
+
+        var allowed = start.GetAllowedSlidingMovement(
+            requested,
+            [wall],
+            clearance: 0.001f);
+
+        var resolved = start.BottomLeft + allowed;
+        resolved.X.Should().BeApproximately(10f - 2f - 0.001f, 0.00001f);
+        resolved.Y.Should().BeApproximately(21f, 0.00001f);
+    }
+
+    [Fact(DisplayName = "Sliding movement rechecks collision and stops at second wall")]
+    public void GetAllowedSlidingMovement_SlideThenCeilingHit_StopsAtCeiling()
+    {
+        var start = new AlignedRectangle(new(1, 1), 2, 2);
+        var requested = new Vector2(20, 20);
+        var walls = new[]
+        {
+            new AxisAlignedSegment2(Axis2.Y, new(10, 0), new(-10, 50)),
+            new AxisAlignedSegment2(Axis2.X, new(0, 14), new(-10, 50))
+        };
+
+        var allowed = start.GetAllowedSlidingMovement(
+            requested,
+            walls,
+            clearance: 0.001f);
+
+        var resolved = start.BottomLeft + allowed;
+        resolved.X.Should().BeApproximately(10f - 2f - 0.001f, 0.00001f);
+        resolved.Y.Should().BeApproximately(14f - 2f - 0.001f, 0.00001f);
+    }
 }

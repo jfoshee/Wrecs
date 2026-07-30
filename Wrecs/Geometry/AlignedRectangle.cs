@@ -362,6 +362,86 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
     }
 
     /// <summary>
+    /// Resolves movement against axis-aligned segments by iteratively sweeping,
+    /// stopping at contact, and preserving only the unblocked tangent component.
+    /// </summary>
+    /// <param name="requestedMovement">The desired movement from this rectangle.</param>
+    /// <param name="segments">The static wall segments to collide with.</param>
+    /// <param name="clearance">
+    /// The minimum distance to leave from each contacted wall.
+    /// </param>
+    /// <param name="maxIterations">
+    /// Maximum number of collision iterations performed for one movement.
+    /// </param>
+    /// <param name="minimumMovement">
+    /// Movements shorter than this are treated as zero to prevent jitter.
+    /// </param>
+    /// <returns>
+    /// The largest safe movement found after iterative collision and slide
+    /// resolution.
+    /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="maxIterations"/> is less than 1.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="minimumMovement"/> is less than 0.
+    /// </exception>
+    public readonly Vector2 GetAllowedSlidingMovement(
+        Vector2 requestedMovement,
+        IEnumerable<AxisAlignedSegment2> segments,
+        float clearance = 0f,
+        int maxIterations = 6,
+        float minimumMovement = 0.00001f)
+    {
+        if (maxIterations < 1)
+            throw new ArgumentOutOfRangeException(nameof(maxIterations));
+        if (minimumMovement < 0f)
+            throw new ArgumentOutOfRangeException(nameof(minimumMovement));
+
+        var minimumMovementSquared = minimumMovement * minimumMovement;
+        var resolvedMovement = Vector2.Zero;
+        var remainingMovement = requestedMovement;
+        var current = this;
+
+        for (var i = 0; i < maxIterations; i++)
+        {
+            if (remainingMovement.LengthSquared() <= minimumMovementSquared)
+                break;
+
+            var destination = current with
+            {
+                BottomLeft = current.BottomLeft + remainingMovement
+            };
+
+            if (!current.TryFindFirstHit(destination, segments, out var hit))
+            {
+                resolvedMovement += remainingMovement;
+                break;
+            }
+
+            var allowedStep = hit.GetAllowedMovement(remainingMovement, clearance);
+            resolvedMovement += allowedStep;
+            current = current with { BottomLeft = current.BottomLeft + allowedStep };
+
+            var blockedStep = remainingMovement - allowedStep;
+            if (blockedStep.LengthSquared() <= minimumMovementSquared ||
+                hit.Normal == Vector2.Zero)
+            {
+                break;
+            }
+
+            // Preserve only motion tangent to the wall that was hit.
+            var tangentStep = blockedStep - Vector2.Dot(blockedStep, hit.Normal) * hit.Normal;
+            if (tangentStep.LengthSquared() <= minimumMovementSquared)
+                break;
+
+            remainingMovement = tangentStep;
+        }
+
+        return resolvedMovement;
+    }
+
+    /// <summary>
     /// Restricts a movement's current valid time range to the times during which
     /// one coordinate lies between <paramref name="rangeMin"/> and
     /// <paramref name="rangeMax"/>.
@@ -462,6 +542,29 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
         // Equality represents touching the obstacle at exactly one instant and
         // therefore counts as an intersection.
         return entryTime <= exitTime;
+    }
+
+    private readonly bool TryFindFirstHit(
+        AlignedRectangle destination,
+        IEnumerable<AxisAlignedSegment2> segments,
+        out SweepHit firstHit)
+    {
+        firstHit = default;
+        var foundHit = false;
+
+        foreach (var segment in segments)
+        {
+            if (!TrySweepIntersection(destination, segment, out var hit))
+                continue;
+
+            if (!foundHit || hit.Time < firstHit.Time)
+            {
+                firstHit = hit;
+                foundHit = true;
+            }
+        }
+
+        return foundHit;
     }
 
     public readonly AlignedRectangle Dilate(float padding)
