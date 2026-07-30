@@ -65,6 +65,7 @@ public class SimInitTest
             (hasInitialPositionEntity, [new Spatial1DSnapshot(5)])
         );
 
+        sim.GetSystem<Spatial1DSystem>().GetEntities().Should().HaveCount(2);
         sim.GetPosition(inheritsSpatial1DEntity).Should().Be(0);
         sim.GetPosition(hasInitialPositionEntity).Should().Be(5);
         sim.Invoking((s) => s.GetPosition(nonSpatial1DEntity)).Should().Throw<Exception>();

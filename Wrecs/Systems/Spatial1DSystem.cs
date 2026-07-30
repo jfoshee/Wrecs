@@ -34,20 +34,17 @@ public class Spatial1DSystem :
     ISystemUpdateAcceptor<Spatial1DSnapshot>,
     ISpatialSystem
 {
-    private List<IEntity> _entities = [];
+    private readonly Dictionary<IEntity, Position> _positions = [];
 
-    private readonly Dictionary<IEntity, Position> _entityPositions = [];
+    public Spatial1DSnapshot GetTypedState(IEntity entity) => new(_positions[entity]);
 
-    public Spatial1DSnapshot GetTypedState(IEntity entity) => new(_entityPositions[entity]);
-
-    public IReadOnlyList<IEntity> GetEntities() => _entities;
+    public IReadOnlyList<IEntity> GetEntities() => [.. _positions.Keys];
 
     public void InitEntities(params (IEntity entity, Spatial1DSnapshot? initialState)[] initialEntities)
     {
-        _entities = [.. initialEntities.Select(e => e.entity)];
         foreach (var (entity, initialState) in initialEntities)
         {
-            _entityPositions[entity] = initialState ?? default;
+            _positions[entity] = initialState ?? default;
         }
     }
 
@@ -56,23 +53,23 @@ public class Spatial1DSystem :
         foreach (var update in updates)
         {
             // NOTE: does not enforce that entity is already present in the system
-            _entityPositions[update.Entity] = update.State;
+            _positions[update.Entity] = update.State;
         }
     }
 
     public Spatial1DSnapshot? BuildSnapshot(IAgent agent) =>
-        _entities.Contains(agent) ? _entityPositions[agent] : null;
+        _positions.ContainsKey(agent) ? _positions[agent] : null;
 
     public UpdateSet TranslateIntent(IAgent agent, Move1DAction action)
     {
-        if (!_entities.Contains(agent))
+        if (!_positions.ContainsKey(agent))
             throw new InvalidOperationException("Agent is not part of Spatial1DSystem");
-        var currentPosition = _entityPositions[agent];
+        var currentPosition = _positions[agent];
         var newPosition = currentPosition + action.Step;
         return new([new Spatial1DUpdate(agent, newPosition)]);
     }
 
-    public float GetDistance(IEntity e1, IEntity e2) => GetDistance(_entityPositions[e1], _entityPositions[e2]);
+    public float GetDistance(IEntity e1, IEntity e2) => GetDistance(_positions[e1], _positions[e2]);
 
     private static float GetDistance(Position p1, Position p2)
     {

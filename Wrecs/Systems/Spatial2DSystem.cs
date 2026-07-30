@@ -32,20 +32,17 @@ public class Spatial2DSystem :
     ISystemUpdateAcceptor<Spatial2DSnapshot>,
     ISpatialSystem
 {
-    private List<IEntity> _entities = [];
+    private readonly Dictionary<IEntity, Vector2> _positions = [];
 
-    private readonly Dictionary<IEntity, Vector2> _entityPositions = [];
+    public Spatial2DSnapshot GetTypedState(IEntity entity) => new(_positions[entity]);
 
-    public Spatial2DSnapshot GetTypedState(IEntity entity) => new(_entityPositions[entity]);
-
-    public IReadOnlyList<IEntity> GetEntities() => _entities;
+    public IReadOnlyList<IEntity> GetEntities() => [.. _positions.Keys];
 
     public void InitEntities(params (IEntity entity, Spatial2DSnapshot? initialState)[] initialEntities)
     {
-        _entities = [.. initialEntities.Select(e => e.entity)];
         foreach (var (entity, initialState) in initialEntities)
         {
-            _entityPositions[entity] = initialState ?? default;
+            _positions[entity] = initialState ?? default;
         }
     }
 
@@ -54,22 +51,22 @@ public class Spatial2DSystem :
         foreach (var update in updates)
         {
             // NOTE: does not enforce that entity is already present in the system
-            _entityPositions[update.Entity] = update.State;
+            _positions[update.Entity] = update.State;
         }
     }
 
     public Spatial2DSnapshot? BuildSnapshot(IAgent agent) =>
-        _entities.Contains(agent) ? _entityPositions[agent] : null;
+        _positions.ContainsKey(agent) ? _positions[agent] : null;
 
     public UpdateSet TranslateIntent(IAgent agent, Move2DAction action)
     {
-        if (!_entities.Contains(agent))
+        if (!_positions.ContainsKey(agent))
             throw new InvalidOperationException("Agent is not part of Spatial2DSystem");
-        var currentPosition = _entityPositions[agent];
+        var currentPosition = _positions[agent];
         var newPosition = currentPosition + action.Step;
         return new([new Spatial2DUpdate(agent, newPosition)]);
     }
 
     public float GetDistance(IEntity e1, IEntity e2) =>
-        Vector2.Distance(_entityPositions[e1], _entityPositions[e2]);
+        Vector2.Distance(_positions[e1], _positions[e2]);
 }
