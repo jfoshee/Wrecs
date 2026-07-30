@@ -26,7 +26,7 @@ class MazeLevel
     private readonly ulong _frequency;
     private readonly double _tickInterval;
 
-    private ulong _startCounter;
+    private readonly ulong _startCounter;
     private ulong _lastTickCounter;
 
     public bool IsGameEnded => _isGameEnded.Value;
