@@ -12,11 +12,11 @@ class MazeLevel
     private const float PlayerSprintMultiplier = 8;
     private static readonly Vector2 PlayerStart = new(1, 1);
     private const float MazeScale = 40;
-    private const int MazeCells = 8;
-    private const float MazeSize = MazeCells * MazeScale;
     private const float GoalSize = 30f;
 
-    public const int WindowPixels = (int)MazeSize + 1;
+    // private const float MazeSize = MazeCells * MazeScale;
+    // public const int WindowPixels = (int)MazeSize + 1;
+    public const int WindowPixels = 800;
 
     private readonly Sim _sim;
     private readonly ScaledMaze _maze;
@@ -31,14 +31,15 @@ class MazeLevel
 
     public bool IsGameEnded => _isGameEnded.Value;
 
-    public MazeLevel()
+    public MazeLevel(int MazeCells)
     {
+        var bounds = (MazeCells * MazeScale) + 1;
         var baseMaze = MazeGenerator.Generate(MazeCells, MazeCells);
         _maze = new ScaledMaze(baseMaze, MazeScale);
 
         _sim = new Sim();
         _sim.AddSystems(new Spatial2DSystem(),
-                        new GameBoundsConstraint(WindowPixels, WindowPixels, PlayerSize),
+                        new GameBoundsConstraint(bounds, bounds, PlayerSize),
                         new MazeWallsUpdateResolver(_maze.GetWalls()),
                         new AlignedRectangleSystem(),
                         new AlignedRectangleCollisionEventSystem(),

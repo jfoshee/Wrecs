@@ -21,7 +21,8 @@ if (!SDL.CreateWindowAndRenderer("Maze", MazeLevel.WindowPixels, MazeLevel.Windo
     return;
 }
 
-var level = new MazeLevel();
+int mazeCells = 2;
+var level = new MazeLevel(mazeCells);
 var playerQuit = false;
 
 Console.WriteLine("Let's go!");
@@ -44,7 +45,10 @@ while (!playerQuit)
     level.UpdateAndRender(renderer);
     if (level.IsGameEnded)
     {
-        level = new MazeLevel();
+        Console.WriteLine($"Level {mazeCells}!");
+        // Maze becomes bigger each time the player reaches the goal
+        ++mazeCells;
+        level = new MazeLevel(mazeCells);
     }
 }
 
