@@ -2,11 +2,15 @@
 
 ![](wrecs-icon.png)
 
-An Event-Driven, Turn-Based Entity Component System (ECS) designed for determinism, agent reasoning, and complex state coordination.
+A deterministic ECS for coordinated state transitions, with optional patterns for agents, events, and turns.
 
 ## Overview
 
-Unlike traditional archetype or sparse set ECS frameworks (which prioritize contiguous memory layouts and purely data-driven iterations), **Wrecs** is optimized for rich logic, transaction-like interactions, and strict tick phasing. It cleanly separates _state_, _computation_, and _mutation_ using a deferred update model.
+- Entities are lightweight identities.
+- Systems own state and expose immutable state snapshots.
+- Mutations are proposed as deferred `UpdateSet` transactions, then resolved, constrained, and committed in phases.
+
+Wrecs emphasizes deterministic coordination and composable game/simulation logic through deferred, phased commits.
 
 This makes Wrecs highly suited for:
 
