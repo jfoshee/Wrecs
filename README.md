@@ -1,5 +1,7 @@
 # Wrecs
 
+![](wrecs-icon.png)
+
 An Event-Driven, Turn-Based Entity Component System (ECS) designed for determinism, agent reasoning, and complex state coordination.
 
 ## Overview
