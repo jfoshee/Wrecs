@@ -630,4 +630,9 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
         var top = corners.Max(corner => corner.Y);
         return FromLBRT(left, bottom, right, top);
     }
+
+    public static AlignedRectangle FromMinMax(Vector2 min, Vector2 max)
+    {
+        return new AlignedRectangle(min, max.X - min.X, max.Y - min.Y);
+    }
 }
