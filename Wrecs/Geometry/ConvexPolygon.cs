@@ -53,7 +53,7 @@ public sealed class ConvexPolygon
             var b = vertices[(i + 1) % vertices.Length];
             var c = vertices[(i + 2) % vertices.Length];
 
-            var cross = Cross(b - a, c - b);
+            var cross = Vector2.Cross(b - a, c - b);
 
             if (cross <= 0f)
             {
@@ -62,7 +62,4 @@ public sealed class ConvexPolygon
             }
         }
     }
-
-    private static float Cross(Vector2 a, Vector2 b) =>
-        a.X * b.Y - a.Y * b.X;
 }
