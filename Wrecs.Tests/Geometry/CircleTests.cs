@@ -14,4 +14,140 @@ public class CircleTests
             Width: 6f,
             Height: 6f));
     }
+
+    [Theory(DisplayName = "Swept circle intersects axis-aligned segment capsule")]
+    [InlineData("Stationary below horizontal segment", 0, 0, Axis2.X, 5, -10, 10, false)]
+    [InlineData("Stationary touching horizontal segment", 0, 0, Axis2.X, 4, -10, 10, true)]
+    [InlineData("Stationary overlapping horizontal segment", 0, 0, Axis2.X, 3, -10, 10, true)]
+    [InlineData("Stationary left of horizontal segment", 0, 0, Axis2.X, 2, 4, 10, false)]
+    [InlineData("Stationary right of vertical segment", 0, 0, Axis2.Y, -2, -10, 10, false)]
+    [InlineData("Stationary touching vertical segment", 0, 0, Axis2.Y, -1, -10, 10, true)]
+    [InlineData("Stationary overlapping vertical segment", 0, 0, Axis2.Y, 0, -10, 10, true)]
+    [InlineData("Move right into vertical segment face", 20, 0, Axis2.Y, 10, -10, 10, true)]
+    [InlineData("Move right below vertical segment endpoint", 20, 0, Axis2.Y, 10, 5, 10, false)]
+    [InlineData("Move right tangent to vertical segment endpoint", 20, 0, Axis2.Y, 10, 4, 10, true)]
+    [InlineData("Move right just outside vertical segment endpoint", 20, 0, Axis2.Y, 10, 4.1, 10, false)]
+    [InlineData("Move right tangent to horizontal segment face", 20, 0, Axis2.X, 4, 10, 12, true)]
+    [InlineData("Move right outside horizontal segment face", 20, 0, Axis2.X, 4.1, 10, 12, false)]
+    [InlineData("Move diagonally into vertical segment face", 20, 20, Axis2.Y, 10, -10, 10, true)]
+    [InlineData("Move diagonally past short vertical segment", 20, 20, Axis2.Y, 10, 0, 5, false)]
+    [InlineData("Move diagonally through degenerate segment", 20, 20, Axis2.Y, 10, 11, 11, true)]
+    [InlineData("Move down-left into point at origin", -2, -2, Axis2.X, 0, 0, 0, true)]
+    public void TrySweepIntersection_DataCases(string scenario,
+                                               float dx,
+                                               float dy,
+                                               Axis2 segmentAxis,
+                                               float segmentIntercept,
+                                               float segmentMin,
+                                               float segmentMax,
+                                               bool expected)
+    {
+        var start = new Circle(new Vector2(1, 2), 2);
+        var destination = start with { Center = start.Center + new Vector2(dx, dy) };
+        var segment = new AxisAlignedSegment2(
+            segmentAxis,
+            new Vector2(segmentIntercept, segmentIntercept),
+            new Interval(segmentMin, segmentMax));
+
+        start.TrySweepIntersection(destination, segment, out _)
+            .Should().Be(expected, because: scenario);
+    }
+
+    [Fact(DisplayName = "Swept circle returns face contact information")]
+    public void TrySweepIntersection_FaceHit_ReturnsFirstContact()
+    {
+        var start = new Circle(Vector2.Zero, 1);
+        var destination = start with { Center = new Vector2(10, 0) };
+        var wall = new AxisAlignedSegment2(Axis2.Y, new Vector2(6, 0), new Interval(-10, 10));
+
+        var intersects = start.TrySweepIntersection(destination, wall, out var hit);
+
+        intersects.Should().BeTrue();
+        hit.Time.Should().BeApproximately(0.5f, 0.00001f);
+        hit.ContactCenter.Should().Be(new Vector2(5, 0));
+        hit.Normal.Should().Be(-Vector2.UnitX);
+    }
+
+    [Fact(DisplayName = "Swept circle returns radial normal at segment endpoint")]
+    public void TrySweepIntersection_EndpointHit_ReturnsRadialNormal()
+    {
+        var start = new Circle(Vector2.Zero, 1);
+        var destination = start with { Center = new Vector2(10, 0) };
+        var point = new AxisAlignedSegment2(Axis2.Y, new Vector2(6, 0), new Interval(1, 1));
+
+        var intersects = start.TrySweepIntersection(destination, point, out var hit);
+
+        intersects.Should().BeTrue();
+        hit.Time.Should().BeApproximately(0.6f, 0.00001f);
+        hit.ContactCenter.Should().Be(new Vector2(6, 0));
+        hit.Normal.Should().Be(-Vector2.UnitY);
+    }
+
+    [Fact(DisplayName = "Swept circle can move away from an adjacent segment")]
+    public void TrySweepIntersection_MovingAwayFromContact_ReturnsFalse()
+    {
+        var start = new Circle(Vector2.Zero, 1);
+        var destination = start with { Center = new Vector2(-5, 0) };
+        var wall = new AxisAlignedSegment2(Axis2.Y, new Vector2(1, 0), new Interval(-10, 10));
+
+        start.TrySweepIntersection(destination, wall, out _).Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "Swept circle can move tangent to an adjacent segment")]
+    public void TrySweepIntersection_MovingTangentToContact_ReturnsFalse()
+    {
+        var start = new Circle(Vector2.Zero, 1);
+        var destination = start with { Center = new Vector2(0, 5) };
+        var wall = new AxisAlignedSegment2(Axis2.Y, new Vector2(1, 0), new Interval(-10, 10));
+
+        start.TrySweepIntersection(destination, wall, out _).Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "Swept circle rejects a destination with a different radius")]
+    public void TrySweepIntersection_DifferentRadius_ThrowsArgumentException()
+    {
+        var start = new Circle(Vector2.Zero, 1);
+        var destination = new Circle(new Vector2(10, 0), 2);
+        var wall = new AxisAlignedSegment2(Axis2.Y, new Vector2(6, 0), new Interval(-10, 10));
+
+        var act = () => start.TrySweepIntersection(destination, wall, out _);
+
+        act.Should().Throw<ArgumentException>().WithParameterName(nameof(destination));
+    }
+
+    [Fact(DisplayName = "Circle sliding movement preserves tangent component after wall hit")]
+    public void GetAllowedSlidingMovement_DiagonalIntoVerticalWall_SlidesUp()
+    {
+        var start = new Circle(new Vector2(1, 1), 2);
+        var wall = new AxisAlignedSegment2(Axis2.Y, new Vector2(10, 0), new Interval(-10, 50));
+
+        var allowed = start.GetAllowedSlidingMovement(
+            new Vector2(20, 20),
+            [wall],
+            clearance: 0.001f);
+
+        var resolved = start.Center + allowed;
+        resolved.X.Should().BeApproximately(10f - 2f - 0.001f, 0.00001f);
+        resolved.Y.Should().BeApproximately(21f, 0.00001f);
+    }
+
+    [Fact(DisplayName = "Circle sliding movement rechecks collision and stops at second wall")]
+    public void GetAllowedSlidingMovement_SlideThenCeilingHit_StopsAtCeiling()
+    {
+        var start = new Circle(new Vector2(1, 1), 2);
+        var walls = new[]
+        {
+            new AxisAlignedSegment2(Axis2.Y, new Vector2(10, 0), new Interval(-10, 50)),
+            new AxisAlignedSegment2(Axis2.X, new Vector2(0, 14), new Interval(-10, 50))
+        };
+
+        var allowed = start.GetAllowedSlidingMovement(
+            new Vector2(20, 20),
+            walls,
+            clearance: 0.001f);
+
+        var resolved = start.Center + allowed;
+        resolved.X.Should().BeApproximately(10f - 2f - 0.001f, 0.00001f);
+        resolved.Y.Should().BeApproximately(14f - 2f - 0.001f, 0.00001f);
+    }
 }
