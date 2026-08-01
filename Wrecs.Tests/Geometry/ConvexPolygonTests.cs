@@ -1,4 +1,5 @@
 #pragma warning disable CA1806 // Do not ignore method results
+#pragma warning disable xUnit1046 // Avoid using TheoryDataRow arguments that are not serializable
 
 using Wrecs.Geometry;
 
@@ -6,13 +7,11 @@ namespace Wrecs.Tests.Geometry;
 
 public class ConvexPolygonTests
 {
-    // TODO: Upgrade to xunit 3 and use TheoryDataRow<Vector2>
-
-    public static IEnumerable<object[]> TooFewVerticesCases()
+    public static IEnumerable<TheoryDataRow<Vector2[]>> TooFewVerticesCases()
     {
-        yield return [Array.Empty<Vector2>()];
-        yield return [new[] { new Vector2(0f, 0f) }];
-        yield return [new[] { new Vector2(0f, 0f), new Vector2(1f, 0f) }];
+        yield return new([]);
+        yield return new([new Vector2(0f, 0f)]);
+        yield return new([new Vector2(0f, 0f), new Vector2(1f, 0f)]);
     }
 
     [Theory(DisplayName = "0, 1, and 2 vertices throw")]
@@ -24,37 +23,34 @@ public class ConvexPolygonTests
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    public static IEnumerable<object[]> CcwTriangleCases()
+    public static IEnumerable<TheoryDataRow<Vector2[], string>> CcwTriangleCases()
     {
-        yield return [
-            new[]
-            {
+        yield return new(
+            [
                 new Vector2(0f, 0f),
                 new Vector2(2f, 0f),
                 new Vector2(1f, 2f)
-            },
+            ],
             "Right triangle at origin"
-        ];
+        );
 
-        yield return [
-            new[]
-            {
+        yield return new(
+            [
                 new Vector2(-3f, -1f),
                 new Vector2(0f, -1f),
                 new Vector2(-1.5f, 2f)
-            },
+            ],
             "Translated isosceles triangle"
-        ];
+        );
 
-        yield return [
-            new[]
-            {
+        yield return new(
+            [
                 new Vector2(1f, 1f),
                 new Vector2(4f, 2f),
                 new Vector2(2f, 5f)
-            },
+            ],
             "Scalene triangle"
-        ];
+        );
     }
 
     [Theory(DisplayName = "CCW triangles are accepted and strictly convex")]
@@ -66,37 +62,34 @@ public class ConvexPolygonTests
         polygon.Count.Should().Be(3, because: scenario);
     }
 
-    public static IEnumerable<object[]> NonCcwTriangleCases()
+    public static IEnumerable<TheoryDataRow<Vector2[], string>> NonCcwTriangleCases()
     {
-        yield return [
-            new[]
-            {
+        yield return new(
+            [
                 new Vector2(0f, 0f),
                 new Vector2(1f, 2f),
                 new Vector2(2f, 0f)
-            },
+            ],
             "Clockwise triangle at origin"
-        ];
+        );
 
-        yield return [
-            new[]
-            {
+        yield return new(
+            [
                 new Vector2(-3f, -1f),
                 new Vector2(-1.5f, 2f),
                 new Vector2(0f, -1f)
-            },
+            ],
             "Clockwise translated isosceles triangle"
-        ];
+        );
 
-        yield return [
-            new[]
-            {
+        yield return new(
+            [
                 new Vector2(1f, 1f),
                 new Vector2(2f, 5f),
                 new Vector2(4f, 2f)
-            },
+            ],
             "Clockwise scalene triangle"
-        ];
+        );
     }
 
     [Theory(DisplayName = "Clockwise triangles throw")]
@@ -109,56 +102,52 @@ public class ConvexPolygonTests
     }
 
 
-    public static IEnumerable<object[]> ValidConvexPolygonCases()
+    public static IEnumerable<TheoryDataRow<Vector2[], AlignedRectangle, string>> ValidConvexPolygonCases()
     {
-        yield return [
-            new[]
-            {
+        yield return new(
+            [
                 new Vector2(0f, 0f),
                 new Vector2(1f, 0f),
                 new Vector2(1f, 1f),
                 new Vector2(0f, 1f)
-            },
+            ],
             new AlignedRectangle(new Vector2(0f, 0f), 1f, 1f),
             "Unit square with bottom-left at origin"
-        ];
+        );
 
-        yield return [
-            new[]
-            {
+        yield return new(
+            [
                 new Vector2(-0.5f, -0.5f),
                 new Vector2(0.5f, -0.5f),
                 new Vector2(0.5f, 0.5f),
                 new Vector2(-0.5f, 0.5f)
-            },
+            ],
             new AlignedRectangle(new Vector2(-0.5f, -0.5f), 1f, 1f),
             "Unit square centered on origin"
-        ];
+        );
 
-        yield return [
-            new[]
-            {
+        yield return new(
+            [
                 new Vector2(2f, 1f),
                 new Vector2(8f, 1f),
                 new Vector2(8f, 4f),
                 new Vector2(2f, 4f)
-            },
+            ],
             new AlignedRectangle(new Vector2(2f, 1f), 6f, 3f),
             "Rectangle"
-        ];
+        );
 
-        yield return [
-            new[]
-            {
+        yield return new(
+            [
                 new Vector2(0f, 0f),
                 new Vector2(3f, 0f),
                 new Vector2(4f, 2f),
                 new Vector2(2f, 4f),
                 new Vector2(-1f, 2f)
-            },
+            ],
             new AlignedRectangle(new Vector2(-1f, 0f), 5f, 4f),
             "Convex pentagon"
-        ];
+        );
     }
 
     [Theory(DisplayName = "Unit squares, rectangle, and convex pentagon are accepted")]
@@ -186,33 +175,29 @@ public class ConvexPolygonTests
     }
 
 
-    public static IEnumerable<object[]> InvalidPolygonCases()
+    public static IEnumerable<TheoryDataRow<Vector2[], string>> InvalidPolygonCases()
     {
-        yield return new object[]
-        {
-            new[]
-            {
+        yield return new(
+            [
                 new Vector2(0f, 0f),
                 new Vector2(4f, 0f),
                 new Vector2(2f, 1f),
                 new Vector2(4f, 4f),
                 new Vector2(0f, 4f)
-            },
+            ],
             "Concave pentagon"
-        };
+        );
 
-        yield return new object[]
-        {
-            new[]
-            {
+        yield return new(
+            [
                 new Vector2(0f, 0f),
                 new Vector2(-1f, 2f),
                 new Vector2(2f, 4f),
                 new Vector2(4f, 2f),
                 new Vector2(3f, 0f)
-            },
+            ],
             "Convex pentagon with clockwise winding"
-        };
+        );
     }
 
     [Theory(DisplayName = "Concave and clockwise convex pentagons throw")]
