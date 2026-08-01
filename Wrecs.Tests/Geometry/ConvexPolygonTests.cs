@@ -162,6 +162,72 @@ public class ConvexPolygonTests
         polygon.Bounds.Should().Be(expectedBounds, because: scenario);
     }
 
+    public static IEnumerable<TheoryDataRow<Vector2[], Vector2[], string>> ValidConvexPolygonNormalsCases()
+    {
+        yield return new(
+            [
+                new Vector2(0f, 0f),
+                new Vector2(1f, 0f),
+                new Vector2(1f, 1f),
+                new Vector2(0f, 1f)
+            ],
+            [
+                -Vector2.UnitY,
+                Vector2.UnitX,
+                Vector2.UnitY,
+                -Vector2.UnitX
+            ],
+            "Unit square"
+        );
+
+        yield return new(
+            [
+                new Vector2(2f, 1f),
+                new Vector2(8f, 1f),
+                new Vector2(8f, 4f),
+                new Vector2(2f, 4f)
+            ],
+            [
+                -Vector2.UnitY,
+                Vector2.UnitX,
+                Vector2.UnitY,
+                -Vector2.UnitX
+            ],
+            "Rectangle"
+        );
+
+        var height = MathF.Sqrt(3f);
+        yield return new(
+            [
+                new Vector2(0f, 0f),
+                new Vector2(2f, 0f),
+                new Vector2(1f, height)
+            ],
+            [
+                -Vector2.UnitY,
+                Vector2.Normalize(new Vector2(height, 1f)),
+                Vector2.Normalize(new Vector2(-height, 1f))
+            ],
+            "Equilateral triangle"
+        );
+    }
+
+    [Theory(DisplayName = "Simple convex polygons expose expected outward edge normals")]
+    [MemberData(nameof(ValidConvexPolygonNormalsCases))]
+    public void EdgeNormals(Vector2[] vertices,
+                            Vector2[] expectedNormals,
+                            string scenario)
+    {
+        var polygon = new ConvexPolygon(vertices);
+
+        polygon.EdgeNormals.Length.Should().Be(expectedNormals.Length, because: scenario);
+
+        for (var i = 0; i < expectedNormals.Length; i++)
+        {
+            polygon.EdgeNormals[i].Should().Be(expectedNormals[i], because: $"{scenario} edge {i}");
+        }
+    }
+
     [Theory(DisplayName = "Reversing a valid convex polygon winding throws")]
     [MemberData(nameof(ValidConvexPolygonCases))]
     public void Constructor_ReversedValidConvexPolygons_Throw(Vector2[] vertices,
