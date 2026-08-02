@@ -57,6 +57,16 @@ public class CircleSystem :
             _circles[update.Entity] = update.State.Circle;
     }
 
+    Vector2 ISystemLinkPositionSource.GetPosition(IEntity entity) => _circles[entity].Center;
+
+    void ISystemLinkPositionTarget.SetPosition(IEntity entity, Vector2 position)
+    {
+        Circle circle = _circles[entity];
+        if (circle.Center == position)
+            return;
+        _circles[entity] = circle with { Center = position };
+    }
+
     public UpdateSet TranslateIntent(IAgent agent, Move2DAction action)
     {
         if (!_circles.TryGetValue(agent, out var circle))
@@ -67,15 +77,5 @@ public class CircleSystem :
 
         var moved = circle with { Center = circle.Center + action.Step };
         return new UpdateSet([new CircleUpdate(agent, moved)]);
-    }
-
-    Vector2 ISystemLinkPositionSource.GetPosition(IEntity entity) => _circles[entity].Center;
-
-    void ISystemLinkPositionTarget.SetPosition(IEntity entity, Vector2 position)
-    {
-        Circle circle = _circles[entity];
-        if (circle.Center == position)
-            return;
-        _circles[entity] = circle with { Center = position };
     }
 }

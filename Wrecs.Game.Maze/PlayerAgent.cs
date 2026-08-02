@@ -5,7 +5,7 @@ using Wrecs.Systems;
 
 namespace Wrecs.Game.Maze;
 
-class PlayerAgent(float Speed, float SprintMultiplier) : ISpatial2DAgent, IAlignedRectangleEntity
+class PlayerAgent(float Speed, float SprintMultiplier) : ISpatial2DAgent, IAlignedRectangleEntity, ICircleEntity
 {
     public int Id { get; } = EntityId.Next();
     public string Name => "Player";
