@@ -1,6 +1,6 @@
 # Wrecs
 
-![](wrecs-icon.png)
+![wrecs dino icon](wrecs-icon.png)
 
 A deterministic ECS for coordinated state transitions, with optional patterns for agents, events, and turns.
 
