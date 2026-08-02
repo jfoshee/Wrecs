@@ -40,7 +40,8 @@ class MazeLevel
         _sim = new Sim();
         _sim.AddSystems(new Spatial2DSystem(),
                         new GameBoundsConstraint(bounds, bounds, PlayerSize),
-                        new MazeWallsUpdateResolver(_maze.GetWalls()),
+                        new CircleSystem(),
+                        new CircleMazeWallsUpdateResolver(_maze.GetWalls()),
                         new AlignedRectangleSystem(),
                         new AlignedRectangleCollisionEventSystem(),
                         new PlayerGoalCollisionHandler(),
@@ -49,12 +50,21 @@ class MazeLevel
         _player = new PlayerAgent(PlayerSpeed, PlayerSprintMultiplier);
         _goal = new GoalEntity();
         var goalPosition = _maze.GoalPosition;
-        _sim.InitEntities((_player, [new Spatial2DSnapshot(PlayerStart), new AlignedRectangleSnapshot(new(PlayerStart, PlayerSize, PlayerSize))]),
+        _sim.InitEntities((_player, [
+                                        new Spatial2DSnapshot(PlayerStart),
+                                        new AlignedRectangleSnapshot(new(PlayerStart, PlayerSize, PlayerSize)),
+                                        new CircleSnapshot(new(PlayerStart + new Vector2(PlayerSize / 2, PlayerSize / 2), PlayerSize / 2))
+                                    ]),
                           (_goal, [new Spatial2DSnapshot(goalPosition), new AlignedRectangleSnapshot(new(goalPosition, GoalSize, GoalSize))]));
+        // Link rectangle and player position to circle position
         _sim.AddLinkage(new(SourceEntity: _player,
-                            SourceSystem: _sim.GetSystem<AlignedRectangleSystem>(),
+                            SourceSystem: _sim.GetSystem<CircleSystem>(),
                             TargetEntity: _player,
                             TargetSystem: _sim.GetSystem<Spatial2DSystem>()));
+        _sim.AddLinkage(new(SourceEntity: _player,
+                            SourceSystem: _sim.GetSystem<CircleSystem>(),
+                            TargetEntity: _player,
+                            TargetSystem: _sim.GetSystem<AlignedRectangleSystem>()));
 
         _startCounter = SDL.GetPerformanceCounter();
         _lastTickCounter = _startCounter;

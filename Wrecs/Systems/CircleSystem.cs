@@ -29,7 +29,9 @@ public class CircleSystem :
     ISystemWithEntities<ICircleEntity, CircleSnapshot>,
     ISystemAgentContextProvider<CircleSnapshot>,
     ISystemAgentIntentTranslator<Move2DAction>,
-    ISystemUpdateAcceptor<CircleSnapshot>
+    ISystemUpdateAcceptor<CircleSnapshot>,
+    ISystemLinkPositionSource,
+    ISystemLinkPositionTarget
 {
     private readonly Dictionary<IEntity, Circle> _circles = [];
 
@@ -66,4 +68,20 @@ public class CircleSystem :
         var moved = circle with { Center = circle.Center + action.Step };
         return new UpdateSet([new CircleUpdate(agent, moved)]);
     }
+
+    Vector2 ISystemLinkPositionSource.GetPosition(IEntity entity)
+    {
+        // HACK: Return bottom left of circle
+        var circle = _circles[entity];
+        return new Vector2(circle.Center.X - circle.Radius, circle.Center.Y - circle.Radius);
+    }
+
+    void ISystemLinkPositionTarget.SetPosition(IEntity entity, Vector2 position)
+    {
+        // HACK: assume position is bottom left
+        var circle = _circles[entity];
+        var newCenter = new Vector2(position.X + circle.Radius, position.Y + circle.Radius);
+        _circles[entity] = circle with { Center = newCenter };
+    }
+
 }
