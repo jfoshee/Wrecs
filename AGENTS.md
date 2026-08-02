@@ -38,6 +38,36 @@ New domain systems belong under `Wrecs/Systems/`. New core abstractions belong u
 
 ---
 
+## Formatting Preference
+
+When a call or declaration wraps across multiple lines, align wrapped arguments under the first argument for readability.
+
+Preferred:
+
+```csharp
+var rectangle = new AlignedRectangle(new(startX, startY),
+                                     width,
+                                     height);
+
+public void ExampleMethod(float startX,
+                          float startY,
+                          float width,
+                          float height)
+{
+}
+```
+
+Avoid:
+
+```csharp
+var rectangle = new AlignedRectangle(
+    new(startX, startY),
+    width,
+    height);
+```
+
+---
+
 ## Defining a Snapshot
 
 Snapshots are **`record struct`** types (value types, immutable by convention). Associate them with their owning system via `IStateSnapshot<TSystem>`.
