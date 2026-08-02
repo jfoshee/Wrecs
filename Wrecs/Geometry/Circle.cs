@@ -138,78 +138,28 @@ public record struct Circle(Vector2 Center, float Radius)
     /// Resolves movement against axis-aligned segments by repeatedly sweeping and
     /// preserving the component tangent to the first contacted wall.
     /// </summary>
-    public readonly Vector2 GetAllowedSlidingMovement(
-        Vector2 requestedMovement,
-        IEnumerable<AxisAlignedSegment2> segments,
-        float clearance = 0f,
-        int maxIterations = 6,
-        float minimumMovement = 0.00001f)
+    public readonly Vector2 GetAllowedSlidingMovement(Vector2 requestedMovement,
+                                                      IEnumerable<AxisAlignedSegment2> segments,
+                                                      float clearance = 0f,
+                                                      int maxIterations = 6,
+                                                      float minimumMovement = 0.00001f)
     {
-        if (maxIterations < 1)
-            throw new ArgumentOutOfRangeException(nameof(maxIterations));
-        if (minimumMovement < 0f)
-            throw new ArgumentOutOfRangeException(nameof(minimumMovement));
-
-        var minimumMovementSquared = minimumMovement * minimumMovement;
-        var resolvedMovement = Vector2.Zero;
-        var remainingMovement = requestedMovement;
-        var current = this;
-
-        for (var i = 0; i < maxIterations; i++)
-        {
-            if (remainingMovement.LengthSquared() <= minimumMovementSquared)
-                break;
-
-            var destination = current with { Center = current.Center + remainingMovement };
-            if (!current.TryFindFirstHit(destination, segments, out var hit))
+        return SweptMovement.GetAllowedSlidingMovement(
+            this,
+            requestedMovement,
+            segments,
+            static (circle, movement) => circle with
             {
-                resolvedMovement += remainingMovement;
-                break;
-            }
-
-            var allowedStep = hit.GetAllowedMovement(remainingMovement, clearance);
-            resolvedMovement += allowedStep;
-            current = current with { Center = current.Center + allowedStep };
-
-            var blockedStep = remainingMovement - allowedStep;
-            if (blockedStep.LengthSquared() <= minimumMovementSquared ||
-                hit.Normal == Vector2.Zero)
-            {
-                break;
-            }
-
-            var tangentStep = blockedStep -
-                Vector2.Dot(blockedStep, hit.Normal) * hit.Normal;
-            if (tangentStep.LengthSquared() <= minimumMovementSquared)
-                break;
-
-            remainingMovement = tangentStep;
-        }
-
-        return resolvedMovement;
-    }
-
-    private readonly bool TryFindFirstHit(
-        Circle destination,
-        IEnumerable<AxisAlignedSegment2> segments,
-        out SweepHit firstHit)
-    {
-        firstHit = default;
-        var foundHit = false;
-
-        foreach (var segment in segments)
-        {
-            if (!TrySweepIntersection(destination, segment, out var hit))
-                continue;
-
-            if (!foundHit || hit.Time < firstHit.Time)
-            {
-                firstHit = hit;
-                foundHit = true;
-            }
-        }
-
-        return foundHit;
+                Center = circle.Center + movement
+            },
+            static (Circle source,
+                    Circle destination,
+                    AxisAlignedSegment2 segment,
+                    out SweepHit hit) =>
+                source.TrySweepIntersection(destination, segment, out hit),
+            clearance,
+            maxIterations,
+            minimumMovement);
     }
 
     private static Vector2 ClosestPoint(AxisAlignedSegment2 segment, Vector2 point)

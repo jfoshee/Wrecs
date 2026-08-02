@@ -384,52 +384,22 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
         int maxIterations = 6,
         float minimumMovement = 0.00001f)
     {
-        if (maxIterations < 1)
-            throw new ArgumentOutOfRangeException(nameof(maxIterations));
-        if (minimumMovement < 0f)
-            throw new ArgumentOutOfRangeException(nameof(minimumMovement));
-
-        var minimumMovementSquared = minimumMovement * minimumMovement;
-        var resolvedMovement = Vector2.Zero;
-        var remainingMovement = requestedMovement;
-        var current = this;
-
-        for (var i = 0; i < maxIterations; i++)
-        {
-            if (remainingMovement.LengthSquared() <= minimumMovementSquared)
-                break;
-
-            var destination = current with
+        return SweptMovement.GetAllowedSlidingMovement(
+            this,
+            requestedMovement,
+            segments,
+            static (rectangle, movement) => rectangle with
             {
-                BottomLeft = current.BottomLeft + remainingMovement
-            };
-
-            if (!current.TryFindFirstHit(destination, segments, out var hit))
-            {
-                resolvedMovement += remainingMovement;
-                break;
-            }
-
-            var allowedStep = hit.GetAllowedMovement(remainingMovement, clearance);
-            resolvedMovement += allowedStep;
-            current = current with { BottomLeft = current.BottomLeft + allowedStep };
-
-            var blockedStep = remainingMovement - allowedStep;
-            if (blockedStep.LengthSquared() <= minimumMovementSquared ||
-                hit.Normal == Vector2.Zero)
-            {
-                break;
-            }
-
-            // Preserve only motion tangent to the wall that was hit.
-            var tangentStep = blockedStep - Vector2.Dot(blockedStep, hit.Normal) * hit.Normal;
-            if (tangentStep.LengthSquared() <= minimumMovementSquared)
-                break;
-
-            remainingMovement = tangentStep;
-        }
-
-        return resolvedMovement;
+                BottomLeft = rectangle.BottomLeft + movement
+            },
+            static (AlignedRectangle source,
+                    AlignedRectangle destination,
+                    AxisAlignedSegment2 segment,
+                    out SweepHit hit) =>
+                source.TrySweepIntersection(destination, segment, out hit),
+            clearance,
+            maxIterations,
+            minimumMovement);
     }
 
     /// <summary>
@@ -533,29 +503,6 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
         // Equality represents touching the obstacle at exactly one instant and
         // therefore counts as an intersection.
         return entryTime <= exitTime;
-    }
-
-    private readonly bool TryFindFirstHit(
-        AlignedRectangle destination,
-        IEnumerable<AxisAlignedSegment2> segments,
-        out SweepHit firstHit)
-    {
-        firstHit = default;
-        var foundHit = false;
-
-        foreach (var segment in segments)
-        {
-            if (!TrySweepIntersection(destination, segment, out var hit))
-                continue;
-
-            if (!foundHit || hit.Time < firstHit.Time)
-            {
-                firstHit = hit;
-                foundHit = true;
-            }
-        }
-
-        return foundHit;
     }
 
     public readonly AlignedRectangle Dilate(float padding)
