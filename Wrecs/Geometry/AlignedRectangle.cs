@@ -219,10 +219,9 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
     /// <paramref name="destination"/> does not have the same dimensions as this
     /// rectangle.
     /// </exception>
-    public readonly bool TrySweepIntersection(
-        AlignedRectangle destination,
-        AxisAlignedSegment2 segment,
-        out SweepHit hit)
+    public readonly bool TrySweepIntersection(AlignedRectangle destination,
+                                              AxisAlignedSegment2 segment,
+                                              out SweepHit hit)
     {
         if (Width != destination.Width || Height != destination.Height)
         {
@@ -238,12 +237,10 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
         // Because the rectangle extends rightward by Width and upward by Height
         // from its bottom-left corner, the segment's bounds are expanded leftward
         // and downward by those amounts.
-        var obstacle = segment.Bounds.Dilate(
-            left: Width,
-            right: 0f,
-            bottom: Height,
-            top: 0f);
-
+        var obstacle = segment.Bounds.Dilate(left: Width,
+                                             right: 0f,
+                                             bottom: Height,
+                                             top: 0f);
 
         // Describe the bottom-left corner's path as:
         //
@@ -290,31 +287,29 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
         var exitTime = 1f;
         var entryNormal = Vector2.Zero;
 
-        if (!RestrictTimeRangeToAxis(
-                BottomLeft.X,
-                movement.X,
-                obstacle.Left,
-                obstacle.Right,
-                negativeFaceNormal: -Vector2.UnitX,
-                positiveFaceNormal: Vector2.UnitX,
-                ref entryTime,
-                ref exitTime,
-                ref entryNormal))
+        if (!RestrictTimeRangeToAxis(BottomLeft.X,
+                                     movement.X,
+                                     obstacle.Left,
+                                     obstacle.Right,
+                                     negativeFaceNormal: -Vector2.UnitX,
+                                     positiveFaceNormal: Vector2.UnitX,
+                                     ref entryTime,
+                                     ref exitTime,
+                                     ref entryNormal))
         {
             hit = default;
             return false;
         }
 
-        if (!RestrictTimeRangeToAxis(
-                BottomLeft.Y,
-                movement.Y,
-                obstacle.Bottom,
-                obstacle.Top,
-                negativeFaceNormal: -Vector2.UnitY,
-                positiveFaceNormal: Vector2.UnitY,
-                ref entryTime,
-                ref exitTime,
-                ref entryNormal))
+        if (!RestrictTimeRangeToAxis(BottomLeft.Y,
+                                     movement.Y,
+                                     obstacle.Bottom,
+                                     obstacle.Top,
+                                     negativeFaceNormal: -Vector2.UnitY,
+                                     positiveFaceNormal: Vector2.UnitY,
+                                     ref entryTime,
+                                     ref exitTime,
+                                     ref entryNormal))
         {
             hit = default;
             return false;
@@ -377,12 +372,11 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="minimumMovement"/> is less than 0.
     /// </exception>
-    public readonly Vector2 GetAllowedSlidingMovement(
-        Vector2 requestedMovement,
-        IEnumerable<AxisAlignedSegment2> segments,
-        float clearance = 0f,
-        int maxIterations = 6,
-        float minimumMovement = 0.00001f)
+    public readonly Vector2 GetAllowedSlidingMovement(Vector2 requestedMovement,
+                                                      IEnumerable<AxisAlignedSegment2> segments,
+                                                      float clearance = 0f,
+                                                      int maxIterations = 6,
+                                                      float minimumMovement = 0.00001f)
     {
         return SweptMovement.GetAllowedSlidingMovement(
             this,

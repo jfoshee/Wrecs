@@ -41,11 +41,10 @@ public abstract class MazeWallsUpdateResolver<TSystem, TColliderUpdate, TCollide
             var startPosition = GetPosition(start);
             var destinationPosition = GetPosition(destination);
             var requestedMovement = destinationPosition - startPosition;
-            var allowedMovement = GetAllowedSlidingMovement(
-                start,
-                requestedMovement,
-                _walls,
-                CollisionClearance);
+            var allowedMovement = GetAllowedSlidingMovement(start,
+                                                            requestedMovement,
+                                                            _walls,
+                                                            CollisionClearance);
             var resolvedPosition = startPosition + allowedMovement;
 
             if (resolvedPosition == destinationPosition)

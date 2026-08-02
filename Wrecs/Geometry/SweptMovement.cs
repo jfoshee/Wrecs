@@ -34,12 +34,11 @@ internal static class SweptMovement
                 break;
 
             var destination = translate(current, remainingMovement);
-            if (!TryFindFirstHit(
-                    current,
-                    destination,
-                    segments,
-                    trySweepIntersection,
-                    out var hit))
+            if (!TryFindFirstHit(current,
+                                 destination,
+                                 segments,
+                                 trySweepIntersection,
+                                 out var hit))
             {
                 resolvedMovement += remainingMovement;
                 break;
