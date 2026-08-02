@@ -69,19 +69,13 @@ public class CircleSystem :
         return new UpdateSet([new CircleUpdate(agent, moved)]);
     }
 
-    Vector2 ISystemLinkPositionSource.GetPosition(IEntity entity)
-    {
-        // HACK: Return bottom left of circle
-        var circle = _circles[entity];
-        return new Vector2(circle.Center.X - circle.Radius, circle.Center.Y - circle.Radius);
-    }
+    Vector2 ISystemLinkPositionSource.GetPosition(IEntity entity) => _circles[entity].Center;
 
     void ISystemLinkPositionTarget.SetPosition(IEntity entity, Vector2 position)
     {
-        // HACK: assume position is bottom left
-        var circle = _circles[entity];
-        var newCenter = new Vector2(position.X + circle.Radius, position.Y + circle.Radius);
-        _circles[entity] = circle with { Center = newCenter };
+        Circle circle = _circles[entity];
+        if (circle.Center == position)
+            return;
+        _circles[entity] = circle with { Center = position };
     }
-
 }

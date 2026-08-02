@@ -8,7 +8,7 @@ namespace Wrecs.Game.Maze;
 class MazeLevel
 {
     private const float PlayerSize = 60;
-    private const float PlayerSpeed = 2;
+    private const float PlayerSpeed = 4;
     private const float PlayerSprintMultiplier = 8;
     private static readonly Vector2 PlayerStart = new(1, 1);
     private const float MazeScale = 120;
@@ -39,7 +39,7 @@ class MazeLevel
 
         _sim = new Sim();
         _sim.AddSystems(new Spatial2DSystem(),
-                        new GameBoundsConstraint(bounds, bounds, PlayerSize),
+                        new GameBoundsConstraint(bounds, bounds, PlayerSize / 2),
                         new CircleSystem(),
                         new CircleMazeWallsUpdateResolver(_maze.GetWalls()),
                         new AlignedRectangleSystem(),
@@ -133,11 +133,6 @@ class MazeLevel
         SDL.SetRenderDrawColor(renderer, 255, 0, 0, 255);
         SDL.RenderFillRect(renderer, in sdlPlayerRect);
 
-        var playerPosition = _sim.GetSystem<Spatial2DSystem>().GetTypedState(_player).Position;
-        var sdlPlayerPositionRect = new SDL.FRect { X = playerPosition.X - 2, Y = playerPosition.Y - 2, W = 4, H = 4 };
-        SDL.SetRenderDrawColor(renderer, 127, 255, 127, 255);
-        SDL.RenderFillRect(renderer, in sdlPlayerPositionRect);
-
         var playerCircle = _sim.GetSystem<CircleSystem>().GetTypedState(_player).Circle;
         var circleRows = (int)MathF.Ceiling(playerCircle.Radius * 2);
         Span<SDL.FRect> circleScanlines = stackalloc SDL.FRect[circleRows];
@@ -153,9 +148,14 @@ class MazeLevel
                 H = 1,
             };
         }
-
         SDL.SetRenderDrawColor(renderer, 255, 128, 128, 255);
         SDL.RenderFillRects(renderer, circleScanlines, circleScanlines.Length);
+
+        var playerPosition = _sim.GetSystem<Spatial2DSystem>().GetTypedState(_player).Position;
+        var sdlPlayerPositionRect = new SDL.FRect { X = playerPosition.X - 2, Y = playerPosition.Y - 2, W = 4, H = 4 };
+        SDL.SetRenderDrawColor(renderer, 127, 255, 127, 255);
+        SDL.RenderFillRect(renderer, in sdlPlayerPositionRect);
+
 
         // SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);
         // SDL.RenderDebugText(renderer, 10, 10, $"Elapsed Time: {elapsed:F3} seconds");
