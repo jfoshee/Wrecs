@@ -356,7 +356,6 @@ public class AlignedRectangleTests
     [InlineData("Move up-right by (20, 20); Vertical Segment intersects path between start and destination", 20, 20, Axis2.Y, 22, -100, 100, true)] // x=22 is between starting right=4 and destination left=21, y=-100..100 is completely outside the rectangle's ultimate bottom and top
     [InlineData("Move up-right by (20, 20); Vertical Segment contained in path", 20, 20, Axis2.Y, 5, 7.1, 7.2, true)] // x=5 is between starting right=4 and destination left=21, y=7.1..7.2 is above the starting top=7 and completely inside the path
     [InlineData("Move down-left by (-1, -2) putting rect at origin; Horizontal Segment intersects destination left", -1, -2, Axis2.X, 2, -0.1, 0.1, true)] // y=2 is between dest bottom=0 and top=5, crosses left of destination which is at x=0
-    // TODO: touching
     // TODO: Degenerate segments (min == max) (include a case passing through origin)
     public void TrySweepIntersectionCases(string name,
                                           float rectDx,
@@ -429,6 +428,46 @@ public class AlignedRectangleTests
         start.TrySweepIntersection(destination, segment, out _).Should().BeFalse();
     }
 
+    [Theory(DisplayName = "Swept rectangle handles movement from initial wall contact")]
+    [InlineData(Axis2.Y, 4, 2, 7, 1, 0, true, "Move into right wall")] // starts with segment touching right wall at x=4
+    [InlineData(Axis2.Y, 4, 2, 7, -1, 0, false, "Move away from right wall")]
+    [InlineData(Axis2.Y, 4, 2, 7, 0, 1, false, "Move up tangent to right wall")]
+    [InlineData(Axis2.Y, 4, 2, 7, 0, -1, false, "Move down tangent to right wall")]
+    [InlineData(Axis2.Y, 1, 2, 7, -1, 0, true, "Move into left wall")] // starts with segment touching left wall at x=1
+    [InlineData(Axis2.Y, 1, 2, 7, 1, 0, false, "Move away from left wall")]
+    [InlineData(Axis2.Y, 1, 2, 7, 0, 1, false, "Move up tangent to left wall")]
+    [InlineData(Axis2.Y, 1, 2, 7, 0, -1, false, "Move down tangent to left wall")]
+    [InlineData(Axis2.X, 7, 1, 4, 0, 1, true, "Move into top wall")] // starts with segment touching top wall at y=7
+    [InlineData(Axis2.X, 7, 1, 4, 0, -1, false, "Move away from top wall")]
+    [InlineData(Axis2.X, 7, 1, 4, 1, 0, false, "Move right tangent to top wall")]
+    [InlineData(Axis2.X, 7, 1, 4, -1, 0, false, "Move left tangent to top wall")]
+    [InlineData(Axis2.X, 2, 1, 4, 0, -1, true, "Move into bottom wall")] // starts with segment touching bottom wall at y=2
+    [InlineData(Axis2.X, 2, 1, 4, 0, 1, false, "Move away from bottom wall")]
+    [InlineData(Axis2.X, 2, 1, 4, 1, 0, false, "Move right tangent to bottom wall")]
+    [InlineData(Axis2.X, 2, 1, 4, -1, 0, false, "Move left tangent to bottom wall")]
+    public void TrySweepIntersection_InitialContact_RespondsToMovementDirection(Axis2 segmentAxis,
+                                                                                float segmentIntercept,
+                                                                                float segmentMin,
+                                                                                float segmentMax,
+                                                                                float movementX,
+                                                                                float movementY,
+                                                                                bool expected,
+                                                                                string scenario)
+    {
+        var start = new AlignedRectangle(new(1, 2), 3, 5);
+        var destination = start with
+        {
+            BottomLeft = start.BottomLeft + new Vector2(movementX, movementY)
+        };
+        var segment = new AxisAlignedSegment2(
+            segmentAxis,
+            new Vector2(segmentIntercept, segmentIntercept),
+            new Interval(segmentMin, segmentMax));
+
+        start.TrySweepIntersection(destination, segment, out _)
+            .Should().Be(expected, because: scenario);
+    }
+
     [Fact(DisplayName = "Sweep hit shortens movement to requested clearance")]
     public void SweepHit_GetAllowedMovement_AppliesClearance()
     {
@@ -455,6 +494,18 @@ public class AlignedRectangleTests
         var resolved = start.BottomLeft + allowed;
         resolved.X.Should().BeApproximately(10f - 2f - 0.001f, 0.00001f);
         resolved.Y.Should().BeApproximately(21f, 0.00001f);
+    }
+
+    [Fact(DisplayName = "Rectangle initially touching wall can move tangent to it")]
+    public void GetAllowedSlidingMovement_InitialContact_AllowsTangentMovement()
+    {
+        var start = new AlignedRectangle(new(1, 2), 3, 5);
+        var requested = new Vector2(0, 10);
+        var wall = new AxisAlignedSegment2(Axis2.Y, new(4, 0), new(-10, 50));
+
+        var allowed = start.GetAllowedSlidingMovement(requested, [wall]);
+
+        allowed.Should().Be(requested);
     }
 
     [Fact(DisplayName = "Sliding movement rechecks collision and stops at second wall")]

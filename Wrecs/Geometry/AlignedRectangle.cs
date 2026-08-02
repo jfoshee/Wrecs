@@ -252,6 +252,35 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
         // where t ranges from 0 at the current position to 1 at the destination.
         var movement = destination.BottomLeft - BottomLeft;
 
+        var startedInside =
+            BottomLeft.X > obstacle.Left &&
+            BottomLeft.X < obstacle.Right &&
+            BottomLeft.Y > obstacle.Bottom &&
+            BottomLeft.Y < obstacle.Top;
+        var startedOnBoundary = !startedInside && obstacle.Contains(BottomLeft);
+
+        if (startedOnBoundary)
+        {
+            var startNormal = GetBoundaryNormal(obstacle, BottomLeft);
+
+            if (movement == Vector2.Zero)
+            {
+                hit = new SweepHit(0f, startNormal);
+                return true;
+            }
+
+            // Existing contact does not block separation or tangent movement.
+            if (startNormal == Vector2.Zero ||
+                Vector2.Dot(movement, startNormal) >= 0f)
+            {
+                hit = default;
+                return false;
+            }
+
+            hit = new SweepHit(0f, startNormal);
+            return true;
+        }
+
         // These values describe the portion of the movement during which the point
         // could still be inside the expanded obstacle.
         //
@@ -291,12 +320,6 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
             return false;
         }
 
-        var startedInside =
-            BottomLeft.X > obstacle.Left &&
-            BottomLeft.X < obstacle.Right &&
-            BottomLeft.Y > obstacle.Bottom &&
-            BottomLeft.Y < obstacle.Top;
-
         // Ignore contact that exists only at t = 0 while moving away. This lets
         // a rectangle that starts adjacent to a wall move away from it.
         if (!startedInside && exitTime <= 0f)
@@ -311,6 +334,22 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
         hit = new SweepHit(entryTime, entryNormal);
 
         return true;
+    }
+
+    private static Vector2 GetBoundaryNormal(AlignedRectangle obstacle, Vector2 point)
+    {
+        var normal = Vector2.Zero;
+
+        if (point.X == obstacle.Left)
+            normal -= Vector2.UnitX;
+        if (point.X == obstacle.Right)
+            normal += Vector2.UnitX;
+        if (point.Y == obstacle.Bottom)
+            normal -= Vector2.UnitY;
+        if (point.Y == obstacle.Top)
+            normal += Vector2.UnitY;
+
+        return normal == Vector2.Zero ? Vector2.Zero : Vector2.Normalize(normal);
     }
 
     /// <summary>
