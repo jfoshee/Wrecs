@@ -4,7 +4,7 @@ using Wrecs.Systems;
 namespace Wrecs.Game.Maze;
 
 class PlayerGoalCollisionHandler :
-    ISystemEventHandler<AlignedRectangleCollisionEvent>,
+    ISystemEventHandler<CollisionEvent>,
     ISystemEventRaiser<EndGameEvent>
 {
     private bool _goalReached = false;
@@ -18,7 +18,7 @@ class PlayerGoalCollisionHandler :
         }
     }
 
-    public void HandleTyped(AlignedRectangleCollisionEvent e)
+    public void HandleTyped(CollisionEvent e)
     {
         if (e.EntityA is PlayerAgent && e.EntityB is GoalEntity ||
             e.EntityB is PlayerAgent && e.EntityA is GoalEntity)

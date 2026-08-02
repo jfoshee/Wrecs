@@ -2,22 +2,20 @@ using Wrecs.Core;
 
 namespace Wrecs.Systems;
 
-public record struct AlignedRectangleCollisionEvent(IEntity EntityA, IEntity EntityB) : IEvent;
-
 public class AlignedRectangleCollisionEventSystem :
-    ISystemEventRaiser<AlignedRectangleCollisionEvent>,
+    ISystemEventRaiser<CollisionEvent>,
     ISystemInternalUpdatePreparer,
     IRequire<AlignedRectangleSystem>
 {
     private AlignedRectangleSystem? _rectangleSystem;
-    private readonly List<AlignedRectangleCollisionEvent> _events = [];
+    private readonly List<CollisionEvent> _events = [];
 
     public void Inject(AlignedRectangleSystem dependency) => _rectangleSystem = dependency;
 
     public void PrepareInternalUpdates()
     {
         if (_rectangleSystem is null)
-            throw new InvalidOperationException($"{nameof(AlignedRectangleSystem)} is required for {nameof(AlignedRectangleCollisionEvent)}");
+            throw new InvalidOperationException($"{nameof(AlignedRectangleSystem)} is required for {nameof(CollisionEvent)}");
 
         // O(N^2)
         // We could do some spatial partitioning...
@@ -33,13 +31,13 @@ public class AlignedRectangleCollisionEventSystem :
                 var rectB = _rectangleSystem.GetTypedState(entityB).Rectangle;
                 if (rectA.Intersects(rectB))
                 {
-                    _events.Add(new AlignedRectangleCollisionEvent(entityA, entityB));
+                    _events.Add(new CollisionEvent(entityA, entityB));
                 }
             }
         }
     }
 
-    public IEnumerable<AlignedRectangleCollisionEvent> GetTypedEvents()
+    public IEnumerable<CollisionEvent> GetTypedEvents()
     {
         var result = _events.ToList();
         _events.Clear();

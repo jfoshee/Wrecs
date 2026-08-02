@@ -17,7 +17,7 @@ public class AlignedRectangleCollisionEventTests
         sim.Tick();
 
         handler.Events.Should().ContainSingle()
-            .Which.Should().Be(new AlignedRectangleCollisionEvent(entityA, entityB));
+            .Which.Should().Be(new CollisionEvent(entityA, entityB));
     }
 
     [Theory(DisplayName = "Non-overlapping rectangles do not raise a collision event")]
@@ -53,9 +53,9 @@ public class AlignedRectangleCollisionEventTests
 
         handler.Events.Should().BeEquivalentTo(
         [
-            new AlignedRectangleCollisionEvent(entityA, entityB),
-            new AlignedRectangleCollisionEvent(entityA, entityC),
-            new AlignedRectangleCollisionEvent(entityB, entityC)
+            new CollisionEvent(entityA, entityB),
+            new CollisionEvent(entityA, entityC),
+            new CollisionEvent(entityB, entityC)
         ]);
     }
 
@@ -72,8 +72,8 @@ public class AlignedRectangleCollisionEventTests
         sim.Tick();
 
         handler.Events.Should().Equal(
-            new AlignedRectangleCollisionEvent(entityA, entityB),
-            new AlignedRectangleCollisionEvent(entityA, entityB));
+            new CollisionEvent(entityA, entityB),
+            new CollisionEvent(entityA, entityB));
     }
 
     [Fact(DisplayName = "Preparing collisions without an aligned rectangle system throws")]
@@ -108,10 +108,10 @@ public class AlignedRectangleCollisionEventTests
     }
 
     private sealed class CollisionEventHandler :
-        ISystemEventHandler<AlignedRectangleCollisionEvent>
+        ISystemEventHandler<CollisionEvent>
     {
-        public List<AlignedRectangleCollisionEvent> Events { get; } = [];
+        public List<CollisionEvent> Events { get; } = [];
 
-        public void HandleTyped(AlignedRectangleCollisionEvent e) => Events.Add(e);
+        public void HandleTyped(CollisionEvent e) => Events.Add(e);
     }
 }
