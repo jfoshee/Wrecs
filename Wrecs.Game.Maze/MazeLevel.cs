@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using SDL3;
+using Wrecs.Geometry;
 using Wrecs.Systems;
 
 namespace Wrecs.Game.Maze;
@@ -10,7 +11,7 @@ class MazeLevel
     private const float PlayerSize = 20;
     private const float PlayerSpeed = 8;
     private const float PlayerSprintMultiplier = 8;
-    private static readonly Vector2 PlayerStart = new(1, 1);
+    private static readonly Vector2 PlayerStart = new(1 + PlayerSize / 2, 1 + PlayerSize / 2);
     private const float MazeScale = 40;
     private const float GoalSize = 30f;
 
@@ -52,8 +53,8 @@ class MazeLevel
         var goalPosition = _maze.GoalPosition;
         _sim.InitEntities((_player, [
                                         new Spatial2DSnapshot(PlayerStart),
-                                        new AlignedRectangleSnapshot(new(PlayerStart, PlayerSize, PlayerSize)),
-                                        new CircleSnapshot(new(PlayerStart + new Vector2(PlayerSize / 2, PlayerSize / 2), PlayerSize / 2))
+                                        new AlignedRectangleSnapshot(AlignedRectangle.Centered(PlayerStart, PlayerSize, PlayerSize)),
+                                        new CircleSnapshot(new(PlayerStart, PlayerSize / 2))
                                     ]),
                           (_goal, [new Spatial2DSnapshot(goalPosition), new AlignedRectangleSnapshot(new(goalPosition, GoalSize, GoalSize))]));
         // Link rectangle and player position to circle position
