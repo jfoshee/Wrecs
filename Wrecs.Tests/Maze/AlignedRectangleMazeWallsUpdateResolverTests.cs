@@ -3,9 +3,9 @@ using Wrecs.Systems;
 
 namespace Wrecs.Tests.Maze;
 
-public class MazeWallsUpdateResolverTests
+public class AlignedRectangleMazeWallsUpdateResolverTests
 {
-    [Fact(DisplayName = "Maze wall resolver stops rectangle and position before first wall")]
+    [Fact(DisplayName = "Aligned rectangle maze wall resolver stops rectangle and position before first wall")]
     public void ResolveUpdates_Collision_ShortensRectangleAndPositionUpdates()
     {
         var wall = new AxisAlignedSegment2(Axis2.Y, new(10, 0), new(-10, 10));
@@ -32,7 +32,7 @@ public class MazeWallsUpdateResolverTests
             .State.Position;
 
         var expectedPosition = new Vector2(
-            10 - 2 - MazeWallsUpdateResolver.CollisionClearance,
+            10 - 2 - AlignedRectangleMazeWallsUpdateResolver.CollisionClearance,
             1);
         rectangle.BottomLeft.X.Should().BeApproximately(expectedPosition.X, 0.00001f);
         rectangle.BottomLeft.Y.Should().BeApproximately(expectedPosition.Y, 0.00001f);
@@ -62,7 +62,7 @@ public class MazeWallsUpdateResolverTests
             .Single()
             .State.Rectangle;
         rectangle.Right.Should().BeApproximately(
-            10 - MazeWallsUpdateResolver.CollisionClearance,
+            10 - AlignedRectangleMazeWallsUpdateResolver.CollisionClearance,
             0.00001f);
     }
 
@@ -107,7 +107,7 @@ public class MazeWallsUpdateResolverTests
             .Single()
             .State.Position;
 
-        var expectedX = 10f - 2f - MazeWallsUpdateResolver.CollisionClearance;
+        var expectedX = 10f - 2f - AlignedRectangleMazeWallsUpdateResolver.CollisionClearance;
         rectangle.BottomLeft.X.Should().BeApproximately(expectedX, 0.00001f);
         position.X.Should().BeApproximately(expectedX, 0.00001f);
 
@@ -143,8 +143,8 @@ public class MazeWallsUpdateResolverTests
             .Single()
             .State.Position;
 
-        var expectedX = 10f - 2f - MazeWallsUpdateResolver.CollisionClearance;
-        var expectedY = 14f - 2f - MazeWallsUpdateResolver.CollisionClearance;
+        var expectedX = 10f - 2f - AlignedRectangleMazeWallsUpdateResolver.CollisionClearance;
+        var expectedY = 14f - 2f - AlignedRectangleMazeWallsUpdateResolver.CollisionClearance;
 
         rectangle.BottomLeft.X.Should().BeApproximately(expectedX, 0.00001f);
         position.X.Should().BeApproximately(expectedX, 0.00001f);
@@ -155,7 +155,25 @@ public class MazeWallsUpdateResolverTests
         rectangle.Top.Should().BeLessThan(14f);
     }
 
-    private static (MazeWallsUpdateResolver Resolver, TestEntity Entity) CreateResolver(
+    [Fact(DisplayName = "Generic maze wall resolver receives inherited system dependency")]
+    public void ResolverBase_InheritedRequirement_IsInjectedBySim()
+    {
+        var rectangleSystem = new AlignedRectangleSystem();
+        var resolver = new AlignedRectangleMazeWallsUpdateResolver([]);
+        var entity = new TestEntity();
+        var sim = new Sim();
+        sim.AddSystems(rectangleSystem, resolver);
+        sim.InitEntities((entity, [
+            new AlignedRectangleSnapshot(new AlignedRectangle(new Vector2(1, 1), 2, 2))
+        ]));
+
+        sim.Tick();
+        var act = () => resolver.ResolveUpdates(new UpdateSet([]));
+
+        act.Should().NotThrow();
+    }
+
+    private static (AlignedRectangleMazeWallsUpdateResolver Resolver, TestEntity Entity) CreateResolver(
         params AxisAlignedSegment2[] walls)
     {
         var entity = new TestEntity();
@@ -164,7 +182,7 @@ public class MazeWallsUpdateResolverTests
             entity,
             new AlignedRectangleSnapshot(new AlignedRectangle(new(1, 1), 2, 2))));
 
-        var resolver = new MazeWallsUpdateResolver(walls);
+        var resolver = new AlignedRectangleMazeWallsUpdateResolver(walls);
         resolver.Inject(rectangleSystem);
         return (resolver, entity);
     }

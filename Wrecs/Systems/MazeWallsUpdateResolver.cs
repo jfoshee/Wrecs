@@ -3,56 +3,57 @@ using Wrecs.Geometry;
 
 namespace Wrecs.Systems;
 
-// TODO: Perf: Only check nearby walls. The maze data structure could probably help.
-
 /// <summary>
-/// Shortens aligned-rectangle movement updates at the first maze wall they hit.
-/// A paired spatial update for the same entity is shortened by the same amount.
+/// Resolves translated collider updates against a fixed collection of
+/// axis-aligned maze walls and applies the blocked displacement to paired
+/// spatial updates.
 /// </summary>
-/// <remarks>
-/// Creates a resolver for a fixed collection of axis-aligned maze walls.
-/// </remarks>
-public class MazeWallsUpdateResolver(IEnumerable<AxisAlignedSegment2> walls) :
+public abstract class MazeWallsUpdateResolver<TSystem, TColliderUpdate, TCollider>(
+    IEnumerable<AxisAlignedSegment2> walls) :
     ISystemUpdateResolver,
-    IRequire<AlignedRectangleSystem>
+    IRequire<TSystem>
+    where TSystem : class, ISystem
+    where TColliderUpdate : class, IEntityUpdate
 {
     /// <summary>
-    /// The distance retained between a resolved rectangle and the wall it hit.
+    /// The distance retained between a resolved collider and a contacted wall.
     /// </summary>
     public const float CollisionClearance = 0.001f;
 
     private readonly AxisAlignedSegment2[] _walls = [.. walls];
-    private AlignedRectangleSystem? _alignedRectangleSystem;
+    private TSystem? _colliderSystem;
 
-    public void Inject(AlignedRectangleSystem dependency) =>
-        _alignedRectangleSystem = dependency;
+    public void Inject(TSystem dependency) => _colliderSystem = dependency;
 
     public ResolutionResult ResolveUpdates(UpdateSet proposedUpdateSet)
     {
-        var alignedRectangleSystem = _alignedRectangleSystem ??
+        var colliderSystem = _colliderSystem ??
             throw new InvalidOperationException(
-                $"{nameof(AlignedRectangleSystem)} is required for {nameof(MazeWallsUpdateResolver)}");
+                $"{typeof(TSystem).Name} is required for {GetType().Name}");
 
         var updates = proposedUpdateSet.Updates.ToArray();
-        var resolutions = new Dictionary<IEntity, RectangleResolution>();
+        var resolutions = new Dictionary<IEntity, ColliderResolution>();
 
-        foreach (var update in updates.OfType<AlignedRectangleUpdate>())
+        foreach (var update in updates.OfType<TColliderUpdate>())
         {
-            var start = alignedRectangleSystem.GetTypedState(update.Entity).Rectangle;
-            var destination = update.State.Rectangle;
-            var requestedMovement = destination.BottomLeft - start.BottomLeft;
-            var allowedMovement = start.GetAllowedSlidingMovement(
+            var start = GetCurrentCollider(colliderSystem, update.Entity);
+            var destination = GetDestinationCollider(update);
+            var startPosition = GetPosition(start);
+            var destinationPosition = GetPosition(destination);
+            var requestedMovement = destinationPosition - startPosition;
+            var allowedMovement = GetAllowedSlidingMovement(
+                start,
                 requestedMovement,
                 _walls,
                 CollisionClearance);
-            var resolvedBottomLeft = start.BottomLeft + allowedMovement;
+            var resolvedPosition = startPosition + allowedMovement;
 
-            if (resolvedBottomLeft == destination.BottomLeft)
+            if (resolvedPosition == destinationPosition)
                 continue;
 
-            resolutions[update.Entity] = new RectangleResolution(
-                destination with { BottomLeft = resolvedBottomLeft },
-                destination.BottomLeft - resolvedBottomLeft);
+            resolutions[update.Entity] = new ColliderResolution(
+                SetPosition(destination, resolvedPosition),
+                destinationPosition - resolvedPosition);
         }
 
         if (resolutions.Count == 0)
@@ -65,12 +66,10 @@ public class MazeWallsUpdateResolver(IEnumerable<AxisAlignedSegment2> walls) :
 
             return update switch
             {
-                AlignedRectangleUpdate =>
-                    new AlignedRectangleUpdate(update.Entity, resolution.Rectangle),
-                Spatial2DUpdate spatialUpdate =>
-                    new Spatial2DUpdate(
-                        update.Entity,
-                        spatialUpdate.State.Position - resolution.BlockedMovement),
+                TColliderUpdate => CreateColliderUpdate(update.Entity, resolution.Collider),
+                Spatial2DUpdate spatialUpdate => new Spatial2DUpdate(
+                    update.Entity,
+                    spatialUpdate.State.Position - resolution.BlockedMovement),
                 _ => update
             };
         });
@@ -78,7 +77,21 @@ public class MazeWallsUpdateResolver(IEnumerable<AxisAlignedSegment2> walls) :
         return new ResolutionResult(true, new UpdateSet(resolvedUpdates));
     }
 
-    private readonly record struct RectangleResolution(
-        AlignedRectangle Rectangle,
-        Vector2 BlockedMovement);
+    protected abstract TCollider GetCurrentCollider(TSystem system, IEntity entity);
+
+    protected abstract TCollider GetDestinationCollider(TColliderUpdate update);
+
+    protected abstract Vector2 GetPosition(TCollider collider);
+
+    protected abstract TCollider SetPosition(TCollider collider, Vector2 position);
+
+    protected abstract Vector2 GetAllowedSlidingMovement(TCollider collider,
+                                                         Vector2 requestedMovement,
+                                                         IEnumerable<AxisAlignedSegment2> walls,
+                                                         float clearance);
+
+    protected abstract IEntityUpdate CreateColliderUpdate(IEntity entity, TCollider collider);
+
+    private readonly record struct ColliderResolution(TCollider Collider,
+                                                      Vector2 BlockedMovement);
 }

@@ -92,10 +92,10 @@ class MazeLevel
             case SDL.Keycode.Escape:
                 return true;
             case SDL.Keycode.C:
-                _sim.DisableSystem<MazeWallsUpdateResolver>();
+                _sim.DisableSystem<CircleMazeWallsUpdateResolver>();
                 break;
             case SDL.Keycode.K:
-                _sim.EnableSystem<MazeWallsUpdateResolver>();
+                _sim.EnableSystem<CircleMazeWallsUpdateResolver>();
                 break;
         }
 
