@@ -29,7 +29,9 @@ public class CircleSystem :
     ISystemWithEntities<ICircleEntity, CircleSnapshot>,
     ISystemAgentContextProvider<CircleSnapshot>,
     ISystemAgentIntentTranslator<Move2DAction>,
-    ISystemUpdateAcceptor<CircleSnapshot>
+    ISystemUpdateAcceptor<CircleSnapshot>,
+    ISystemLinkPositionSource,
+    ISystemLinkPositionTarget
 {
     private readonly Dictionary<IEntity, Circle> _circles = [];
 
@@ -53,6 +55,16 @@ public class CircleSystem :
     {
         foreach (var update in updates)
             _circles[update.Entity] = update.State.Circle;
+    }
+
+    Vector2 ISystemLinkPositionSource.GetPosition(IEntity entity) => _circles[entity].Center;
+
+    void ISystemLinkPositionTarget.SetPosition(IEntity entity, Vector2 position)
+    {
+        Circle circle = _circles[entity];
+        if (circle.Center == position)
+            return;
+        _circles[entity] = circle with { Center = position };
     }
 
     public UpdateSet TranslateIntent(IAgent agent, Move2DAction action)

@@ -7,6 +7,7 @@ public class Sim
     private readonly List<ISystem> _systems = [];
     private readonly List<ISystem> _disabledSystems = [];
     private readonly List<IEntity> _entities = [];
+    private readonly List<Linkage> _linkages = [];
     private bool _dependenciesInjected = false;
 
     public void AddSystem(ISystem system)
@@ -19,6 +20,11 @@ public class Sim
     {
         _systems.AddRange(systems);
         _dependenciesInjected = false;
+    }
+
+    public void AddLinkage(Linkage linkage)
+    {
+        _linkages.Add(linkage);
     }
 
     public void InitEntities(params (IEntity entity, IStateSnapshot[] initialStates)[] entitiesWithState)
@@ -145,6 +151,13 @@ public class Sim
         foreach (var system in _systems.OfType<ISystemUpdateAcceptor>())
         {
             system.ApplyUpdates(allUpdates);
+        }
+
+        // Linkages: Override positions of linked entities to match their source entity's position
+        foreach (var linkage in _linkages)
+        {
+            var position = linkage.SourceSystem.GetPosition(linkage.SourceEntity);
+            linkage.TargetSystem.SetPosition(linkage.TargetEntity, position);
         }
     }
 

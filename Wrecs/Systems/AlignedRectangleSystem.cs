@@ -31,7 +31,9 @@ public class AlignedRectangleSystem :
     ISystemWithEntities<IAlignedRectangleEntity, AlignedRectangleSnapshot>,
     ISystemAgentContextProvider<AlignedRectangleSnapshot>,
     ISystemAgentIntentTranslator<Move2DAction>,
-    ISystemUpdateAcceptor<AlignedRectangleSnapshot>
+    ISystemUpdateAcceptor<AlignedRectangleSnapshot>,
+    ISystemLinkPositionSource,
+    ISystemLinkPositionTarget
 {
     private readonly Dictionary<IEntity, AlignedRectangle> _rectangles = [];
 
@@ -57,6 +59,17 @@ public class AlignedRectangleSystem :
     {
         foreach (var update in updates)
             _rectangles[update.Entity] = update.State.Rectangle;
+    }
+
+    Vector2 ISystemLinkPositionSource.GetPosition(IEntity entity) =>
+        _rectangles[entity].Center;
+
+    void ISystemLinkPositionTarget.SetPosition(IEntity entity, Vector2 position)
+    {
+        AlignedRectangle rect = _rectangles[entity];
+        if (rect.Center == position)
+            return;
+        _rectangles[entity] = AlignedRectangle.Centered(position, rect.Size);
     }
 
     public UpdateSet TranslateIntent(IAgent agent, Move2DAction action)
