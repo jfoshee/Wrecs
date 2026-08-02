@@ -51,6 +51,10 @@ class MazeLevel
         var goalPosition = _maze.GoalPosition;
         _sim.InitEntities((_player, [new Spatial2DSnapshot(PlayerStart), new AlignedRectangleSnapshot(new(PlayerStart, PlayerSize, PlayerSize))]),
                           (_goal, [new Spatial2DSnapshot(goalPosition), new AlignedRectangleSnapshot(new(goalPosition, GoalSize, GoalSize))]));
+        _sim.AddLinkage(new(SourceEntity: _player,
+                            SourceSystem: _sim.GetSystem<Spatial2DSystem>(),
+                            TargetEntity: _player,
+                            TargetSystem: _sim.GetSystem<AlignedRectangleSystem>()));
 
         _startCounter = SDL.GetPerformanceCounter();
         _lastTickCounter = _startCounter;

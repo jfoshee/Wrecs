@@ -30,6 +30,8 @@ public class Spatial2DSystem :
     ISystemAgentContextProvider<Spatial2DSnapshot>,
     ISystemAgentIntentTranslator<Move2DAction>,
     ISystemUpdateAcceptor<Spatial2DSnapshot>,
+    ISystemLinkPositionSource,
+    ISystemLinkPositionTarget,
     ISpatialSystem
 {
     private readonly Dictionary<IEntity, Vector2> _positions = [];
@@ -54,6 +56,11 @@ public class Spatial2DSystem :
             _positions[update.Entity] = update.State;
         }
     }
+
+
+    Vector2 ISystemLinkPositionSource.GetPosition(IEntity entity) => _positions[entity];
+
+    void ISystemLinkPositionTarget.SetPosition(IEntity entity, Vector2 position) => _positions[entity] = position;
 
     public Spatial2DSnapshot? BuildSnapshot(IAgent agent) =>
         _positions.ContainsKey(agent) ? _positions[agent] : null;
