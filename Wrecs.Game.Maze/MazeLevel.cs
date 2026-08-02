@@ -7,11 +7,11 @@ namespace Wrecs.Game.Maze;
 
 class MazeLevel
 {
-    private const float PlayerSize = 15;
-    private const float PlayerSpeed = 10;
+    private const float PlayerSize = 60;
+    private const float PlayerSpeed = 2;
     private const float PlayerSprintMultiplier = 8;
     private static readonly Vector2 PlayerStart = new(1, 1);
-    private const float MazeScale = 40;
+    private const float MazeScale = 120;
     private const float GoalSize = 30f;
 
     // private const float MazeSize = MazeCells * MazeScale;
@@ -111,11 +111,11 @@ class MazeLevel
         SDL.SetRenderDrawColor(renderer, 100, 149, 237, 255);
         SDL.RenderClear(renderer);
 
-        SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        foreach (var wall in _maze.GetWalls())
-        {
-            SDL.RenderLine(renderer, wall.Start.X, wall.Start.Y, wall.End.X, wall.End.Y);
-        }
+        // SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        // foreach (var wall in _maze.GetWalls())
+        // {
+        //     SDL.RenderLine(renderer, wall.Start.X, wall.Start.Y, wall.End.X, wall.End.Y);
+        // }
 
         var goalRect = _sim.GetSystem<AlignedRectangleSystem>().GetTypedState(_goal).Rectangle;
         var sdlGoalRect = new SDL.FRect
@@ -138,8 +138,33 @@ class MazeLevel
         SDL.SetRenderDrawColor(renderer, 127, 255, 127, 255);
         SDL.RenderFillRect(renderer, in sdlPlayerPositionRect);
 
+        var playerCircle = _sim.GetSystem<CircleSystem>().GetTypedState(_player).Circle;
+        var circleRows = (int)MathF.Ceiling(playerCircle.Radius * 2);
+        Span<SDL.FRect> circleScanlines = stackalloc SDL.FRect[circleRows];
+        for (var row = 0; row < circleRows; row++)
+        {
+            var y = row + 0.5f - playerCircle.Radius;
+            var x = MathF.Sqrt((playerCircle.Radius * playerCircle.Radius) - (y * y));
+            circleScanlines[row] = new SDL.FRect
+            {
+                X = playerCircle.Center.X - x,
+                Y = playerCircle.Center.Y + y - 0.5f,
+                W = x * 2,
+                H = 1,
+            };
+        }
+
+        SDL.SetRenderDrawColor(renderer, 255, 128, 128, 255);
+        SDL.RenderFillRects(renderer, circleScanlines, circleScanlines.Length);
+
+        // SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        // SDL.RenderDebugText(renderer, 10, 10, $"Elapsed Time: {elapsed:F3} seconds");
+
         SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL.RenderDebugText(renderer, 10, 10, $"Elapsed Time: {elapsed:F3} seconds");
+        foreach (var wall in _maze.GetWalls())
+        {
+            SDL.RenderLine(renderer, wall.Start.X, wall.Start.Y, wall.End.X, wall.End.Y);
+        }
 
         SDL.RenderPresent(renderer);
 
