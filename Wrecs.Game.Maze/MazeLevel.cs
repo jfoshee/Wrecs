@@ -7,11 +7,11 @@ namespace Wrecs.Game.Maze;
 
 class MazeLevel
 {
-    private const float PlayerSize = 60;
-    private const float PlayerSpeed = 4;
+    private const float PlayerSize = 20;
+    private const float PlayerSpeed = 8;
     private const float PlayerSprintMultiplier = 8;
     private static readonly Vector2 PlayerStart = new(1, 1);
-    private const float MazeScale = 120;
+    private const float MazeScale = 40;
     private const float GoalSize = 30f;
 
     // private const float MazeSize = MazeCells * MazeScale;
