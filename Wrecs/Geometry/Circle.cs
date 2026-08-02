@@ -15,10 +15,9 @@ public record struct Circle(Vector2 Center, float Radius)
     /// center is swept against the capsule's rectangular body and two circular
     /// endpoint caps, retaining the earliest contact.
     /// </remarks>
-    public readonly bool TrySweepIntersection(
-        Circle destination,
-        AxisAlignedSegment2 segment,
-        out CircleSweepHit hit)
+    public readonly bool TrySweepIntersection(Circle destination,
+                                              AxisAlignedSegment2 segment,
+                                              out SweepHit hit)
     {
         if (Radius != destination.Radius)
         {
@@ -36,7 +35,7 @@ public record struct Circle(Vector2 Center, float Radius)
 
         if (startDistanceSquared < radiusSquared)
         {
-            hit = new CircleSweepHit(0f, Center, Vector2.Zero);
+            hit = new SweepHit(0f, Vector2.Zero);
             return true;
         }
 
@@ -48,7 +47,7 @@ public record struct Circle(Vector2 Center, float Radius)
 
             if (movement == Vector2.Zero)
             {
-                hit = new CircleSweepHit(0f, Center, startNormal);
+                hit = new SweepHit(0f, startNormal);
                 return true;
             }
 
@@ -59,12 +58,12 @@ public record struct Circle(Vector2 Center, float Radius)
                 return false;
             }
 
-            hit = new CircleSweepHit(0f, Center, startNormal);
+            hit = new SweepHit(0f, startNormal);
             return true;
         }
 
         var foundHit = false;
-        var firstHit = default(CircleSweepHit);
+        var firstHit = default(SweepHit);
 
         void Consider(float time, Vector2 normal)
         {
@@ -74,10 +73,8 @@ public record struct Circle(Vector2 Center, float Radius)
             if (!foundHit || time < firstHit.Time)
             {
                 foundHit = true;
-                firstHit = new CircleSweepHit(
-                    time,
-                    startCenter + movement * time,
-                    normal);
+                firstHit = new SweepHit(time,
+                                              normal);
             }
         }
 
@@ -195,7 +192,7 @@ public record struct Circle(Vector2 Center, float Radius)
     private readonly bool TryFindFirstHit(
         Circle destination,
         IEnumerable<AxisAlignedSegment2> segments,
-        out CircleSweepHit firstHit)
+        out SweepHit firstHit)
     {
         firstHit = default;
         var foundHit = false;
@@ -227,31 +224,5 @@ public record struct Circle(Vector2 Center, float Radius)
                 Math.Clamp(point.Y, segment.Interval.Min, segment.Interval.Max)),
             _ => throw new InvalidOperationException($"Unsupported axis: {segment.Axis}.")
         };
-    }
-}
-
-/// <summary>
-/// Describes the first contact found while sweeping a circle.
-/// </summary>
-public readonly record struct CircleSweepHit(
-    float Time,
-    Vector2 ContactCenter,
-    Vector2 Normal)
-{
-    public Vector2 GetAllowedMovement(Vector2 requestedMovement, float clearance = 0f)
-    {
-        if (Time <= 0f)
-            return Vector2.Zero;
-
-        if (clearance <= 0f || Normal == Vector2.Zero)
-            return requestedMovement * Time;
-
-        var approachDistance = -Vector2.Dot(requestedMovement, Normal);
-        if (approachDistance <= 0f)
-            return requestedMovement * Time;
-
-        var clearanceTime = clearance / approachDistance;
-        var allowedTime = MathF.Max(0f, Time - clearanceTime);
-        return requestedMovement * allowedTime;
     }
 }

@@ -400,7 +400,7 @@ public class AlignedRectangleTests
 
         intersects.Should().BeTrue();
         hit.Time.Should().Be(0.5f);
-        hit.ContactBottomLeft.Should().Be(new Vector2(11, 12));
+        // hit.ContactBottomLeft.Should().Be(new Vector2(11, 12));
         hit.Normal.Should().Be(-Vector2.UnitX);
     }
 
@@ -415,7 +415,7 @@ public class AlignedRectangleTests
 
         intersects.Should().BeTrue();
         hit.Time.Should().Be(0.5f);
-        hit.ContactBottomLeft.Should().Be(new Vector2(11, 12));
+        // hit.ContactBottomLeft.Should().Be(new Vector2(11, 12));
         hit.Normal.Should().Be(Vector2.Normalize(new Vector2(-1, -1)));
     }
 
@@ -432,7 +432,7 @@ public class AlignedRectangleTests
     [Fact(DisplayName = "Sweep hit shortens movement to requested clearance")]
     public void SweepHit_GetAllowedMovement_AppliesClearance()
     {
-        var hit = new SweepHit(0.5f, new Vector2(11, 7), -Vector2.UnitX);
+        var hit = new SweepHit(0.5f, -Vector2.UnitX);
         var requestedMovement = new Vector2(20, 10);
 
         hit.GetAllowedMovement(requestedMovement).Should().Be(new Vector2(10, 5));
