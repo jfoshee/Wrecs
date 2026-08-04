@@ -135,6 +135,149 @@ public record struct Circle(Vector2 Center, float Radius)
     }
 
     /// <summary>
+    /// Finds the first point at which this circle touches a convex polygon while
+    /// translating to <paramref name="destination"/>.
+    /// </summary>
+    /// <remarks>
+    /// The polygon is expanded by the circle radius. Its boundary consists of
+    /// offset edge faces and circular vertex caps, which are tested directly
+    /// without constructing the expanded polygon.
+    /// </remarks>
+    public readonly bool TrySweepIntersection(Circle destination,
+                                              ConvexPolygon polygon,
+                                              out SweepHit hit)
+    {
+        if (Radius != destination.Radius)
+        {
+            throw new ArgumentException(
+                "Destination must have the same radius as the source circle.",
+                nameof(destination));
+        }
+
+        var vertices = polygon.Vertices;
+        var normals = polygon.EdgeNormals;
+        var movement = destination.Center - Center;
+        var radiusSquared = Radius * Radius;
+        var minimumDistanceSquared = float.PositiveInfinity;
+        var closestOffset = Vector2.Zero;
+        var centerInside = true;
+
+        for (var i = 0; i < vertices.Length; i++)
+        {
+            var vertex = vertices[i];
+            var edge = vertices[(i + 1) % vertices.Length] - vertex;
+            var centerOffset = Center - vertex;
+
+            if (Vector2.Dot(centerOffset, normals[i]) > 0f)
+                centerInside = false;
+
+            var edgeTime = Math.Clamp(Vector2.Dot(centerOffset, edge) /
+                                      edge.LengthSquared(),
+                                      0f,
+                                      1f);
+            var offset = centerOffset - edge * edgeTime;
+            var distanceSquared = offset.LengthSquared();
+
+            if (distanceSquared < minimumDistanceSquared)
+            {
+                minimumDistanceSquared = distanceSquared;
+                closestOffset = offset;
+            }
+        }
+
+        if (centerInside || minimumDistanceSquared < radiusSquared)
+        {
+            hit = new SweepHit(0f, Vector2.Zero);
+            return true;
+        }
+
+        if (minimumDistanceSquared == radiusSquared)
+        {
+            var startNormal = closestOffset == Vector2.Zero
+                ? Vector2.Zero
+                : Vector2.Normalize(closestOffset);
+
+            if (movement == Vector2.Zero)
+            {
+                hit = new SweepHit(0f, startNormal);
+                return true;
+            }
+
+            if (startNormal == Vector2.Zero || Vector2.Dot(movement, startNormal) >= 0f)
+            {
+                hit = default;
+                return false;
+            }
+
+            hit = new SweepHit(0f, startNormal);
+            return true;
+        }
+
+        var movementLengthSquared = movement.LengthSquared();
+        if (movementLengthSquared == 0f)
+        {
+            hit = default;
+            return false;
+        }
+
+        var foundHit = false;
+        var firstTime = float.PositiveInfinity;
+        var firstNormal = Vector2.Zero;
+
+        for (var i = 0; i < vertices.Length; i++)
+        {
+            var vertex = vertices[i];
+            var nextVertex = vertices[(i + 1) % vertices.Length];
+            var edge = nextVertex - vertex;
+            var normal = normals[i];
+            var normalMovement = Vector2.Dot(movement, normal);
+
+            if (normalMovement < 0f)
+            {
+                var faceTime = (Radius - Vector2.Dot(Center - vertex, normal)) /
+                               normalMovement;
+
+                if (faceTime >= 0f && faceTime <= 1f && faceTime < firstTime)
+                {
+                    var contact = Center + movement * faceTime - normal * Radius;
+                    var edgeProjection = Vector2.Dot(contact - vertex, edge);
+
+                    if (edgeProjection >= 0f && edgeProjection <= edge.LengthSquared())
+                    {
+                        foundHit = true;
+                        firstTime = faceTime;
+                        firstNormal = normal;
+                    }
+                }
+            }
+
+            var relativeStart = Center - vertex;
+            var b = 2f * Vector2.Dot(relativeStart, movement);
+            var c = relativeStart.LengthSquared() - radiusSquared;
+            var discriminant = b * b - 4f * movementLengthSquared * c;
+
+            if (discriminant < 0f)
+                continue;
+
+            var vertexTime = (-b - MathF.Sqrt(discriminant)) /
+                             (2f * movementLengthSquared);
+
+            if (vertexTime < 0f || vertexTime > 1f || vertexTime >= firstTime)
+                continue;
+
+            var vertexOffset = Center + movement * vertexTime - vertex;
+            foundHit = true;
+            firstTime = vertexTime;
+            firstNormal = vertexOffset == Vector2.Zero
+                ? Vector2.Zero
+                : Vector2.Normalize(vertexOffset);
+        }
+
+        hit = foundHit ? new SweepHit(firstTime, firstNormal) : default;
+        return foundHit;
+    }
+
+    /// <summary>
     /// Resolves movement against axis-aligned segments by repeatedly sweeping and
     /// preserving the component tangent to the first contacted wall.
     /// </summary>
