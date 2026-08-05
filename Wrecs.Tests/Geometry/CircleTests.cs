@@ -115,6 +115,31 @@ public class CircleTests
         act.Should().Throw<ArgumentException>().WithParameterName(nameof(destination));
     }
 
+    [Theory(DisplayName = "Swept circle intersection")]
+    [InlineData("Stationary left of polygon", -5, 0, 1, 0, 0, false, null, null, null)]
+    [InlineData("Small circle moves right through left vertical edge, between verts, stopped quarter-way", -3, 0, 0.5f, 2, 0, true, 0.25f, -1f, 0f)] // Left edge at x=-2, y in [-1, 1]
+    [InlineData("Large circle moves right through left vertical edge, stopped 6th of way", -6, 0, 2, 6, 0, true, 1f / 6f, -1f, 0f)] // Moving 12 units, stopped at 2 units at x=-2
+    [InlineData("Small circle moves up through bottom vertex, stopped 3-quarter-way", 0, -5, 0.5f, 0, 2, true, 0.75f, 0f, -1f)] // Bottom vertex at (0, -3)
+    [InlineData("r=2 circle moves up through bottom edge", -1, -7, 2, 0, 5, true, null, -0.7f, -0.7f)] // Hits bottom edge which has 45 degree angle and normal pointing to lower left
+    [InlineData("r=2 circle moves perpendicular into bottom edge", -4, -5, 1, 4, 4, true, null, -0.7f, -0.7f)] // Hits bottom edge which has 45 degree angle and normal pointing to lower left
+    public void TrySweepIntersection_ConvexPolygonCases(string scenario, float start_x, float start_y, float radius, float dx, float dy, bool expected, float? t, float? nx, float? ny)
+    {
+        var start = new Circle(new(start_x, start_y), radius);
+        var end = start with { Center = new Vector2(start_x + dx, start_y + dy) };
+        // Setup quad: left edge is vertical, top edge has slope of 1/2, bottom edge has slope of -1, right edge has slope of 3
+        var polygon = new ConvexPolygon([
+            new(-2, 1), new(-2, -1), new(0, -3), new(2, 3)
+        ]);
+
+        var intersects = start.TrySweepIntersection(end, polygon, out var hit);
+
+        intersects.Should().Be(expected, scenario);
+        if (t.HasValue)
+            hit.Time.Should().BeApproximately(t.Value, 0.0001f);
+        if (nx.HasValue && ny.HasValue)
+            hit.Normal.Round(1).Should().Be(new Vector2(nx.Value, ny.Value));
+    }
+
     [Fact(DisplayName = "Swept circle returns first convex polygon face contact")]
     public void TrySweepIntersection_ConvexPolygonFace_ReturnsFirstContact()
     {
