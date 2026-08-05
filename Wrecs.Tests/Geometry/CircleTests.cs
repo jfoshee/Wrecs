@@ -155,7 +155,80 @@ public class CircleTests
         if (t.HasValue)
             hit.Time.Should().BeApproximately(t.Value, 0.0001f);
         if (nx.HasValue && ny.HasValue)
+        {
+            hit.Normal.Length().Should().BeApproximately(1f, 0.0001f);
             hit.Normal.Round(1).Should().Be(new Vector2(nx.Value, ny.Value));
+        }
+    }
+
+    [Fact(DisplayName = "Swept circle rejects a convex polygon destination with a different radius")]
+    public void TrySweepIntersection_ConvexPolygonDifferentRadius_ThrowsArgumentException()
+    {
+        var start = new Circle(Vector2.Zero, 1);
+        var destination = new Circle(new Vector2(10, 0), 2);
+        var polygon = new ConvexPolygon([
+            new Vector2(4, -2),
+            new Vector2(6, -2),
+            new Vector2(6, 2),
+            new Vector2(4, 2)
+        ]);
+
+        var act = () => start.TrySweepIntersection(destination, polygon, out _);
+
+        act.Should().Throw<ArgumentException>().WithParameterName(nameof(destination));
+    }
+
+    [Fact(DisplayName = "Stationary circle touching a convex polygon reports immediate contact")]
+    public void TrySweepIntersection_ConvexPolygonStationaryContact_ReturnsImmediateHit()
+    {
+        var start = new Circle(new Vector2(3, 0), 1);
+        var polygon = new ConvexPolygon([
+            new Vector2(4, -2),
+            new Vector2(6, -2),
+            new Vector2(6, 2),
+            new Vector2(4, 2)
+        ]);
+
+        var intersects = start.TrySweepIntersection(start, polygon, out var hit);
+
+        intersects.Should().BeTrue();
+        hit.Should().Be(new SweepHit(0f, -Vector2.UnitX));
+    }
+
+    [Fact(DisplayName = "Circle touching a convex polygon cannot move inward")]
+    public void TrySweepIntersection_ConvexPolygonContactMovingInward_ReturnsImmediateHit()
+    {
+        var start = new Circle(new Vector2(3, 0), 1);
+        var destination = start with { Center = new Vector2(5, 0) };
+        var polygon = new ConvexPolygon([
+            new Vector2(4, -2),
+            new Vector2(6, -2),
+            new Vector2(6, 2),
+            new Vector2(4, 2)
+        ]);
+
+        var intersects = start.TrySweepIntersection(destination, polygon, out var hit);
+
+        intersects.Should().BeTrue();
+        hit.Should().Be(new SweepHit(0f, -Vector2.UnitX));
+    }
+
+    [Fact(DisplayName = "Circle overlapping a convex polygon from outside reports immediate overlap")]
+    public void TrySweepIntersection_ConvexPolygonExternalOverlap_ReturnsImmediateHit()
+    {
+        var start = new Circle(new Vector2(3.5f, 0), 1);
+        var destination = start with { Center = new Vector2(2, 0) };
+        var polygon = new ConvexPolygon([
+            new Vector2(4, -2),
+            new Vector2(6, -2),
+            new Vector2(6, 2),
+            new Vector2(4, 2)
+        ]);
+
+        var intersects = start.TrySweepIntersection(destination, polygon, out var hit);
+
+        intersects.Should().BeTrue();
+        hit.Should().Be(new SweepHit(0f, Vector2.Zero));
     }
 
     [Fact(DisplayName = "Swept circle returns first convex polygon face contact")]

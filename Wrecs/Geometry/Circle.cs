@@ -162,6 +162,8 @@ public record struct Circle(Vector2 Center, float Radius)
         var closestOffset = Vector2.Zero;
         var centerInside = true;
 
+        // Classify the center against the polygon and find its closest boundary
+        // point. Together these identify overlap with the radius-expanded polygon.
         for (var i = 0; i < vertices.Length; i++)
         {
             var vertex = vertices[i];
@@ -171,11 +173,11 @@ public record struct Circle(Vector2 Center, float Radius)
             if (Vector2.Dot(centerOffset, normals[i]) > 0f)
                 centerInside = false;
 
-            var edgeTime = Math.Clamp(Vector2.Dot(centerOffset, edge) /
-                                      edge.LengthSquared(),
-                                      0f,
-                                      1f);
-            var offset = centerOffset - edge * edgeTime;
+            var edgeFraction = Math.Clamp(Vector2.Dot(centerOffset, edge) /
+                                          edge.LengthSquared(),
+                                          0f,
+                                          1f);
+            var offset = centerOffset - edge * edgeFraction;
             var distanceSquared = offset.LengthSquared();
 
             if (distanceSquared < minimumDistanceSquared)
@@ -185,6 +187,8 @@ public record struct Circle(Vector2 Center, float Radius)
             }
         }
 
+        // An overlap has no unique separating normal. Exact contact only blocks
+        // movement directed into the polygon; tangent or separating motion is free.
         if (centerInside || minimumDistanceSquared < radiusSquared)
         {
             hit = new SweepHit(0f, Vector2.Zero);
@@ -224,6 +228,8 @@ public record struct Circle(Vector2 Center, float Radius)
         var firstTime = float.PositiveInfinity;
         var firstNormal = Vector2.Zero;
 
+        // Sweep the center against every offset edge face and circular vertex cap,
+        // retaining the earliest contact on the radius-expanded boundary.
         for (var i = 0; i < vertices.Length; i++)
         {
             var vertex = vertices[i];
@@ -234,6 +240,8 @@ public record struct Circle(Vector2 Center, float Radius)
 
             if (normalMovement < 0f)
             {
+                // Intersect the offset edge line, then reject contacts beyond the
+                // finite edge; those endpoint regions belong to the vertex caps.
                 var faceTime = (Radius - Vector2.Dot(Center - vertex, normal)) /
                                normalMovement;
 
@@ -251,6 +259,7 @@ public record struct Circle(Vector2 Center, float Radius)
                 }
             }
 
+            // Solve the ray-circle quadratic and use its entry root for this cap.
             var relativeStart = Center - vertex;
             var b = 2f * Vector2.Dot(relativeStart, movement);
             var c = relativeStart.LengthSquared() - radiusSquared;
