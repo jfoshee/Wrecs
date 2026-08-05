@@ -116,13 +116,31 @@ public class CircleTests
     }
 
     [Theory(DisplayName = "Swept circle intersection")]
+    // No collision
     [InlineData("Stationary left of polygon", -5, 0, 1, 0, 0, false, null, null, null)]
+    [InlineData("Moving up left of polygon", -5, 0, 1, 0, 100, false, null, null, null)]
+    [InlineData("Moving left left of polygon", -5, 0, 1, -100, 0, false, null, null, null)]
+    // Colliding
     [InlineData("Small circle moves right through left vertical edge, between verts, stopped quarter-way", -3, 0, 0.5f, 2, 0, true, 0.25f, -1f, 0f)] // Left edge at x=-2, y in [-1, 1]
-    [InlineData("Large circle moves right through left vertical edge, stopped 6th of way", -6, 0, 2, 6, 0, true, 1f / 6f, -1f, 0f)] // Moving 12 units, stopped at 2 units at x=-2
+    [InlineData("Large circle moves right through left vertical edge, stopped 6th of way", -6, 0, 2, 12, 0, true, 1f / 6f, -1f, 0f)] // Moving 12 units, stopped at 2 units at x=-2
     [InlineData("Small circle moves up through bottom vertex, stopped 3-quarter-way", 0, -5, 0.5f, 0, 2, true, 0.75f, 0f, -1f)] // Bottom vertex at (0, -3)
-    [InlineData("r=2 circle moves up through bottom edge", -1, -7, 2, 0, 5, true, null, -0.7f, -0.7f)] // Hits bottom edge which has 45 degree angle and normal pointing to lower left
+    [InlineData("r=2 circle moves up through bottom vertex on left side", -1, -7, 2, 0, 5, true, null, -0.5f, -0.9f)] // Hits bottom vertex slightly before hitting the edge
     [InlineData("r=2 circle moves perpendicular into bottom edge", -4, -5, 1, 4, 4, true, null, -0.7f, -0.7f)] // Hits bottom edge which has 45 degree angle and normal pointing to lower left
-    public void TrySweepIntersection_ConvexPolygonCases(string scenario, float start_x, float start_y, float radius, float dx, float dy, bool expected, float? t, float? nx, float? ny)
+    [InlineData("tiny circle moving diagonally into bottom edge", -1.75f, -3.25f, 0.25f, 1, 2, true, null, -0.7f, -0.7f)] // Hits bottom edge which has 45 degree angle and normal pointing to lower left
+    [InlineData("Circle on right side moving diagonally into right edge", 5.5f, 0.5f, 1.5f, -3, +1, true, null, 0.9f, -0.3f)] // Hits right edge which has slope of 3
+    // Sliding
+    [InlineData("Circle sliding down on left edge", -3, 1, 1, 0, -2, false, null, null, null)] // Sliding down along left edge
+    // TODO: Circle sliding up on right edge (requires non trivial tangent circle placement)
+    public void TrySweepIntersection_ConvexPolygonCases(string scenario,
+                                                        float start_x,
+                                                        float start_y,
+                                                        float radius,
+                                                        float dx,
+                                                        float dy,
+                                                        bool expected,
+                                                        float? t,
+                                                        float? nx,
+                                                        float? ny)
     {
         var start = new Circle(new(start_x, start_y), radius);
         var end = start with { Center = new Vector2(start_x + dx, start_y + dy) };
