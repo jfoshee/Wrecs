@@ -4,7 +4,6 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.0.0</Version>
     <PackageId>Wrecs</PackageId>
     <Title>Wrecs</Title>
     <Description>A deterministic ECS for coordinated state transitions, with optional patterns for agents, events, and turns.</Description>

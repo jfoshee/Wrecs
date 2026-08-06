@@ -1,0 +1,107 @@
+name: Release
+
+run-name: Release v${{ inputs.version }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Four-part package version without the v prefix (for example, 1.2.3.4)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Test, publish, and release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate release version
+        id: release
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "Releases must be run from the main branch (selected: $GITHUB_REF_NAME)." >&2
+            exit 1
+          fi
+
+          version_pattern='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'
+          if [[ ! "$INPUT_VERSION" =~ $version_pattern ]]; then
+            echo "Version must contain four numeric parts without a v prefix, for example 1.2.3.4." >&2
+            exit 1
+          fi
+
+          tag="v$INPUT_VERSION"
+          if git rev-parse --quiet --verify "refs/tags/$tag" >/dev/null; then
+            echo "Tag $tag already exists." >&2
+            exit 1
+          fi
+
+          echo "version=$INPUT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore Wrecs.slnx
+
+      - name: Test
+        run: dotnet test Wrecs.slnx --configuration Release --no-restore
+
+      - name: Pack
+        env:
+          PACKAGE_VERSION: ${{ steps.release.outputs.version }}
+        run: >-
+          dotnet pack Wrecs/Wrecs.csproj
+          --configuration Release
+          --no-restore
+          --output artifacts
+          -p:Version="$PACKAGE_VERSION"
+          -p:ContinuousIntegrationBuild=true
+
+      - name: Authenticate to NuGet.org
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: jfoshee
+
+      - name: Publish to NuGet.org
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          PACKAGE_VERSION: ${{ steps.release.outputs.version }}
+        run: >-
+          dotnet nuget push "artifacts/Wrecs.$PACKAGE_VERSION.nupkg"
+          --source https://api.nuget.org/v3/index.json
+
+      - name: Create GitHub tag and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_VERSION: ${{ steps.release.outputs.version }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: >-
+          gh release create "$RELEASE_TAG"
+          "artifacts/Wrecs.$PACKAGE_VERSION.nupkg"
+          "artifacts/Wrecs.$PACKAGE_VERSION.snupkg"
+          --repo "$GITHUB_REPOSITORY"
+          --target "$GITHUB_SHA"
+          --title "$RELEASE_TAG"
+          --generate-notes
