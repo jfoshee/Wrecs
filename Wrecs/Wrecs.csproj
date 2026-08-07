@@ -12,7 +12,7 @@
     <RepositoryUrl>https://github.com/jfoshee/Wrecs</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageIcon>wrecs-icon-128.png</PackageIcon>
+    <PackageIcon>wrecs-icon-128.jpg</PackageIcon>
     <PackageTags>ecs;entity-component-system;simulation;game-dev;deterministic</PackageTags>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -30,7 +30,7 @@
 
   <ItemGroup>
     <None Include="../README.md" Pack="true" PackagePath="\" Link="README.md" />
-    <None Include="../wrecs-icon-128.png" Pack="true" PackagePath="\" Link="wrecs-icon-128.png" />
+    <None Include="../wrecs-icon-128.jpg" Pack="true" PackagePath="\" Link="wrecs-icon-128.jpg" />
   </ItemGroup>
 
 </Project>
