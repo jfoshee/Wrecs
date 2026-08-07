@@ -87,20 +87,18 @@ jobs:
       - name: Publish to NuGet.org
         env:
           NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
-          PACKAGE_VERSION: ${{ steps.release.outputs.version }}
         run: >-
-          dotnet nuget push "artifacts/Wrecs.$PACKAGE_VERSION.nupkg"
+          dotnet nuget push artifacts/*.nupkg
           --source https://api.nuget.org/v3/index.json
 
       - name: Create GitHub tag and release
         env:
           GH_TOKEN: ${{ github.token }}
-          PACKAGE_VERSION: ${{ steps.release.outputs.version }}
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: >-
           gh release create "$RELEASE_TAG"
-          "artifacts/Wrecs.$PACKAGE_VERSION.nupkg"
-          "artifacts/Wrecs.$PACKAGE_VERSION.snupkg"
+          artifacts/*.nupkg
+          artifacts/*.snupkg
           --repo "$GITHUB_REPOSITORY"
           --target "$GITHUB_SHA"
           --title "$RELEASE_TAG"
