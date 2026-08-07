@@ -12,7 +12,7 @@
     <RepositoryUrl>https://github.com/jfoshee/Wrecs</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <!-- <PackageIcon>wrecs-icon-128.png</PackageIcon> -->
+    <PackageIcon>wrecs-icon-128.png</PackageIcon>
     <PackageTags>ecs;entity-component-system;simulation;game-dev;deterministic</PackageTags>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
