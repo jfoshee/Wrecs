@@ -5,6 +5,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <!-- Windows executable (no console) -->
@@ -20,8 +21,10 @@
     <PackageReference Include="SDL3-CS" Version="3.4.12.3" />
 
     <PackageReference Include="SDL3-CS.Windows" Version="3.4.12.1" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    <PackageReference Include="SDL3-CS.Windows.Shadercross" Version="3.0.0.7" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
 
     <PackageReference Include="SDL3-CS.MacOS" Version="3.4.12.1" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+    <PackageReference Include="SDL3-CS.MacOS.Shadercross" Version="3.0.0.7" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
   </ItemGroup>
 
   <ItemGroup>

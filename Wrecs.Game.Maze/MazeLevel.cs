@@ -27,7 +27,6 @@ class MazeLevel
     private readonly ulong _frequency;
     private readonly double _tickInterval;
 
-    private readonly ulong _startCounter;
     private ulong _lastTickCounter;
 
     public bool IsGameEnded => _isGameEnded.Value;
@@ -67,8 +66,7 @@ class MazeLevel
                             TargetEntity: _player,
                             TargetSystem: _sim.GetSystem<AlignedRectangleSystem>()));
 
-        _startCounter = SDL.GetPerformanceCounter();
-        _lastTickCounter = _startCounter;
+        _lastTickCounter = SDL.GetPerformanceCounter();
         _frequency = SDL.GetPerformanceFrequency();
         _tickInterval = _frequency / 30.0;
     }
@@ -102,72 +100,44 @@ class MazeLevel
         return false;
     }
 
-    public void UpdateAndRender(nint renderer)
+    public void UpdateAndRender(MazeGpuRenderer renderer)
     {
         _player.HandleKeyboard();
 
         var currentCounter = SDL.GetPerformanceCounter();
-        var elapsed = (currentCounter - _startCounter) / (double)_frequency;
-
-        SDL.SetRenderDrawColor(renderer, 100, 149, 237, 255);
-        SDL.RenderClear(renderer);
-
-        // SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        // foreach (var wall in _maze.GetWalls())
-        // {
-        //     SDL.RenderLine(renderer, wall.Start.X, wall.Start.Y, wall.End.X, wall.End.Y);
-        // }
+        renderer.BeginFrame(GpuColor.FromBytes(100, 149, 237));
 
         var goalRect = _sim.GetSystem<AlignedRectangleSystem>().GetTypedState(_goal).Rectangle;
-        var sdlGoalRect = new SDL.FRect
-        {
-            X = goalRect.BottomLeft.X,
-            Y = goalRect.BottomLeft.Y,
-            W = goalRect.Width,
-            H = goalRect.Height,
-        };
-        SDL.SetRenderDrawColor(renderer, 255, 215, 0, 255);
-        SDL.RenderFillRect(renderer, in sdlGoalRect);
+        renderer.FillRectangle(goalRect.BottomLeft.X,
+                               goalRect.BottomLeft.Y,
+                               goalRect.Width,
+                               goalRect.Height,
+                               GpuColor.FromBytes(255, 215, 0));
 
         var playerRect = _sim.GetSystem<AlignedRectangleSystem>().GetTypedState(_player).Rectangle;
-        var sdlPlayerRect = new SDL.FRect { X = playerRect.BottomLeft.X, Y = playerRect.BottomLeft.Y, W = playerRect.Width, H = playerRect.Height };
-        SDL.SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        SDL.RenderFillRect(renderer, in sdlPlayerRect);
+        renderer.FillRectangle(playerRect.BottomLeft.X,
+                               playerRect.BottomLeft.Y,
+                               playerRect.Width,
+                               playerRect.Height,
+                               GpuColor.FromBytes(255, 0, 0));
 
         var playerCircle = _sim.GetSystem<CircleSystem>().GetTypedState(_player).Circle;
-        var circleRows = (int)MathF.Ceiling(playerCircle.Radius * 2);
-        Span<SDL.FRect> circleScanlines = stackalloc SDL.FRect[circleRows];
-        for (var row = 0; row < circleRows; row++)
-        {
-            var y = row + 0.5f - playerCircle.Radius;
-            var x = MathF.Sqrt((playerCircle.Radius * playerCircle.Radius) - (y * y));
-            circleScanlines[row] = new SDL.FRect
-            {
-                X = playerCircle.Center.X - x,
-                Y = playerCircle.Center.Y + y - 0.5f,
-                W = x * 2,
-                H = 1,
-            };
-        }
-        SDL.SetRenderDrawColor(renderer, 255, 128, 128, 255);
-        SDL.RenderFillRects(renderer, circleScanlines, circleScanlines.Length);
+        renderer.FillCircle(playerCircle.Center,
+                            playerCircle.Radius,
+                            GpuColor.FromBytes(255, 128, 128));
 
         var playerPosition = _sim.GetSystem<Spatial2DSystem>().GetTypedState(_player).Position;
-        var sdlPlayerPositionRect = new SDL.FRect { X = playerPosition.X - 2, Y = playerPosition.Y - 2, W = 4, H = 4 };
-        SDL.SetRenderDrawColor(renderer, 127, 255, 127, 255);
-        SDL.RenderFillRect(renderer, in sdlPlayerPositionRect);
-
-
-        // SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        // SDL.RenderDebugText(renderer, 10, 10, $"Elapsed Time: {elapsed:F3} seconds");
-
-        SDL.SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        renderer.FillRectangle(playerPosition.X - 2,
+                               playerPosition.Y - 2,
+                               4,
+                               4,
+                               GpuColor.FromBytes(127, 255, 127));
         foreach (var wall in _maze.GetWalls())
         {
-            SDL.RenderLine(renderer, wall.Start.X, wall.Start.Y, wall.End.X, wall.End.Y);
+            renderer.DrawLine(wall.Start, wall.End, GpuColor.FromBytes(255, 255, 255));
         }
 
-        SDL.RenderPresent(renderer);
+        renderer.EndFrame();
 
         if (currentCounter - _lastTickCounter >= _tickInterval)
         {

@@ -64,10 +64,9 @@ class ConfettiLevel
         return e.Key.Key == SDL.Keycode.Escape || e.Key.Key == SDL.Keycode.Q;
     }
 
-    public void UpdateAndRender(nint renderer)
+    public void UpdateAndRender(MazeGpuRenderer renderer)
     {
-        SDL.SetRenderDrawColor(renderer, 8, 13, 28, 255);
-        SDL.RenderClear(renderer);
+        renderer.BeginFrame(GpuColor.FromBytes(8, 13, 28));
 
         RecycleOffscreenConfetti();
 
@@ -81,19 +80,14 @@ class ConfettiLevel
         foreach (var piece in _confetti)
         {
             var pos = _spatial2dSystem.GetTypedState(piece).Position;
-            var rect = new SDL.FRect
-            {
-                X = pos.X,
-                Y = pos.Y,
-                W = piece.Size,
-                H = piece.Size,
-            };
-
-            SDL.SetRenderDrawColor(renderer, piece.Red, piece.Green, piece.Blue, 255);
-            SDL.RenderFillRect(renderer, in rect);
+            renderer.FillRectangle(pos.X,
+                                   pos.Y,
+                                   piece.Size,
+                                   piece.Size,
+                                   GpuColor.FromBytes(piece.Red, piece.Green, piece.Blue));
         }
 
-        SDL.RenderPresent(renderer);
+        renderer.EndFrame();
     }
 
     private void RecycleOffscreenConfetti()

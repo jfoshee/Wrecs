@@ -15,44 +15,56 @@ if (!SDL.Init(SDL.InitFlags.Video))
     return;
 }
 
-if (!SDL.CreateWindowAndRenderer("Maze", MazeLevel.WindowPixels, MazeLevel.WindowPixels, 0, out var window, out var renderer))
+var window = SDL.CreateWindow("Maze", MazeLevel.WindowPixels, MazeLevel.WindowPixels, 0);
+if (window == 0)
 {
-    SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
+    SDL.LogError(SDL.LogCategory.Application, $"Error creating window: {SDL.GetError()}");
+    SDL.Quit();
     return;
 }
 
-int mazeCells = 2;
-var level = new MazeLevel(mazeCells);
-var playerQuit = false;
-
-Console.WriteLine("Let's go!");
-
-while (!playerQuit)
+try
 {
-    while (SDL.PollEvent(out var e))
+    using var renderer = new MazeGpuRenderer(window, MazeLevel.WindowPixels, MazeLevel.WindowPixels);
+    Console.WriteLine($"GPU backend: {renderer.DriverName}");
+
+    int mazeCells = 2;
+    var level = new MazeLevel(mazeCells);
+    var playerQuit = false;
+
+    Console.WriteLine("Let's go!");
+
+    while (!playerQuit)
     {
-        if (level.HandleEvent(e))
+        while (SDL.PollEvent(out var e))
         {
-            playerQuit = true;
+            if (level.HandleEvent(e))
+            {
+                playerQuit = true;
+            }
+        }
+
+        if (playerQuit)
+        {
+            break;
+        }
+
+        level.UpdateAndRender(renderer);
+        if (level.IsGameEnded)
+        {
+            Console.WriteLine($"Level {mazeCells}!");
+            // Maze becomes bigger each time the player reaches the goal
+            ++mazeCells;
+            level = new MazeLevel(mazeCells);
         }
     }
-
-    if (playerQuit)
-    {
-        break;
-    }
-
-    level.UpdateAndRender(renderer);
-    if (level.IsGameEnded)
-    {
-        Console.WriteLine($"Level {mazeCells}!");
-        // Maze becomes bigger each time the player reaches the goal
-        ++mazeCells;
-        level = new MazeLevel(mazeCells);
-    }
 }
-
-SDL.DestroyRenderer(renderer);
-SDL.DestroyWindow(window);
-
-SDL.Quit();
+catch (Exception exception)
+{
+    SDL.LogError(SDL.LogCategory.Application, exception.Message);
+}
+finally
+{
+    SDL.DestroyWindow(window);
+    SDL.Quit();
+}
