@@ -1,5 +1,6 @@
 using System.Numerics;
 using SDL3;
+using Wrecs.Core;
 using Wrecs.Geometry;
 using Wrecs.Systems;
 
@@ -20,6 +21,7 @@ class PolygonsGame
     private readonly Sim _sim;
     private readonly CircleSystem _circleSystem;
     private readonly PlayerAgent _player;
+    private readonly IEntity _polygon;
     private readonly ulong _frequency;
     private readonly double _tickInterval;
 
@@ -34,10 +36,19 @@ class PolygonsGame
                         new ScreenBoundsConstraint(WindowWidth, WindowHeight));
 
         _player = new PlayerAgent(PlayerSpeed, PlayerSprintMultiplier);
+        _polygon = new Entity("Polygon");
         _sim.InitEntities((_player, [
                                         new Spatial2DSnapshot(PlayerStart),
                                         new CircleSnapshot(new Circle(PlayerStart, PlayerRadius))
-                                    ]));
+                                    ]),
+                           (_polygon, [new ConvexPolygonSnapshot(new ConvexPolygon(new Vector2[]
+                           {
+                               new(100, 100),
+                               new(200, 100),
+                               new(200, 200),
+                               new(100, 200)
+                           }))])
+                           );
 
         _frequency = SDL.GetPerformanceFrequency();
         _tickInterval = _frequency / (double)TickRate;
