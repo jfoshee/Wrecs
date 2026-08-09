@@ -2,4 +2,5 @@
   <Project Path="Wrecs.Tests/Wrecs.Tests.csproj" />
   <Project Path="Wrecs/Wrecs.csproj" />
   <Project Path="Wrecs.Game.Maze/Wrecs.Game.Maze.csproj" />
+  <Project Path="Wrecs.Game.Polygons/Wrecs.Game.Polygons.csproj" />
 </Solution>
