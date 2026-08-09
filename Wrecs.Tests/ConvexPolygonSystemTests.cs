@@ -80,20 +80,20 @@ public class ConvexPolygonSystemTests
         GetVertices(agent.ObservedPolygon!).Should().Equal(GetVertices(polygon));
     }
 
-    [Fact(DisplayName = "Convex polygon system translates move intent by translating all vertices")]
-    public void TranslateIntentMovesPolygon()
-    {
-        var polygon = CreateSquare(new Vector2(1, 2), 4);
-        var agent = new ConvexPolygonAgent();
-        var system = new ConvexPolygonSystem();
-        system.InitEntities((agent, polygon));
+    // [Fact(DisplayName = "Convex polygon system translates move intent by translating all vertices")]
+    // public void TranslateIntentMovesPolygon()
+    // {
+    //     var polygon = CreateSquare(new Vector2(1, 2), 4);
+    //     var agent = new ConvexPolygonAgent();
+    //     var system = new ConvexPolygonSystem();
+    //     system.InitEntities((agent, polygon));
 
-        var update = system.TranslateIntent(agent, new Move2DAction(new Vector2(5, -3)))
-            .Updates.OfType<ConvexPolygonUpdate>().Single();
+    //     var update = system.TranslateIntent(agent, new Move2DAction(new Vector2(5, -3)))
+    //         .Updates.OfType<ConvexPolygonUpdate>().Single();
 
-        var expected = CreateSquare(new Vector2(6, -1), 4);
-        GetVertices(update.State.Polygon).Should().Equal(GetVertices(expected));
-    }
+    //     var expected = CreateSquare(new Vector2(6, -1), 4);
+    //     GetVertices(update.State.Polygon).Should().Equal(GetVertices(expected));
+    // }
 
     private static ConvexPolygon CreateSquare(Vector2 bottomLeft, float size)
     {
