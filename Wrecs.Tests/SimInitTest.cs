@@ -31,6 +31,62 @@ public class SimInitTest
     {
     }
 
+    interface IMarkerOnlyEntity : IEntity;
+
+    class MarkerOnlyEntity : BasicEntity, IMarkerOnlyEntity;
+
+    class MarkerOnlySystem : ISystemEntityStateInitializer, ISystemWithEntityMarker<IMarkerOnlyEntity>
+    {
+        private IReadOnlyList<IEntity> _entities = [];
+
+        public void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState) =>
+            _entities = [.. entitiesWithState.Select(e => e.entity)];
+
+        public IReadOnlyList<IEntity> GetEntities() => _entities;
+    }
+
+    record struct StateOnlySnapshot(int Value) : IStateSnapshot<StateOnlySystem>;
+
+    class StateOnlySystem :
+        ISystemEntityStateInitializer,
+        ISystemWithEntityStateSnapshots<StateOnlySnapshot>
+    {
+        private readonly Dictionary<IEntity, StateOnlySnapshot> _states = [];
+
+        public void InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
+        {
+            _states.Clear();
+            foreach (var (entity, initialStates) in entitiesWithState)
+                _states[entity] = initialStates.OfType<StateOnlySnapshot>().Single();
+        }
+
+        public IReadOnlyList<IEntity> GetEntities() => [.. _states.Keys];
+
+        public StateOnlySnapshot GetTypedState(IEntity entity) => _states[entity];
+    }
+
+    [Fact(DisplayName = "Systems can select entities by only a marker or only an initial state")]
+    public void InitializingEntitiesForIndependentSystemConcerns()
+    {
+        var markerSystem = new MarkerOnlySystem();
+        var stateSystem = new StateOnlySystem();
+        var sim = new Sim();
+        sim.AddSystems(markerSystem, stateSystem);
+        var markedEntity = new MarkerOnlyEntity();
+        var hasInitialStateEntity = new BasicEntity();
+        var unrelatedEntity = new BasicEntity();
+
+        sim.InitEntities(
+            (markedEntity, []),
+            (hasInitialStateEntity, [new StateOnlySnapshot(42)]),
+            (unrelatedEntity, [])
+        );
+
+        markerSystem.GetEntities().Should().Equal(markedEntity);
+        stateSystem.GetEntities().Should().Equal(hasInitialStateEntity);
+        stateSystem.GetTypedState(hasInitialStateEntity).Should().Be(new StateOnlySnapshot(42));
+    }
+
     [Fact(DisplayName = "Entities inheriting ICommercialEntity or initial state are added to commercial system")]
     public void InitializingCommercialEntities()
     {

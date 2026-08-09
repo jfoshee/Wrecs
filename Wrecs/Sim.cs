@@ -39,9 +39,17 @@ public class Sim
         // Initialize each system with matching entities
         foreach (var system in _systems.OfType<ISystemEntityStateInitializer>())
         {
-            // TODO: Only pass the entities that either: implement the marker interface or have initial state snapshots for the system.
-            //       (Currently we handle this using ISystemWithEntities or on a system by system basis)
-            system.InitEntities(entitiesWithState);
+            var entityMarker = system as ISystemWithEntityMarker;
+            var stateSnapshots = system as ISystemWithEntityStateSnapshots;
+            var hasConcernDeclaration = entityMarker is not null || stateSnapshots is not null;
+
+            var matchingEntities = entitiesWithState
+                .Where(e => !hasConcernDeclaration
+                    || entityMarker?.IsMarkedEntity(e.entity) == true
+                    || stateSnapshots?.HasInitialState(e.initialStates) == true)
+                .ToArray();
+
+            system.InitEntities(matchingEntities);
         }
     }
 

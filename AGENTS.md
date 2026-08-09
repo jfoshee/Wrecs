@@ -93,10 +93,12 @@ public record struct Spatial1DSnapshot(Position Position) : IStateSnapshot<Spati
 
 ## Defining a System
 
-Use `ISystemWithEntities<TMarkerInterface, TStateSnapshot>` as the base when the system tracks per-entity state. This composite interface provides a default `InitEntities` implementation that:
+Use `ISystemWithEntities<TMarkerInterface, TStateSnapshot>` as the base when the system tracks per-entity state. The composite interface declares both ways that a system can be concerned with an entity:
 
 - Includes entities implementing `TMarkerInterface`, **or**
 - Includes entities that carry an initial `TStateSnapshot` in their `IStateSnapshot[]` array.
+
+`Sim.InitEntities` combines those declarations and passes only matching entities to the system. The composite interface's default `InitEntities` implementation then adapts the untyped snapshot array to the system's typed nullable snapshot. A system that selects entities by only one mechanism can implement `ISystemWithEntityMarker<TMarkerInterface>` or `ISystemWithEntityStateSnapshots<TStateSnapshot>` independently.
 
 Do not use `IEntity` as the marker interface; that defeats the purpose!
 

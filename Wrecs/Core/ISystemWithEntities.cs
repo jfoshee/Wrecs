@@ -6,27 +6,54 @@ namespace Wrecs.Core;
 /// </summary>
 public interface ISystemWithEntities : ISystemEntityStateInitializer, ISystemEntityStateProvider;
 
+public interface ISystemWithEntityStateSnapshots
+{
+    bool HasInitialState(IEnumerable<IStateSnapshot> initialStates);
+}
+
+public interface ISystemWithEntityStateSnapshots<TStateSnapshot>
+    : ISystemWithEntityStateSnapshots, ISystemEntityStateProvider
+    where TStateSnapshot : struct, IStateSnapshot
+{
+    TStateSnapshot GetTypedState(IEntity entity);
+
+    bool ISystemWithEntityStateSnapshots.HasInitialState(IEnumerable<IStateSnapshot> initialStates) =>
+        initialStates.Any(initialState => initialState is TStateSnapshot);
+
+    IStateSnapshot ISystemEntityStateProvider.GetState(IEntity entity) => GetTypedState(entity);
+}
+
+public interface ISystemWithEntityMarker
+{
+    bool IsMarkedEntity(IEntity entity);
+}
+
+public interface ISystemWithEntityMarker<TMarkerInterface>
+    : ISystemWithEntityMarker
+    where TMarkerInterface : IEntity
+{
+    bool ISystemWithEntityMarker.IsMarkedEntity(IEntity entity) => entity is TMarkerInterface;
+}
+
 /// <inheritdoc/>
 public interface ISystemWithEntities<TMarkerInterface, TStateSnapshot> :
-    ISystemWithEntities
+    ISystemWithEntities,
+    ISystemWithEntityMarker<TMarkerInterface>,
+    ISystemWithEntityStateSnapshots<TStateSnapshot>
     where TMarkerInterface : IEntity
     where TStateSnapshot : struct, IStateSnapshot
 {
     void InitEntities(params (IEntity entity, TStateSnapshot? initialState)[] initialEntities);
-    TStateSnapshot GetTypedState(IEntity entity);
 
-    // Default interface method to apply generic types
+    // Default interface method to adapt the untyped initialization API to the typed one.
+    // Sim is responsible for passing only the entities that concern this system.
     void ISystemEntityStateInitializer.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
     {
-        // An entity is relevant to this system if it implements the marker interface or has an initial state for this system
-        var matchingEntities = entitiesWithState
+        var initialEntities = entitiesWithState
             .Select(e => (e.entity, initialState:
                 e.initialStates.OfType<TStateSnapshot>().Select(s => (TStateSnapshot?)s).FirstOrDefault()))
-            .Where(e => e.entity is TMarkerInterface || e.initialState != null)
             .ToArray();
 
-        InitEntities(matchingEntities);
+        InitEntities(initialEntities);
     }
-
-    IStateSnapshot ISystemEntityStateProvider.GetState(IEntity entity) => (IStateSnapshot)GetTypedState(entity);
 }

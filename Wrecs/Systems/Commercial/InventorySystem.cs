@@ -82,15 +82,17 @@ public class InventorySystem : ISystemWithEntities<IInventoryEntity, InventorySn
         }
     }
 
+    bool ISystemWithEntityStateSnapshots.HasInitialState(IEnumerable<IStateSnapshot> initialStates) =>
+        initialStates.Any(initialState => initialState is InventorySnapshot or CommercialSnapshot);
+
     void ISystemEntityStateInitializer.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
     {
-        var matchingEntities = entitiesWithState
+        var initialEntities = entitiesWithState
             .Select(e => (e.entity, initialState:
                 e.initialStates.OfType<InventorySnapshot>().Select(s => (InventorySnapshot?)s).FirstOrDefault()
                 ?? e.initialStates.OfType<CommercialSnapshot>().Select(s => (InventorySnapshot?)s.Inventory).FirstOrDefault()))
-            .Where(e => e.entity is IInventoryEntity || e.initialState != null)
             .ToArray();
-        InitEntities(matchingEntities);
+        InitEntities(initialEntities);
     }
 
     public InventorySnapshot? BuildSnapshot(IAgent agent) =>

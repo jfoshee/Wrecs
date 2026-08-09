@@ -36,15 +36,17 @@ public class MoneySystem : ISystemWithEntities<IMoneyEntity, MoneySnapshot>, ISy
         }
     }
 
+    bool ISystemWithEntityStateSnapshots.HasInitialState(IEnumerable<IStateSnapshot> initialStates) =>
+        initialStates.Any(initialState => initialState is MoneySnapshot or CommercialSnapshot);
+
     void ISystemEntityStateInitializer.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
     {
-        var matchingEntities = entitiesWithState
+        var initialEntities = entitiesWithState
             .Select(e => (e.entity, initialState:
                 e.initialStates.OfType<MoneySnapshot>().Select(s => (MoneySnapshot?)s).FirstOrDefault()
                 ?? e.initialStates.OfType<CommercialSnapshot>().Select(s => (MoneySnapshot?)s.Money).FirstOrDefault()))
-            .Where(e => e.entity is IMoneyEntity || e.initialState != null)
             .ToArray();
-        InitEntities(matchingEntities);
+        InitEntities(initialEntities);
     }
 
     public MoneySnapshot? BuildSnapshot(IAgent agent) =>
