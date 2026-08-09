@@ -62,6 +62,23 @@ public class ConvexPolygonTests
         polygon.Count.Should().Be(3, because: scenario);
     }
 
+    [Fact(DisplayName = "Constructor accepts an enumerable of vertices")]
+    public void Constructor_Enumerable_AcceptsVertices()
+    {
+        IEnumerable<Vector2> vertices = Enumerable.Range(0, 4)
+            .Select(index => index switch
+            {
+                0 => new Vector2(0f, 0f),
+                1 => new Vector2(1f, 0f),
+                2 => new Vector2(1f, 1f),
+                _ => new Vector2(0f, 1f),
+            });
+
+        var polygon = new ConvexPolygon(vertices);
+
+        polygon.Count.Should().Be(4);
+    }
+
     public static IEnumerable<TheoryDataRow<Vector2[], string>> NonCcwTriangleCases()
     {
         yield return new(

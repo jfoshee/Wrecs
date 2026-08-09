@@ -12,11 +12,11 @@ public sealed class ConvexPolygon
 
     public int Count => _vertices.Length;
 
-    public ConvexPolygon(ReadOnlySpan<Vector2> vertices)
+    public ConvexPolygon(IEnumerable<Vector2> vertices)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(vertices.Length, 3);
+        _vertices = [.. vertices];
+        ArgumentOutOfRangeException.ThrowIfLessThan(_vertices.Length, 3);
 
-        _vertices = vertices.ToArray();
         ValidateStrictlyConvex(_vertices);
 
         _edgeNormals = new Vector2[_vertices.Length];

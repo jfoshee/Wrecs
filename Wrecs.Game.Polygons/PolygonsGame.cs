@@ -1,5 +1,4 @@
 using System.Numerics;
-using System.Runtime.InteropServices;
 using SDL3;
 using Wrecs.Core;
 using Wrecs.Geometry;
@@ -28,7 +27,7 @@ class PolygonsGame
     private readonly ulong _frequency;
     private readonly double _tickInterval;
 
-    private List<Vector2>? _currentPolygonVertices = [];
+    private List<Vector2>? _currentPolygonVertices;
     private ulong _lastTickCounter;
 
     public PolygonsGame()
@@ -132,17 +131,27 @@ class PolygonsGame
             return;
         }
 
+        ConvexPolygon polygon;
         try
         {
-            var polygon = new ConvexPolygon(CollectionsMarshal.AsSpan(vertices));
-            var polygonEntity = new Entity($"Polygon {_polygons.Count + 1}");
-            _sim.AddEntity(polygonEntity, new ConvexPolygonSnapshot(polygon));
-            _polygons.Add(polygonEntity);
+            polygon = new ConvexPolygon(vertices);
         }
-        catch (ArgumentException exception)
+        catch (ArgumentException)
         {
-            SDL.LogWarn(SDL.LogCategory.Application,
-                        $"Could not add polygon: {exception.Message}");
+            try
+            {
+                polygon = new ConvexPolygon(Enumerable.Reverse(vertices));
+            }
+            catch (ArgumentException exception)
+            {
+                SDL.LogWarn(SDL.LogCategory.Application,
+                            $"Could not add polygon: {exception.Message}");
+                return;
+            }
         }
+
+        var polygonEntity = new Entity($"Polygon {_polygons.Count + 1}");
+        _sim.AddEntity(polygonEntity, new ConvexPolygonSnapshot(polygon));
+        _polygons.Add(polygonEntity);
     }
 }
