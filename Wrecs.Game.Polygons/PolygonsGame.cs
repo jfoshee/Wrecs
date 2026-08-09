@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.InteropServices;
 using SDL3;
 using Wrecs.Core;
 using Wrecs.Geometry;
@@ -15,6 +16,7 @@ class PolygonsGame
     private const float PlayerRadius = 12;
     private const float PlayerSpeed = 4;
     private const float PlayerSprintMultiplier = 4;
+    private const float PolygonVertexRadius = 4;
 
     private static readonly Vector2 PlayerStart = new(WindowWidth / 2f, WindowHeight / 2f);
 
@@ -22,10 +24,11 @@ class PolygonsGame
     private readonly CircleSystem _circleSystem = new();
     private readonly ConvexPolygonSystem _polygonSystem = new();
     private readonly PlayerAgent _player;
-    private readonly IEntity _polygon;
+    private readonly List<IEntity> _polygons = [];
     private readonly ulong _frequency;
     private readonly double _tickInterval;
 
+    private List<Vector2>? _currentPolygonVertices = [];
     private ulong _lastTickCounter;
 
     public PolygonsGame()
@@ -37,19 +40,10 @@ class PolygonsGame
                         new ScreenBoundsConstraint(WindowWidth, WindowHeight));
 
         _player = new PlayerAgent(PlayerSpeed, PlayerSprintMultiplier);
-        _polygon = new Entity("Polygon");
         _sim.InitEntities((_player, [
                                         new Spatial2DSnapshot(PlayerStart),
                                         new CircleSnapshot(new Circle(PlayerStart, PlayerRadius))
-                                    ]),
-                           (_polygon, [new ConvexPolygonSnapshot(new ConvexPolygon(new Vector2[]
-                           {
-                               new(100, 100),
-                               new(200, 100),
-                               new(200, 200),
-                               new(100, 200)
-                           }))])
-                           );
+                                    ]));
 
         _frequency = SDL.GetPerformanceFrequency();
         _tickInterval = _frequency / (double)TickRate;
@@ -64,8 +58,34 @@ class PolygonsGame
             return true;
         }
 
-        return type == SDL.EventType.KeyDown &&
-               (e.Key.Key == SDL.Keycode.Escape || e.Key.Key == SDL.Keycode.Q);
+        if (type == SDL.EventType.MouseButtonDown &&
+            e.Button.Button == SDL.ButtonLeft)
+        {
+            _currentPolygonVertices?.Add(new(e.Button.X, e.Button.Y));
+            return false;
+        }
+
+        if (type != SDL.EventType.KeyDown)
+        {
+            return false;
+        }
+
+        switch (e.Key.Key)
+        {
+            case SDL.Keycode.Escape:
+            case SDL.Keycode.Q:
+                return true;
+            case SDL.Keycode.P:
+                EndCurrentPolygon();
+                _currentPolygonVertices = [];
+                break;
+            case SDL.Keycode.Space:
+                EndCurrentPolygon();
+                _currentPolygonVertices = null;
+                break;
+        }
+
+        return false;
     }
 
     public void UpdateAndRender(PolygonsGpuRenderer renderer)
@@ -85,9 +105,44 @@ class PolygonsGame
         renderer.FillCircle(playerCircle.Center,
                             playerCircle.Radius,
                             GpuColor.FromBytes(255, 128, 128));
-        renderer.DrawPolygon(_polygonSystem.GetTypedState(_polygon),
-                             GpuColor.FromBytes(128, 255, 128));
+
+        foreach (var polygon in _polygons)
+        {
+            renderer.DrawPolygon(_polygonSystem.GetTypedState(polygon),
+                                 GpuColor.FromBytes(128, 255, 128));
+        }
+
+        if (_currentPolygonVertices is not null)
+        {
+            foreach (var vertex in _currentPolygonVertices)
+            {
+                renderer.FillCircle(vertex,
+                                    PolygonVertexRadius,
+                                    GpuColor.FromBytes(128, 255, 128));
+            }
+        }
 
         renderer.EndFrame();
+    }
+
+    private void EndCurrentPolygon()
+    {
+        if (_currentPolygonVertices is not { Count: >= 3 } vertices)
+        {
+            return;
+        }
+
+        try
+        {
+            var polygon = new ConvexPolygon(CollectionsMarshal.AsSpan(vertices));
+            var polygonEntity = new Entity($"Polygon {_polygons.Count + 1}");
+            _sim.AddEntity(polygonEntity, new ConvexPolygonSnapshot(polygon));
+            _polygons.Add(polygonEntity);
+        }
+        catch (ArgumentException exception)
+        {
+            SDL.LogWarn(SDL.LogCategory.Application,
+                        $"Could not add polygon: {exception.Message}");
+        }
     }
 }
