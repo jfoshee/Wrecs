@@ -22,7 +22,7 @@ public record Velocity2DUpdate : EntityUpdate<Velocity2DSnapshot>
 }
 
 public class Velocity2DSystem(float dt = 1) :
-    ISystemWithEntities<IVelocity2DEntity, Velocity2DSnapshot>,
+    ISystemWithDynamicEntities<IVelocity2DEntity, Velocity2DSnapshot>,
     ISystemUpdateAcceptor<Velocity2DSnapshot>,
     ISystemUpdateProposer,
     IRequire<Spatial2DSystem>
@@ -39,8 +39,11 @@ public class Velocity2DSystem(float dt = 1) :
     public void InitEntities(params (IEntity entity, Velocity2DSnapshot? initialState)[] initialEntities)
     {
         foreach (var (entity, initialState) in initialEntities)
-            _velocities[entity] = initialState ?? default;
+            AddEntity(entity, initialState);
     }
+
+    public void AddEntity(IEntity entity, Velocity2DSnapshot? initialState) =>
+        _velocities[entity] = initialState ?? default;
 
     public void ApplyUpdates(IEnumerable<EntityUpdate<Velocity2DSnapshot>> updates)
     {

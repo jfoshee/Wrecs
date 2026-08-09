@@ -28,7 +28,7 @@ public record ConvexPolygonUpdate : EntityUpdate<ConvexPolygonSnapshot>
 /// Entities must provide an initial polygon.
 /// </summary>
 public class ConvexPolygonSystem :
-    ISystemWithEntities<IConvexPolygonEntity, ConvexPolygonSnapshot>,
+    ISystemWithDynamicEntities<IConvexPolygonEntity, ConvexPolygonSnapshot>,
     ISystemAgentContextProvider<ConvexPolygonSnapshot>,
     // ISystemAgentIntentTranslator<Move2DAction>,
     // ISystemUpdateAcceptor<ConvexPolygonSnapshot>,
@@ -45,15 +45,18 @@ public class ConvexPolygonSystem :
     {
         _polygons.Clear();
         foreach (var (entity, initialState) in initialEntities)
-        {
-            if (initialState is null)
-            {
-                throw new InvalidOperationException(
-                    $"Entity {entity.Name} must provide an initial polygon for {nameof(ConvexPolygonSystem)}");
-            }
+            AddEntity(entity, initialState);
+    }
 
-            _polygons[entity] = initialState.Value.Polygon;
+    public void AddEntity(IEntity entity, ConvexPolygonSnapshot? initialState)
+    {
+        if (initialState is null)
+        {
+            throw new InvalidOperationException(
+                $"Entity {entity.Name} must provide an initial polygon for {nameof(ConvexPolygonSystem)}");
         }
+
+        _polygons[entity] = initialState.Value.Polygon;
     }
 
     public ConvexPolygonSnapshot? BuildSnapshot(IAgent agent) =>

@@ -320,7 +320,20 @@ sim.InitEntities(
 );
 ```
 
-Each system's `InitEntities` filters this array for its own snapshot type. An entity with no relevant snapshot still gets registered if it implements the system's marker interface.
+`Sim.InitEntities` filters the entity list for each system, and the system's default initializer extracts its own snapshot type from each matching entity's array. An entity with no relevant snapshot still gets registered if it implements the system's marker interface.
+
+### Adding Entities Dynamically
+
+Dynamic entity addition is an explicit system capability. Implement `ISystemWithDynamicEntities<TMarkerInterface, TStateSnapshot>` instead of `ISystemWithEntities<TMarkerInterface, TStateSnapshot>`, then provide the typed addition method:
+
+```csharp
+public void AddEntity(IEntity entity, MySnapshot? initialState)
+{
+    _states[entity] = initialState ?? default;
+}
+```
+
+`Sim.AddEntity` uses the same marker-or-initial-state matching as `Sim.InitEntities`, but calls only systems implementing `ISystemEntityStateAdder`. The generic interface's default method adapts the untyped snapshot array to the typed nullable snapshot. Entities implementing `IRequire` are not supported by `AddEntity`; add them through `InitEntities`.
 
 ---
 

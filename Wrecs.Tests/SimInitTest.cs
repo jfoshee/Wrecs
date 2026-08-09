@@ -65,6 +65,17 @@ public class SimInitTest
         public StateOnlySnapshot GetTypedState(IEntity entity) => _states[entity];
     }
 
+    class DynamicallyAddedAgent : BasicEntity, IAgent
+    {
+        public int IntentCount { get; private set; }
+
+        public AgentIntent GetIntent(IAgentContext context)
+        {
+            IntentCount++;
+            return AgentIntent.Empty;
+        }
+    }
+
     [Fact(DisplayName = "Systems can select entities by only a marker or only an initial state")]
     public void InitializingEntitiesForIndependentSystemConcerns()
     {
@@ -85,6 +96,63 @@ public class SimInitTest
         markerSystem.GetEntities().Should().Equal(markedEntity);
         stateSystem.GetEntities().Should().Equal(hasInitialStateEntity);
         stateSystem.GetTypedState(hasInitialStateEntity).Should().Be(new StateOnlySnapshot(42));
+    }
+
+    [Fact(DisplayName = "AddEntity adds matching entities to systems that support dynamic entities")]
+    public void AddingEntitiesToMatchingDynamicSystems()
+    {
+        var spatial1dSystem = new Spatial1DSystem();
+        var sim = new Sim();
+        sim.AddSystem(spatial1dSystem);
+        var markedEntity = new InheritsSpatial1DEntity();
+        var hasInitialStateEntity = new BasicEntity();
+        var unrelatedEntity = new BasicEntity();
+
+        sim.AddEntity(markedEntity);
+        sim.AddEntity(hasInitialStateEntity, new Spatial1DSnapshot(5));
+        sim.AddEntity(unrelatedEntity);
+
+        spatial1dSystem.GetEntities().Should().Equal(markedEntity, hasInitialStateEntity);
+        spatial1dSystem.GetTypedState(markedEntity).Should().Be(new Spatial1DSnapshot(0));
+        spatial1dSystem.GetTypedState(hasInitialStateEntity).Should().Be(new Spatial1DSnapshot(5));
+    }
+
+    [Fact(DisplayName = "AddEntity skips matching systems that do not support dynamic entities")]
+    public void AddingEntitiesSkipsInitializationOnlySystems()
+    {
+        var markerSystem = new MarkerOnlySystem();
+        var sim = new Sim();
+        sim.AddSystem(markerSystem);
+        var initialEntity = new MarkerOnlyEntity();
+        var addedEntity = new MarkerOnlyEntity();
+        sim.InitEntities((initialEntity, []));
+
+        sim.AddEntity(addedEntity);
+
+        markerSystem.GetEntities().Should().Equal(initialEntity);
+    }
+
+    [Fact(DisplayName = "AddEntity adapts aggregate initial state for supporting systems")]
+    public void AddingCommercialEntityWithAggregateInitialState()
+    {
+        var sim = new CommercialSim();
+        var entity = new BasicEntity();
+
+        sim.AddEntity(entity, new CommercialSnapshot(100, 50));
+
+        sim.GetCommercialState(entity).Should().Be(new CommercialSnapshot(100, 50));
+    }
+
+    [Fact(DisplayName = "Dynamically added agents participate in the next tick")]
+    public void AddingAgentToSimulation()
+    {
+        var sim = new Sim();
+        var agent = new DynamicallyAddedAgent();
+        sim.AddEntity(agent);
+
+        sim.Tick();
+
+        agent.IntentCount.Should().Be(1);
     }
 
     [Fact(DisplayName = "Entities inheriting ICommercialEntity or initial state are added to commercial system")]

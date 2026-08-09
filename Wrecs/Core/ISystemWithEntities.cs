@@ -57,3 +57,12 @@ public interface ISystemWithEntities<TMarkerInterface, TStateSnapshot> :
         InitEntities(initialEntities);
     }
 }
+
+/// <summary>
+/// A system with per-entity state that explicitly supports adding entities after initialization.
+/// </summary>
+public interface ISystemWithDynamicEntities<TMarkerInterface, TStateSnapshot> :
+    ISystemWithEntities<TMarkerInterface, TStateSnapshot>,
+    ISystemEntityStateAdder<TStateSnapshot>
+    where TMarkerInterface : IEntity
+    where TStateSnapshot : struct, IStateSnapshot;

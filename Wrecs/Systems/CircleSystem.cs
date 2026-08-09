@@ -26,7 +26,7 @@ public record CircleUpdate : EntityUpdate<CircleSnapshot>
 /// Entities without an initial circle use <see langword="default"/>.
 /// </summary>
 public class CircleSystem :
-    ISystemWithEntities<ICircleEntity, CircleSnapshot>,
+    ISystemWithDynamicEntities<ICircleEntity, CircleSnapshot>,
     ISystemAgentContextProvider<CircleSnapshot>,
     ISystemAgentIntentTranslator<Move2DAction>,
     ISystemUpdateAcceptor<CircleSnapshot>,
@@ -43,8 +43,11 @@ public class CircleSystem :
     {
         _circles.Clear();
         foreach (var (entity, initialState) in initialEntities)
-            _circles[entity] = initialState ?? default;
+            AddEntity(entity, initialState);
     }
+
+    public void AddEntity(IEntity entity, CircleSnapshot? initialState) =>
+        _circles[entity] = initialState ?? default;
 
     public CircleSnapshot? BuildSnapshot(IAgent agent) =>
         _circles.TryGetValue(agent, out var circle)

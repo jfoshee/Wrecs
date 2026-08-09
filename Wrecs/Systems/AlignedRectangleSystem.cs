@@ -28,7 +28,7 @@ public record AlignedRectangleUpdate : EntityUpdate<AlignedRectangleSnapshot>
 /// Entities without an initial rectangle use <see cref="AlignedRectangle.Empty"/>.
 /// </summary>
 public class AlignedRectangleSystem :
-    ISystemWithEntities<IAlignedRectangleEntity, AlignedRectangleSnapshot>,
+    ISystemWithDynamicEntities<IAlignedRectangleEntity, AlignedRectangleSnapshot>,
     ISystemAgentContextProvider<AlignedRectangleSnapshot>,
     ISystemAgentIntentTranslator<Move2DAction>,
     ISystemUpdateAcceptor<AlignedRectangleSnapshot>,
@@ -45,10 +45,11 @@ public class AlignedRectangleSystem :
     {
         _rectangles.Clear();
         foreach (var (entity, initialState) in initialEntities)
-        {
-            _rectangles[entity] = initialState ?? AlignedRectangle.Empty;
-        }
+            AddEntity(entity, initialState);
     }
+
+    public void AddEntity(IEntity entity, AlignedRectangleSnapshot? initialState) =>
+        _rectangles[entity] = initialState ?? AlignedRectangle.Empty;
 
     public AlignedRectangleSnapshot? BuildSnapshot(IAgent agent) =>
         _rectangles.TryGetValue(agent, out var rectangle)

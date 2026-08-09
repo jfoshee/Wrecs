@@ -28,7 +28,7 @@ public record Spatial1DUpdate : EntityUpdate<Spatial1DSnapshot>
 }
 
 public class Spatial1DSystem :
-    ISystemWithEntities<ISpatial1DEntity, Spatial1DSnapshot>,
+    ISystemWithDynamicEntities<ISpatial1DEntity, Spatial1DSnapshot>,
     ISystemAgentContextProvider<Spatial1DSnapshot>,
     ISystemAgentIntentTranslator<Move1DAction>,
     ISystemUpdateAcceptor<Spatial1DSnapshot>,
@@ -43,10 +43,11 @@ public class Spatial1DSystem :
     public void InitEntities(params (IEntity entity, Spatial1DSnapshot? initialState)[] initialEntities)
     {
         foreach (var (entity, initialState) in initialEntities)
-        {
-            _positions[entity] = initialState ?? default;
-        }
+            AddEntity(entity, initialState);
     }
+
+    public void AddEntity(IEntity entity, Spatial1DSnapshot? initialState) =>
+        _positions[entity] = initialState ?? default;
 
     public void ApplyUpdates(IEnumerable<EntityUpdate<Spatial1DSnapshot>> updates)
     {

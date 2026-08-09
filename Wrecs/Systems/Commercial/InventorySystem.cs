@@ -53,7 +53,10 @@ public record InventoryUpdate : EntityUpdate<InventorySnapshot>
     }
 }
 
-public class InventorySystem : ISystemWithEntities<IInventoryEntity, InventorySnapshot>, ISystemUpdateAcceptor<InventorySnapshot>, ISystemAgentContextProvider<InventorySnapshot>
+public class InventorySystem :
+    ISystemWithDynamicEntities<IInventoryEntity, InventorySnapshot>,
+    ISystemUpdateAcceptor<InventorySnapshot>,
+    ISystemAgentContextProvider<InventorySnapshot>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, Dictionary<string, int>> _inventories = [];
@@ -72,18 +75,37 @@ public class InventorySystem : ISystemWithEntities<IInventoryEntity, InventorySn
         _entities.Clear();
         _inventories.Clear();
         foreach (var (entity, initialState) in initialEntities)
+            AddEntity(entity, initialState);
+    }
+
+    public void AddEntity(IEntity entity, InventorySnapshot? initialState)
+    {
+        _entities.Add(entity);
+        var inventory = new Dictionary<string, int>();
+        if (initialState.HasValue)
         {
-            _entities.Add(entity);
-            var inv = new Dictionary<string, int>();
-            if (initialState.HasValue)
-                foreach (var (type, amount) in initialState.Value.Inventory)
-                    inv[type] = amount;
-            _inventories[entity] = inv;
+            foreach (var (type, amount) in initialState.Value.Inventory)
+                inventory[type] = amount;
         }
+        _inventories[entity] = inventory;
     }
 
     bool ISystemWithEntityStateSnapshots.HasInitialState(IEnumerable<IStateSnapshot> initialStates) =>
         initialStates.Any(initialState => initialState is InventorySnapshot or CommercialSnapshot);
+
+    void ISystemEntityStateAdder.AddEntity(IEntity entity, IStateSnapshot[] initialStates)
+    {
+        var initialState = initialStates
+            .OfType<InventorySnapshot>()
+            .Select(state => (InventorySnapshot?)state)
+            .FirstOrDefault()
+            ?? initialStates
+                .OfType<CommercialSnapshot>()
+                .Select(state => (InventorySnapshot?)state.Inventory)
+                .FirstOrDefault();
+
+        AddEntity(entity, initialState);
+    }
 
     void ISystemEntityStateInitializer.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
     {

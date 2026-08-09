@@ -25,7 +25,7 @@ public record Spatial2DUpdate : EntityUpdate<Spatial2DSnapshot>
 }
 
 public class Spatial2DSystem :
-    ISystemWithEntities<ISpatial2DEntity, Spatial2DSnapshot>,
+    ISystemWithDynamicEntities<ISpatial2DEntity, Spatial2DSnapshot>,
     ISystemAgentContextProvider<Spatial2DSnapshot>,
     ISystemAgentIntentTranslator<Move2DAction>,
     ISystemUpdateAcceptor<Spatial2DSnapshot>,
@@ -42,10 +42,11 @@ public class Spatial2DSystem :
     public void InitEntities(params (IEntity entity, Spatial2DSnapshot? initialState)[] initialEntities)
     {
         foreach (var (entity, initialState) in initialEntities)
-        {
-            _positions[entity] = initialState ?? default;
-        }
+            AddEntity(entity, initialState);
     }
+
+    public void AddEntity(IEntity entity, Spatial2DSnapshot? initialState) =>
+        _positions[entity] = initialState ?? default;
 
     public void ApplyUpdates(IEnumerable<EntityUpdate<Spatial2DSnapshot>> updates)
     {

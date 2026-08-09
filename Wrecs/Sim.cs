@@ -39,18 +39,30 @@ public class Sim
         // Initialize each system with matching entities
         foreach (var system in _systems.OfType<ISystemEntityStateInitializer>())
         {
-            var entityMarker = system as ISystemWithEntityMarker;
-            var stateSnapshots = system as ISystemWithEntityStateSnapshots;
-            var hasConcernDeclaration = entityMarker is not null || stateSnapshots is not null;
-
             var matchingEntities = entitiesWithState
-                .Where(e => !hasConcernDeclaration
-                    || entityMarker?.IsMarkedEntity(e.entity) == true
-                    || stateSnapshots?.HasInitialState(e.initialStates) == true)
+                .Where(e => IsConcernedWithEntity(system, e.entity, e.initialStates))
                 .ToArray();
 
             system.InitEntities(matchingEntities);
         }
+    }
+
+    public void AddEntity(IEntity entity, params IStateSnapshot[] initialStates)
+    {
+        if (entity is IRequire)
+            throw new NotSupportedException(
+                "Entities that require systems must be added through InitEntities.");
+
+        if (_entities.Contains(entity))
+            throw new InvalidOperationException($"Entity {entity.Name} ({entity.Id}) has already been added to the simulation.");
+
+        foreach (var system in _systems.OfType<ISystemEntityStateAdder>())
+        {
+            if (IsConcernedWithEntity(system, entity, initialStates))
+                system.AddEntity(entity, initialStates);
+        }
+
+        _entities.Add(entity);
     }
 
     public void Tick()
@@ -234,6 +246,20 @@ public class Sim
             var injectMethod = dependencyContract.GetMethod(nameof(IRequire<ISystem>.Inject))!;
             injectMethod.Invoke(entity, [matches[0]]);
         }
+    }
+
+    private static bool IsConcernedWithEntity(ISystem system,
+                                              IEntity entity,
+                                              IStateSnapshot[] initialStates)
+    {
+        var entityMarker = system as ISystemWithEntityMarker;
+        var stateSnapshots = system as ISystemWithEntityStateSnapshots;
+
+        if (entityMarker is null && stateSnapshots is null)
+            return true;
+
+        return entityMarker?.IsMarkedEntity(entity) == true
+            || stateSnapshots?.HasInitialState(initialStates) == true;
     }
 
     private static UpdateSet MergeUpdateSets(List<UpdateSet> actionUpdates)

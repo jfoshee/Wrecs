@@ -13,7 +13,10 @@ public record MoneyUpdate : EntityUpdate<MoneySnapshot>
     }
 }
 
-public class MoneySystem : ISystemWithEntities<IMoneyEntity, MoneySnapshot>, ISystemUpdateAcceptor<MoneySnapshot>, ISystemAgentContextProvider<MoneySnapshot>
+public class MoneySystem :
+    ISystemWithDynamicEntities<IMoneyEntity, MoneySnapshot>,
+    ISystemUpdateAcceptor<MoneySnapshot>,
+    ISystemAgentContextProvider<MoneySnapshot>
 {
     private readonly List<IEntity> _entities = [];
     private readonly Dictionary<IEntity, int> _balances = [];
@@ -30,14 +33,31 @@ public class MoneySystem : ISystemWithEntities<IMoneyEntity, MoneySnapshot>, ISy
         _entities.Clear();
         _balances.Clear();
         foreach (var (entity, initialState) in initialEntities)
-        {
-            _entities.Add(entity);
-            _balances[entity] = initialState?.MoneyBalance ?? 0;
-        }
+            AddEntity(entity, initialState);
+    }
+
+    public void AddEntity(IEntity entity, MoneySnapshot? initialState)
+    {
+        _entities.Add(entity);
+        _balances[entity] = initialState?.MoneyBalance ?? 0;
     }
 
     bool ISystemWithEntityStateSnapshots.HasInitialState(IEnumerable<IStateSnapshot> initialStates) =>
         initialStates.Any(initialState => initialState is MoneySnapshot or CommercialSnapshot);
+
+    void ISystemEntityStateAdder.AddEntity(IEntity entity, IStateSnapshot[] initialStates)
+    {
+        var initialState = initialStates
+            .OfType<MoneySnapshot>()
+            .Select(state => (MoneySnapshot?)state)
+            .FirstOrDefault()
+            ?? initialStates
+                .OfType<CommercialSnapshot>()
+                .Select(state => (MoneySnapshot?)state.Money)
+                .FirstOrDefault();
+
+        AddEntity(entity, initialState);
+    }
 
     void ISystemEntityStateInitializer.InitEntities(IEnumerable<(IEntity entity, IStateSnapshot[] initialStates)> entitiesWithState)
     {

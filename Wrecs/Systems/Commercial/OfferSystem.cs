@@ -17,7 +17,7 @@ public record struct RemoveOfferOperation(Offer? Offer) : IStateSnapshot<OfferSy
 public record struct AddOfferOperation(Offer Offer) : IStateSnapshot<OfferSystem>;
 
 public class OfferSystem :
-    ISystemWithEntities<ICommercialAgent, OfferListSnapshot>,
+    ISystemWithDynamicEntities<ICommercialAgent, OfferListSnapshot>,
     ISystemWithInternalUpdates,
     ISystemAgentContextProvider<OfferListSnapshot>,
     ISystemAgentIntentTranslator<TakeOfferDecision>,
@@ -47,11 +47,14 @@ public class OfferSystem :
         _entities.Clear();
         _stateMap.Clear();
         foreach (var (entity, initialState) in initialEntities)
-        {
-            _entities.Add(entity);
-            if (initialState.HasValue)
-                _stateMap[entity] = State(initialState.Value);
-        }
+            AddEntity(entity, initialState);
+    }
+
+    public void AddEntity(IEntity entity, OfferListSnapshot? initialState)
+    {
+        _entities.Add(entity);
+        if (initialState.HasValue)
+            _stateMap[entity] = State(initialState.Value);
     }
 
     public IReadOnlyList<IEntity> GetEntities() => _entities;
