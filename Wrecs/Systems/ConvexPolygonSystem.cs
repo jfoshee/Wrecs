@@ -30,8 +30,8 @@ public record ConvexPolygonUpdate : EntityUpdate<ConvexPolygonSnapshot>
 public class ConvexPolygonSystem :
     ISystemWithEntities<IConvexPolygonEntity, ConvexPolygonSnapshot>,
     ISystemAgentContextProvider<ConvexPolygonSnapshot>,
-    ISystemAgentIntentTranslator<Move2DAction>,
-    ISystemUpdateAcceptor<ConvexPolygonSnapshot>,
+    // ISystemAgentIntentTranslator<Move2DAction>,
+    // ISystemUpdateAcceptor<ConvexPolygonSnapshot>,
     ISystemLinkPositionSource,
     ISystemLinkPositionTarget
 {
@@ -81,17 +81,17 @@ public class ConvexPolygonSystem :
         _polygons[entity] = TranslatePolygon(polygon, delta);
     }
 
-    public UpdateSet TranslateIntent(IAgent agent, Move2DAction action)
-    {
-        if (!_polygons.TryGetValue(agent, out var polygon))
-        {
-            throw new InvalidOperationException(
-                $"Agent {agent.Name} does not have a polygon in {nameof(ConvexPolygonSystem)}");
-        }
+    // public UpdateSet TranslateIntent(IAgent agent, Move2DAction action)
+    // {
+    //     if (!_polygons.TryGetValue(agent, out var polygon))
+    //     {
+    //         throw new InvalidOperationException(
+    //             $"Agent {agent.Name} does not have a polygon in {nameof(ConvexPolygonSystem)}");
+    //     }
 
-        var moved = TranslatePolygon(polygon, action.Step);
-        return new UpdateSet([new ConvexPolygonUpdate(agent, moved)]);
-    }
+    //     var moved = TranslatePolygon(polygon, action.Step);
+    //     return new UpdateSet([new ConvexPolygonUpdate(agent, moved)]);
+    // }
 
     private static ConvexPolygon TranslatePolygon(ConvexPolygon polygon, Vector2 delta)
     {

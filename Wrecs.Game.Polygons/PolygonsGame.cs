@@ -19,7 +19,8 @@ class PolygonsGame
     private static readonly Vector2 PlayerStart = new(WindowWidth / 2f, WindowHeight / 2f);
 
     private readonly Sim _sim;
-    private readonly CircleSystem _circleSystem;
+    private readonly CircleSystem _circleSystem = new();
+    private readonly ConvexPolygonSystem _polygonSystem = new();
     private readonly PlayerAgent _player;
     private readonly IEntity _polygon;
     private readonly ulong _frequency;
@@ -30,9 +31,9 @@ class PolygonsGame
     public PolygonsGame()
     {
         _sim = new Sim();
-        _circleSystem = new CircleSystem();
         _sim.AddSystems(new Spatial2DSystem(),
                         _circleSystem,
+                        _polygonSystem,
                         new ScreenBoundsConstraint(WindowWidth, WindowHeight));
 
         _player = new PlayerAgent(PlayerSpeed, PlayerSprintMultiplier);
@@ -84,6 +85,8 @@ class PolygonsGame
         renderer.FillCircle(playerCircle.Center,
                             playerCircle.Radius,
                             GpuColor.FromBytes(255, 128, 128));
+        renderer.DrawPolygon(_polygonSystem.GetTypedState(_polygon),
+                             GpuColor.FromBytes(128, 255, 128));
 
         renderer.EndFrame();
     }

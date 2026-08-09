@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using SDL3;
+using Wrecs.Geometry;
 
 namespace Wrecs.Game.Polygons;
 
@@ -99,6 +100,24 @@ sealed class PolygonsGpuRenderer : IDisposable
             var point0 = center + (new Vector2(MathF.Cos(angle0), MathF.Sin(angle0)) * radius);
             var point1 = center + (new Vector2(MathF.Cos(angle1), MathF.Sin(angle1)) * radius);
             AddTriangle(center, point0, point1, color);
+        }
+    }
+
+    public void DrawPolygon(ConvexPolygon polygon, GpuColor gpuColor)
+    {
+        var vertexCount = polygon.Count;
+        if (vertexCount < 3)
+        {
+            return;
+        }
+
+        // TODO: Cache the centroid for each polygon to avoid recomputing it every frame.
+        var centroid = polygon.Vertices.ToArray().Aggregate(Vector2.Zero, (sum, vertex) => sum + vertex) / vertexCount;
+        for (var i = 0; i < vertexCount; i++)
+        {
+            var currentVertex = polygon.Vertices[i];
+            var nextVertex = polygon.Vertices[(i + 1) % vertexCount];
+            AddTriangle(centroid, currentVertex, nextVertex, gpuColor);
         }
     }
 
