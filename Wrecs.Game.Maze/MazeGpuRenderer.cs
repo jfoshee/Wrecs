@@ -11,6 +11,12 @@ sealed class MazeGpuRenderer : IDisposable
 {
     private const int InitialVertexCapacity = 4096;
     private const int CircleSegments = 32;
+    private const bool DebugMode =
+#if DEBUG
+        true;
+#else
+        false;
+#endif
 
     private const string VertexShaderSource = """
         struct VertexInput
@@ -273,11 +279,7 @@ sealed class MazeGpuRenderer : IDisposable
                 ? "metal"
                 : null;
         _device = SDL.CreateGPUDevice(shaderFormats,
-#if DEBUG
-                                      true,
-#else
-                                      false,
-#endif
+                                      DebugMode,
                                       preferredDriver);
         EnsureHandle(_device, "creating the SDL_GPU device");
 
