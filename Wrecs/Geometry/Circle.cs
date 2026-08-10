@@ -187,15 +187,15 @@ public record struct Circle(Vector2 Center, float Radius)
             }
         }
 
-        // An overlap has no unique separating normal. Exact contact only blocks
-        // movement directed into the polygon; tangent or separating motion is free.
-        if (centerInside || minimumDistanceSquared < radiusSquared)
-        {
-            hit = new SweepHit(0f, Vector2.Zero);
-            return true;
-        }
+        var minimumDistance = MathF.Sqrt(minimumDistanceSquared);
+        var contactTolerance = GetContactDistanceTolerance(polygon);
+        var withinContactTolerance =
+            MathF.Abs(minimumDistance - Radius) <= contactTolerance;
 
-        if (minimumDistanceSquared == radiusSquared)
+        // A sweep-computed contact can land a few ULPs inside or outside the
+        // expanded polygon. Treat that narrow band as contact so rounding does
+        // not turn a separating movement into an inseparable overlap.
+        if (!centerInside && withinContactTolerance)
         {
             var startNormal = closestOffset == Vector2.Zero
                 ? Vector2.Zero
@@ -207,13 +207,26 @@ public record struct Circle(Vector2 Center, float Radius)
                 return true;
             }
 
-            if (startNormal == Vector2.Zero || Vector2.Dot(movement, startNormal) >= 0f)
+            var normalMovement = Vector2.Dot(movement, startNormal);
+            // Reconstructing the normal from a rounded contact can give a
+            // mathematically tangent movement a tiny inward component.
+            var directionTolerance = contactTolerance * movement.Length() /
+                                     MathF.Max(Radius, 1f);
+
+            if (startNormal == Vector2.Zero || normalMovement >= -directionTolerance)
             {
                 hit = default;
                 return false;
             }
 
             hit = new SweepHit(0f, startNormal);
+            return true;
+        }
+
+        // An actual overlap has no unique separating normal.
+        if (centerInside || minimumDistanceSquared < radiusSquared)
+        {
+            hit = new SweepHit(0f, Vector2.Zero);
             return true;
         }
 
@@ -354,5 +367,20 @@ public record struct Circle(Vector2 Center, float Radius)
                 Math.Clamp(point.Y, segment.Interval.Min, segment.Interval.Max)),
             _ => throw new InvalidOperationException($"Unsupported axis: {segment.Axis}.")
         };
+    }
+
+    private readonly float GetContactDistanceTolerance(ConvexPolygon polygon)
+    {
+        var bounds = polygon.Bounds;
+        var coordinateScale = MathF.Max(
+            1f,
+            MathF.Max(
+                MathF.Max(MathF.Abs(Center.X), MathF.Abs(Center.Y)),
+                MathF.Max(
+                    MathF.Max(MathF.Abs(bounds.Left), MathF.Abs(bounds.Right)),
+                    MathF.Max(MathF.Abs(bounds.Bottom), MathF.Abs(bounds.Top)))));
+        var coordinateUlp = MathF.BitIncrement(coordinateScale) - coordinateScale;
+
+        return coordinateUlp * 8f;
     }
 }
