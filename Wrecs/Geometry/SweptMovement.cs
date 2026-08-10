@@ -1,9 +1,9 @@
 namespace Wrecs.Geometry;
 
-internal delegate bool TrySweepIntersection<TCollider>(TCollider source,
-                                                       TCollider destination,
-                                                       AxisAlignedSegment2 segment,
-                                                       out SweepHit hit);
+internal delegate bool TrySweepIntersection<TCollider, TObstacle>(TCollider source,
+                                                                  TCollider destination,
+                                                                  TObstacle obstacle,
+                                                                  out SweepHit hit);
 
 /// <summary>
 /// Shared movement resolution for translating colliders that can sweep against
@@ -11,14 +11,14 @@ internal delegate bool TrySweepIntersection<TCollider>(TCollider source,
 /// </summary>
 internal static class SweptMovement
 {
-    public static Vector2 GetAllowedSlidingMovement<TCollider>(TCollider start,
-                                                               Vector2 requestedMovement,
-                                                               IEnumerable<AxisAlignedSegment2> segments,
-                                                               Func<TCollider, Vector2, TCollider> translate,
-                                                               TrySweepIntersection<TCollider> trySweepIntersection,
-                                                               float clearance,
-                                                               int maxIterations,
-                                                               float minimumMovement)
+    public static Vector2 GetAllowedSlidingMovement<TCollider, TObstacle>(TCollider start,
+                                                                          Vector2 requestedMovement,
+                                                                          IEnumerable<TObstacle> obstacles,
+                                                                          Func<TCollider, Vector2, TCollider> translate,
+                                                                          TrySweepIntersection<TCollider, TObstacle> trySweepIntersection,
+                                                                          float clearance,
+                                                                          int maxIterations,
+                                                                          float minimumMovement)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(maxIterations, 1);
         ArgumentOutOfRangeException.ThrowIfLessThan(minimumMovement, 0f);
@@ -36,7 +36,7 @@ internal static class SweptMovement
             var destination = translate(current, remainingMovement);
             if (!TryFindFirstHit(current,
                                  destination,
-                                 segments,
+                                 obstacles,
                                  trySweepIntersection,
                                  out var hit))
             {
@@ -66,18 +66,18 @@ internal static class SweptMovement
         return resolvedMovement;
     }
 
-    private static bool TryFindFirstHit<TCollider>(TCollider source,
-                                                   TCollider destination,
-                                                   IEnumerable<AxisAlignedSegment2> segments,
-                                                   TrySweepIntersection<TCollider> trySweepIntersection,
-                                                   out SweepHit firstHit)
+    private static bool TryFindFirstHit<TCollider, TObstacle>(TCollider source,
+                                                              TCollider destination,
+                                                              IEnumerable<TObstacle> obstacles,
+                                                              TrySweepIntersection<TCollider, TObstacle> trySweepIntersection,
+                                                              out SweepHit firstHit)
     {
         firstHit = default;
         var foundHit = false;
 
-        foreach (var segment in segments)
+        foreach (var obstacle in obstacles)
         {
-            if (!trySweepIntersection(source, destination, segment, out var hit))
+            if (!trySweepIntersection(source, destination, obstacle, out var hit))
                 continue;
 
             if (!foundHit || hit.Time < firstHit.Time)

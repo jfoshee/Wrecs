@@ -36,6 +36,7 @@ class PolygonsGame
         _sim.AddSystems(new Spatial2DSystem(),
                         _circleSystem,
                         _polygonSystem,
+                        new CircleConvexPolygonUpdateResolver(),
                         new ScreenBoundsConstraint(WindowWidth, WindowHeight));
 
         _player = new PlayerAgent(PlayerSpeed, PlayerSprintMultiplier);

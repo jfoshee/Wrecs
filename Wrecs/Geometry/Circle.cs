@@ -314,6 +314,34 @@ public record struct Circle(Vector2 Center, float Radius)
             minimumMovement);
     }
 
+    /// <summary>
+    /// Resolves movement against convex polygons by repeatedly sweeping and
+    /// preserving the component tangent to the first contacted boundary.
+    /// </summary>
+    public readonly Vector2 GetAllowedSlidingMovement(Vector2 requestedMovement,
+                                                      IEnumerable<ConvexPolygon> polygons,
+                                                      float clearance = 0f,
+                                                      int maxIterations = 6,
+                                                      float minimumMovement = 0.00001f)
+    {
+        return SweptMovement.GetAllowedSlidingMovement(
+            this,
+            requestedMovement,
+            polygons,
+            static (circle, movement) => circle with
+            {
+                Center = circle.Center + movement
+            },
+            static (Circle source,
+                    Circle destination,
+                    ConvexPolygon polygon,
+                    out SweepHit hit) =>
+                source.TrySweepIntersection(destination, polygon, out hit),
+            clearance,
+            maxIterations,
+            minimumMovement);
+    }
+
     private static Vector2 ClosestPoint(AxisAlignedSegment2 segment, Vector2 point)
     {
         return segment.Axis switch
