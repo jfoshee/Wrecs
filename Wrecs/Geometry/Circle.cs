@@ -134,39 +134,14 @@ public record struct Circle(Vector2 Center, float Radius)
         var normals = polygon.EdgeNormals;
         var movement = destination.Center - Center;
         var radiusSquared = Radius * Radius;
-        var minimumDistanceSquared = float.PositiveInfinity;
-        var closestOffset = Vector2.Zero;
-        var centerInside = true;
-
-        // Classify the center against the polygon and find its closest boundary
-        // point. Together these identify overlap with the radius-expanded polygon.
-        for (var i = 0; i < vertices.Length; i++)
-        {
-            var vertex = vertices[i];
-            var edge = vertices[(i + 1) % vertices.Length] - vertex;
-            var centerOffset = Center - vertex;
-
-            if (Vector2.Dot(centerOffset, normals[i]) > 0f)
-                centerInside = false;
-
-            var edgeFraction = Math.Clamp(Vector2.Dot(centerOffset, edge) /
-                                          edge.LengthSquared(),
-                                          0f,
-                                          1f);
-            var offset = centerOffset - edge * edgeFraction;
-            var distanceSquared = offset.LengthSquared();
-
-            if (distanceSquared < minimumDistanceSquared)
-            {
-                minimumDistanceSquared = distanceSquared;
-                closestOffset = offset;
-            }
-        }
-
-        var minimumDistance = MathF.Sqrt(minimumDistanceSquared);
         var distanceTolerance = GeometryTolerance.GetDistance(Center,
                                                               polygon.Bounds,
                                                               Radius);
+        var centerInside = ConvexQueries.ContainsPoint(vertices, normals, Center);
+        var closestFeature = ConvexQueries.GetClosestBoundaryFeature(vertices, Center);
+        var closestOffset = Center - closestFeature.Point;
+        var minimumDistanceSquared = closestOffset.LengthSquared();
+        var minimumDistance = MathF.Sqrt(minimumDistanceSquared);
         var touching = !centerInside &&
             MathF.Abs(minimumDistance - Radius) <= distanceTolerance;
         var startNormal = closestOffset == Vector2.Zero

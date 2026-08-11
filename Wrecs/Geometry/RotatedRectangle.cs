@@ -37,29 +37,17 @@ public readonly record struct RotatedRectangle
         return OriginalAlignedRectangle.Contains(transformedPoint);
     }
 
-    public readonly bool Intersects(AlignedRectangle other)
-    {
-        // Check if any of the rotated rectangle's corners are inside the aligned rectangle
-        foreach (var corner in Corners)
-        {
-            if (other.Contains(corner))
-            {
-                return true;
-            }
-        }
+    public readonly IntersectionRelation GetIntersectionRelation(AlignedRectangle other) =>
+        ConvexQueries.GetIntersection(Corners, other.Corners).Relation;
 
-        // Check if any of the aligned rectangle's corners are inside the rotated rectangle
-        foreach (var otherCorner in other.Corners)
-        {
-            if (Contains(otherCorner))
-            {
-                return true;
-            }
-        }
+    public readonly bool Overlaps(AlignedRectangle other) =>
+        GetIntersectionRelation(other) == IntersectionRelation.Overlapping;
 
-        // Check if any edges intersect
-        return SegmentUtilities.AnyEdgesIntersect(Corners, other.Corners);
-    }
+    public readonly bool Touches(AlignedRectangle other) =>
+        GetIntersectionRelation(other) == IntersectionRelation.Touching;
+
+    public readonly bool OverlapsOrTouches(AlignedRectangle other) =>
+        GetIntersectionRelation(other) != IntersectionRelation.Disjoint;
 
     public readonly RotatedRectangle Dilate(float radius)
     {

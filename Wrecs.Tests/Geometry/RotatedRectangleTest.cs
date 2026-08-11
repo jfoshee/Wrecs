@@ -98,7 +98,7 @@ public class RotatedRectangleTest
         result.Should().Be(expected, because: scenario);
     }
 
-    [Theory(DisplayName = "Intersects 2x2 AlignedRectangle")]
+    [Theory(DisplayName = "Overlaps or touches 2x2 aligned rectangle")]
     [InlineData(6, 16, true, "aligned w/ 1 point inside rotated")]
     [InlineData(8, 16, true, "aligned w/ 2 points inside rotated")]
     [InlineData(10, 16, true, "aligned w/ 1 point inside rotated")]
@@ -118,7 +118,10 @@ public class RotatedRectangleTest
     [InlineData(10, 22, true, "aligned w/ 2 points inside rotated")]
     [InlineData(12, 22, true, "aligned w/ 1 points inside rotated")]
     [InlineData(14, 22, false, "aligned w/ 0 points inside rotated")]
-    public void Intersecting2x2(float leftX, float bottomY, bool expected, string scenario)
+    public void Relation_2x2(float leftX,
+                             float bottomY,
+                             bool expected,
+                             string scenario)
     {
         // Arrange: a 2x2 square at the given position
         var other = new AlignedRectangle(new(leftX, bottomY), 2);
@@ -127,16 +130,19 @@ public class RotatedRectangleTest
         var rotatedRectangle = new RotatedRectangle(alignedRectangle, Angle.ToRadians(45));
 
         // Act
-        var result = rotatedRectangle.Intersects(other);
+        var result = rotatedRectangle.OverlapsOrTouches(other);
 
         // Assert
         result.Should().Be(expected, because: scenario);
     }
 
-    [Theory(DisplayName = "Intersects 4x8 AlignedRectangle")]
+    [Theory(DisplayName = "Overlaps or touches 4x8 aligned rectangle")]
     [InlineData(6, 16, true, "rotated w/ 2 points inside aligned")]
     [InlineData(12, 16, true, "rotated w/ 1 points inside aligned")]
-    public void Intersecting4x8(float leftX, float bottomY, bool expected, string scenario)
+    public void Relation_4x8(float leftX,
+                             float bottomY,
+                             bool expected,
+                             string scenario)
     {
         // Arrange: a 4x8 rectangle at the given position
         var other = new AlignedRectangle(new(leftX, bottomY), 4, 8);
@@ -145,16 +151,19 @@ public class RotatedRectangleTest
         var rotatedRectangle = new RotatedRectangle(alignedRectangle, Angle.ToRadians(45));
 
         // Act
-        var result = rotatedRectangle.Intersects(other);
+        var result = rotatedRectangle.OverlapsOrTouches(other);
 
         // Assert
         result.Should().Be(expected, because: scenario);
     }
 
-    [Theory(DisplayName = "Intersects 8x8 AlignedRectangle")]
+    [Theory(DisplayName = "Overlaps or touches 8x8 aligned rectangle")]
     [InlineData(6, 16, true, "rotated w/ all 4 points inside aligned")]
     [InlineData(12, 16, true, "rotated w/ 3 points inside aligned")]
-    public void Intersecting8x8(float leftX, float bottomY, bool expected, string scenario)
+    public void Relation_8x8(float leftX,
+                             float bottomY,
+                             bool expected,
+                             string scenario)
     {
         // Arrange: a 8x8 square at the given position
         var other = new AlignedRectangle(new(leftX, bottomY), 8);
@@ -163,7 +172,7 @@ public class RotatedRectangleTest
         var rotatedRectangle = new RotatedRectangle(alignedRectangle, Angle.ToRadians(45));
 
         // Act
-        var result = rotatedRectangle.Intersects(other);
+        var result = rotatedRectangle.OverlapsOrTouches(other);
 
         // Assert
         result.Should().Be(expected, because: scenario);

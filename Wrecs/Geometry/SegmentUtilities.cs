@@ -4,27 +4,22 @@ public static class SegmentUtilities
 {
     /// <summary>
     /// Determines whether any edges of two polygons (defined by their vertices) intersect.
-    /// Assumes both polygons have the same number of vertices and each polygon is convex.
+    /// Each polygon may have a different number of vertices.
     /// </summary>
     /// <param name="vertices1">The vertices of the first polygon.</param>
     /// <param name="vertices2">The vertices of the second polygon.</param>
     /// <returns>True if any edges of the two polygons intersect, otherwise false.</returns>
-    /// <exception cref="ArgumentException">Thrown if the number of vertices in the two polygons are not equal.</exception>
-    public static bool AnyEdgesIntersect(Vector2[] vertices1, Vector2[] vertices2)
+    public static bool AnyEdgesIntersect(ReadOnlySpan<Vector2> vertices1,
+                                         ReadOnlySpan<Vector2> vertices2)
     {
-        var count = vertices1.Length;
-        if (vertices2.Length != count)
+        for (var i = 0; i < vertices1.Length; i++)
         {
-            throw new ArgumentException("Both polygons must have the same number of vertices.");
-        }
-        for (int i = 0; i < count; i++)
-        {
-            for (int j = 0; j < count; j++)
+            for (var j = 0; j < vertices2.Length; j++)
             {
                 if (SegmentsIntersect(vertices1[i],
-                                      vertices1[(i + 1) % count],
+                                      vertices1[(i + 1) % vertices1.Length],
                                       vertices2[j],
-                                      vertices2[(j + 1) % count]))
+                                      vertices2[(j + 1) % vertices2.Length]))
                 {
                     return true;
                 }

@@ -53,4 +53,29 @@ public class PolygonIntersectionTests
         // Assert
         result.Should().BeFalse();
     }
+
+    [Fact(DisplayName = "Polygons with different vertex counts can have intersecting edges")]
+    public void DifferentCounts()
+    {
+        // Arrange
+        Vector2[] triangle =
+        [
+            new(13, 140),
+            new(47, 160),
+            new(29, 520)
+        ];
+        Vector2[] quadrilateral =
+        [
+            new(25, 110),
+            new(38, 130),
+            new(35, 610),
+            new(23, 570)
+        ];
+
+        // Act
+        var result = AnyEdgesIntersect(triangle, quadrilateral);
+
+        // Assert
+        result.Should().BeTrue();
+    }
 }
