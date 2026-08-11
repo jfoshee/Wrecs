@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using static System.MathF;
 
 namespace Wrecs.Geometry;
 
@@ -22,14 +23,14 @@ public readonly struct LineSegment(Vector2 start, Vector2 end)
 
         var direction = End - Start;
         var otherDirection = other.End - other.Start;
-        var useX = MathF.Max(MathF.Abs(direction.X), MathF.Abs(otherDirection.X)) >=
-                   MathF.Max(MathF.Abs(direction.Y), MathF.Abs(otherDirection.Y));
+        var useX = Max(Abs(direction.X), Abs(otherDirection.X)) >=
+                   Max(Abs(direction.Y), Abs(otherDirection.Y));
         var start = useX ? Start.X : Start.Y;
         var end = useX ? End.X : End.Y;
         var otherStart = useX ? other.Start.X : other.Start.Y;
         var otherEnd = useX ? other.End.X : other.End.Y;
-        var overlap = MathF.Min(MathF.Max(start, end), MathF.Max(otherStart, otherEnd)) -
-                      MathF.Max(MathF.Min(start, end), MathF.Min(otherStart, otherEnd));
+        var overlap = Min(Max(start, end), Max(otherStart, otherEnd)) -
+                      Max(Min(start, end), Min(otherStart, otherEnd));
 
         return overlap > 0f
             ? IntersectionRelation.Overlapping
@@ -44,4 +45,35 @@ public readonly struct LineSegment(Vector2 start, Vector2 end)
 
     public bool OverlapsOrTouches(LineSegment other) =>
         GetIntersectionRelation(other) != IntersectionRelation.Disjoint;
+
+    /// <summary>
+    /// Returns the point on this finite segment nearest to
+    /// <paramref name="point"/>.
+    /// </summary>
+    /// <remarks>
+    /// The result may lie between the endpoints or on either endpoint. A
+    /// zero-length segment returns its single endpoint.
+    /// </remarks>
+    public Vector2 GetClosestPoint(Vector2 point) =>
+        GetClosestPoint(point, out _);
+
+    /// <summary>
+    /// Finds the closest point and its position along the segment, where zero is
+    /// <see cref="Start"/> and one is <see cref="End"/>.
+    /// </summary>
+    internal Vector2 GetClosestPoint(Vector2 point, out float fraction)
+    {
+        var direction = End - Start;
+        var lengthSquared = direction.LengthSquared();
+
+        if (lengthSquared == 0f)
+        {
+            fraction = 0f;
+            return Start;
+        }
+
+        var projectedFraction = Vector2.Dot(point - Start, direction) / lengthSquared;
+        fraction = Max(0f, Min(projectedFraction, 1f));
+        return Start + direction * fraction;
+    }
 }

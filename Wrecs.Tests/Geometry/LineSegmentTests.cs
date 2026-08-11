@@ -38,4 +38,34 @@ public class LineSegmentTests
         segment.Touches(other).Should().Be(expected == IntersectionRelation.Touching);
         segment.OverlapsOrTouches(other).Should().Be(expected != IntersectionRelation.Disjoint);
     }
+
+    [Theory(DisplayName = "Closest point is clamped to the finite line segment")]
+    [InlineData(100.5f, 234, 20.5f, 240, "Projection lies within segment")]
+    [InlineData(4, 62, 13, 140, "Projection falls before start")]
+    [InlineData(73, 920, 43, 540, "Projection falls after end")]
+    public void ClosestPoint(float pointX,
+                             float pointY,
+                             float expectedX,
+                             float expectedY,
+                             string scenario)
+    {
+        var segment = new LineSegment(new(13, 140),
+                                      new(43, 540));
+        var point = new Vector2(pointX, pointY);
+
+        var closestPoint = segment.GetClosestPoint(point);
+
+        closestPoint.Should().Be(new Vector2(expectedX, expectedY), because: scenario);
+    }
+
+    [Fact(DisplayName = "Closest point on a zero-length segment is its endpoint")]
+    public void ClosestPoint_Degenerate()
+    {
+        var segment = new LineSegment(new(37, 410),
+                                      new(37, 410));
+
+        var closestPoint = segment.GetClosestPoint(new(113, 1270));
+
+        closestPoint.Should().Be(new Vector2(37, 410));
+    }
 }

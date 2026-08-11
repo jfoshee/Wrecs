@@ -103,27 +103,4 @@ public static class SegmentUtilities
         return q.X <= MathF.Max(p.X, r.X) && q.X >= MathF.Min(p.X, r.X) &&
                q.Y <= MathF.Max(p.Y, r.Y) && q.Y >= MathF.Min(p.Y, r.Y);
     }
-
-
-    /// <summary>
-    /// Determines the closest point on a line segment to a given point.
-    /// </summary>
-    /// <param name="p1">The start point of the line segment.</param>
-    /// <param name="p2">The end point of the line segment.</param>
-    /// <param name="point">The point to find the closest point to.</param>
-    public static Vector2 GetClosestPointOnLineSegment(Vector2 p1, Vector2 p2, Vector2 point)
-    {
-        Vector2 edge = p2 - p1;
-        float edgeLengthSquared = edge.LengthSquared();
-
-        // Handle degenerate case where the segment length is zero
-        if (edgeLengthSquared == 0) return p1;
-
-        // Project p onto the edge, but clamp it within the segment [p1, p2]
-        float t = Vector2.Dot(point - p1, edge) / edgeLengthSquared;
-        t = Math.Clamp(t, 0, 1);
-
-        // Calculate the closest point based on clamped t
-        return p1 + t * edge;
-    }
 }

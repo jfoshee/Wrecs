@@ -29,7 +29,8 @@ public record struct Circle(Vector2 Center, float Radius)
         var startCenter = Center;
         var radius = Radius;
         var movement = destination.Center - startCenter;
-        var closestAtStart = ClosestPoint(segment, startCenter);
+        var closestAtStart = new LineSegment(segment.Start,
+                                             segment.End).GetClosestPoint(startCenter);
         var startOffset = startCenter - closestAtStart;
         var startDistanceSquared = startOffset.LengthSquared();
         var startDistance = MathF.Sqrt(startDistanceSquared);
@@ -277,17 +278,4 @@ public record struct Circle(Vector2 Center, float Radius)
             minimumMovement);
     }
 
-    private static Vector2 ClosestPoint(AxisAlignedSegment2 segment, Vector2 point)
-    {
-        return segment.Axis switch
-        {
-            Axis2.X => new Vector2(
-                Math.Clamp(point.X, segment.Interval.Min, segment.Interval.Max),
-                segment.Anchor.Y),
-            Axis2.Y => new Vector2(
-                segment.Anchor.X,
-                Math.Clamp(point.Y, segment.Interval.Min, segment.Interval.Max)),
-            _ => throw new InvalidOperationException($"Unsupported axis: {segment.Axis}.")
-        };
-    }
 }

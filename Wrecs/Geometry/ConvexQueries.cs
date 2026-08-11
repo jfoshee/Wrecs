@@ -134,15 +134,9 @@ internal static class ConvexQueries
         for (var i = 0; i < vertices.Length; i++)
         {
             var vertex = vertices[i];
-            var edge = vertices[(i + 1) % vertices.Length] - vertex;
-            var edgeLengthSquared = edge.LengthSquared();
-            var edgeFraction = edgeLengthSquared == 0f
-                ? 0f
-                : Max(0f,
-                      Min(Vector2.Dot(point - vertex, edge) /
-                          edgeLengthSquared,
-                          1f));
-            var candidate = vertex + edge * edgeFraction;
+            var edge = new LineSegment(vertex,
+                                       vertices[(i + 1) % vertices.Length]);
+            var candidate = edge.GetClosestPoint(point, out var edgeFraction);
             var distanceSquared = Vector2.DistanceSquared(point, candidate);
 
             if (distanceSquared >= minimumDistanceSquared)
