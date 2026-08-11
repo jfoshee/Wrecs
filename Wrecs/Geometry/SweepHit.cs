@@ -9,7 +9,7 @@ namespace Wrecs.Geometry;
 /// </param>
 /// <param name="Normal">
 /// The outward-facing collision normal. This can be <see cref="Vector2.Zero"/>
-/// when the sweep starts in contact rather than entering through a face.
+/// when the sweep starts in an overlap with no unique separating direction.
 /// </param>
 public readonly record struct SweepHit(float Time,
                                        Vector2 Normal)

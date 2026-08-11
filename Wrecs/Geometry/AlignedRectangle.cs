@@ -306,62 +306,36 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
             BottomLeft.Y < obstacle.Top;
         var startedOnBoundary = !startedInside && obstacle.Contains(BottomLeft);
 
-        if (startedOnBoundary)
+        var startNormal = startedOnBoundary
+            ? GetBoundaryNormal(obstacle, BottomLeft)
+            : Vector2.Zero;
+        var featureScale = MathF.Max(Width, Height);
+        var distanceTolerance = GeometryTolerance.GetDistance(BottomLeft,
+                                                              obstacle,
+                                                              featureScale);
+        var directionTolerance = GeometryTolerance.GetDirection(distanceTolerance,
+                                                                movement,
+                                                                featureScale);
+        var initialContact = SweepMath.ClassifyInitialContact(startedInside,
+                                                             startedOnBoundary,
+                                                             movement,
+                                                             startNormal,
+                                                             directionTolerance);
+
+        if (initialContact.IsResolved)
         {
-            var startNormal = GetBoundaryNormal(obstacle, BottomLeft);
-
-            if (movement == Vector2.Zero)
-            {
-                hit = new SweepHit(0f, startNormal);
-                return true;
-            }
-
-            // Existing contact does not block separation or tangent movement.
-            if (startNormal == Vector2.Zero ||
-                Vector2.Dot(movement, startNormal) >= 0f)
-            {
-                hit = default;
-                return false;
-            }
-
-            hit = new SweepHit(0f, startNormal);
-            return true;
+            hit = initialContact.Hit;
+            return initialContact.HasHit;
         }
 
-        // These values describe the portion of the movement during which the point
-        // could still be inside the expanded obstacle.
-        //
-        // Initially, the entire movement from t = 0 through t = 1 is possible.
-        // Each axis test narrows this range.
-        var entryTime = 0f;
-        var exitTime = 1f;
-        var entryNormal = Vector2.Zero;
-
-        if (!RestrictTimeRangeToAxis(BottomLeft.X,
-                                     movement.X,
-                                     obstacle.Left,
-                                     obstacle.Right,
-                                     negativeFaceNormal: -Vector2.UnitX,
-                                     positiveFaceNormal: Vector2.UnitX,
-                                     ref entryTime,
-                                     ref exitTime,
-                                     ref entryNormal))
+        var timeTolerance = GeometryTolerance.GetTime(distanceTolerance, movement);
+        if (!SweepMath.TryGetRayBoundsHit(BottomLeft,
+                                          movement,
+                                          obstacle,
+                                          timeTolerance,
+                                          out hit,
+                                          out var exitTime))
         {
-            hit = default;
-            return false;
-        }
-
-        if (!RestrictTimeRangeToAxis(BottomLeft.Y,
-                                     movement.Y,
-                                     obstacle.Bottom,
-                                     obstacle.Top,
-                                     negativeFaceNormal: -Vector2.UnitY,
-                                     positiveFaceNormal: Vector2.UnitY,
-                                     ref entryTime,
-                                     ref exitTime,
-                                     ref entryNormal))
-        {
-            hit = default;
             return false;
         }
 
@@ -372,11 +346,6 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
             hit = default;
             return false;
         }
-
-        if (entryNormal != Vector2.Zero)
-            entryNormal = Vector2.Normalize(entryNormal);
-
-        hit = new SweepHit(entryTime, entryNormal);
 
         return true;
     }
@@ -444,109 +413,6 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
             clearance,
             maxIterations,
             minimumMovement);
-    }
-
-    /// <summary>
-    /// Restricts a movement's current valid time range to the times during which
-    /// one coordinate lies between <paramref name="rangeMin"/> and
-    /// <paramref name="rangeMax"/>.
-    /// </summary>
-    /// <param name="origin">
-    /// The coordinate at the beginning of the movement.
-    /// </param>
-    /// <param name="movement">
-    /// The coordinate's total change between normalized times 0 and 1.
-    /// </param>
-    /// <param name="rangeMin">
-    /// The inclusive lower boundary of the obstacle on this axis.
-    /// </param>
-    /// <param name="rangeMax">
-    /// The inclusive upper boundary of the obstacle on this axis.
-    /// </param>
-    /// <param name="negativeFaceNormal">
-    /// The outward normal of the boundary at <paramref name="rangeMin"/>.
-    /// </param>
-    /// <param name="positiveFaceNormal">
-    /// The outward normal of the boundary at <paramref name="rangeMax"/>.
-    /// </param>
-    /// <param name="entryTime">
-    /// On input, the earliest time still valid after testing previous axes. On
-    /// output, the later of that value and this axis's entry time.
-    /// </param>
-    /// <param name="exitTime">
-    /// On input, the latest time still valid after testing previous axes. On
-    /// output, the earlier of that value and this axis's exit time.
-    /// </param>
-    /// <param name="entryNormal">
-    /// The outward normal of the boundary responsible for
-    /// <paramref name="entryTime"/>.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if some time remains valid after considering this
-    /// axis; otherwise, <see langword="false"/>.
-    /// </returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool RestrictTimeRangeToAxis(float origin,
-                                                float movement,
-                                                float rangeMin,
-                                                float rangeMax,
-                                                Vector2 negativeFaceNormal,
-                                                Vector2 positiveFaceNormal,
-                                                ref float entryTime,
-                                                ref float exitTime,
-                                                ref Vector2 entryNormal)
-    {
-        // This coordinate does not change during the movement. It can satisfy this
-        // axis for the entire movement only when it is already within the obstacle's
-        // inclusive coordinate range.
-        if (movement == 0f)
-            return origin >= rangeMin && origin <= rangeMax;
-
-        // Find when the moving coordinate crosses each boundary:
-        //
-        //     origin + movement * t = boundary
-        //
-        // Solving for t gives:
-        //
-        //     t = (boundary - origin) / movement
-        //
-        // When movement is negative, the maximum boundary is encountered before
-        // the minimum boundary.
-        float axisEntryTime;
-        float axisExitTime;
-        Vector2 axisEntryNormal;
-
-        if (movement > 0f)
-        {
-            axisEntryTime = (rangeMin - origin) / movement;
-            axisExitTime = (rangeMax - origin) / movement;
-            axisEntryNormal = negativeFaceNormal;
-        }
-        else
-        {
-            axisEntryTime = (rangeMax - origin) / movement;
-            axisExitTime = (rangeMin - origin) / movement;
-            axisEntryNormal = positiveFaceNormal;
-        }
-
-        // A collision requires the X and Y coordinates to be inside their
-        // respective ranges at the same time. Intersect this axis's valid time
-        // interval with the interval retained from the previously tested axes.
-        if (axisEntryTime > entryTime)
-        {
-            entryTime = axisEntryTime;
-            entryNormal = axisEntryNormal;
-        }
-        else if (axisEntryTime == entryTime)
-        {
-            entryNormal += axisEntryNormal;
-        }
-
-        exitTime = MathF.Min(exitTime, axisExitTime);
-
-        // Equality represents touching the obstacle at exactly one instant and
-        // therefore counts as an intersection.
-        return entryTime <= exitTime;
     }
 
     public readonly AlignedRectangle Dilate(float padding)

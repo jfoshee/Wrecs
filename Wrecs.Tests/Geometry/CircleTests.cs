@@ -103,6 +103,41 @@ public class CircleTests
         start.TrySweepIntersection(destination, wall, out _).Should().BeFalse();
     }
 
+    [Fact(DisplayName = "Sweep-computed segment contact allows separation and tangent movement")]
+    public void Contact_AllowsExit()
+    {
+        const float wallX = 1010.3f;
+        const float radius = 2.2f;
+        const float approach = 7.7f;
+        var wall = new AxisAlignedSegment2(Axis2.Y,
+                                           new Vector2(wallX, 193.6f),
+                                           new Interval(210.7f, 910.9f));
+        var start = new Circle(new Vector2(wallX - radius - approach, 347.9f),
+                               radius);
+        var destination = start with
+        {
+            Center = start.Center + new Vector2(37.6f, 0f)
+        };
+
+        start.TrySweepIntersection(destination, wall, out var contact).Should().BeTrue();
+        contact.Normal.Should().Be(-Vector2.UnitX);
+        var touching = start with
+        {
+            Center = start.Center + contact.GetAllowedMovement(destination.Center - start.Center)
+        };
+        var separating = touching with
+        {
+            Center = touching.Center + new Vector2(-17.3f, 43.7f)
+        };
+        var tangent = touching with
+        {
+            Center = touching.Center + new Vector2(0f, 61.4f)
+        };
+
+        touching.TrySweepIntersection(separating, wall, out _).Should().BeFalse();
+        touching.TrySweepIntersection(tangent, wall, out _).Should().BeFalse();
+    }
+
     [Fact(DisplayName = "Swept circle rejects a destination with a different radius")]
     public void TrySweepIntersection_DifferentRadius_ThrowsArgumentException()
     {

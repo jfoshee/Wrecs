@@ -6,8 +6,7 @@ internal delegate bool TrySweepIntersection<TCollider, TObstacle>(TCollider sour
                                                                   out SweepHit hit);
 
 /// <summary>
-/// Shared movement resolution for translating colliders that can sweep against
-/// axis-aligned segments.
+/// Shared movement resolution for translating colliders against static obstacles.
 /// </summary>
 internal static class SweptMovement
 {
@@ -72,21 +71,16 @@ internal static class SweptMovement
                                                               TrySweepIntersection<TCollider, TObstacle> trySweepIntersection,
                                                               out SweepHit firstHit)
     {
-        firstHit = default;
-        var foundHit = false;
+        var hits = new SweepHitAccumulator();
 
         foreach (var obstacle in obstacles)
         {
             if (!trySweepIntersection(source, destination, obstacle, out var hit))
                 continue;
 
-            if (!foundHit || hit.Time < firstHit.Time)
-            {
-                firstHit = hit;
-                foundHit = true;
-            }
+            hits.Consider(hit);
         }
 
-        return foundHit;
+        return hits.TryGetHit(out firstHit);
     }
 }

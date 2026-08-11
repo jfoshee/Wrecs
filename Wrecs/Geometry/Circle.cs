@@ -27,56 +27,38 @@ public record struct Circle(Vector2 Center, float Radius)
         }
 
         var startCenter = Center;
+        var radius = Radius;
         var movement = destination.Center - startCenter;
         var closestAtStart = ClosestPoint(segment, startCenter);
         var startOffset = startCenter - closestAtStart;
         var startDistanceSquared = startOffset.LengthSquared();
-        var radiusSquared = Radius * Radius;
+        var startDistance = MathF.Sqrt(startDistanceSquared);
+        var radiusSquared = radius * radius;
+        var distanceTolerance = GeometryTolerance.GetDistance(Center,
+                                                              segment.Bounds,
+                                                              radius);
+        var touching = MathF.Abs(startDistance - radius) <= distanceTolerance;
+        var startNormal = startOffset == Vector2.Zero
+            ? Vector2.Zero
+            : Vector2.Normalize(startOffset);
+        var directionTolerance = GeometryTolerance.GetDirection(distanceTolerance,
+                                                                movement,
+                                                                radius);
+        var initialContact = SweepMath.ClassifyInitialContact(
+            overlapping: startDistanceSquared < radiusSquared && !touching,
+            touching,
+            movement,
+            startNormal,
+            directionTolerance);
 
-        if (startDistanceSquared < radiusSquared)
+        if (initialContact.IsResolved)
         {
-            hit = new SweepHit(0f, Vector2.Zero);
-            return true;
+            hit = initialContact.Hit;
+            return initialContact.HasHit;
         }
 
-        if (startDistanceSquared == radiusSquared)
-        {
-            var startNormal = startOffset == Vector2.Zero
-                ? Vector2.Zero
-                : Vector2.Normalize(startOffset);
-
-            if (movement == Vector2.Zero)
-            {
-                hit = new SweepHit(0f, startNormal);
-                return true;
-            }
-
-            // Existing contact does not block separation or tangent movement.
-            if (startNormal == Vector2.Zero || Vector2.Dot(movement, startNormal) >= 0f)
-            {
-                hit = default;
-                return false;
-            }
-
-            hit = new SweepHit(0f, startNormal);
-            return true;
-        }
-
-        var foundHit = false;
-        var firstHit = default(SweepHit);
-
-        void Consider(float time, Vector2 normal)
-        {
-            if (time < 0f || time > 1f)
-                return;
-
-            if (!foundHit || time < firstHit.Time)
-            {
-                foundHit = true;
-                firstHit = new SweepHit(time,
-                                              normal);
-            }
-        }
+        var timeTolerance = GeometryTolerance.GetTime(distanceTolerance, movement);
+        var hits = new SweepHitAccumulator(timeTolerance);
 
         // Test the two flat sides of the expanded segment. Only the side facing
         // the direction of travel can be the entry face.
@@ -88,7 +70,7 @@ public record struct Circle(Vector2 Center, float Radius)
                     var time = (faceY - Center.Y) / movement.Y;
                     var x = Center.X + movement.X * time;
                     if (x >= segment.Interval.Min && x <= segment.Interval.Max)
-                        Consider(time, -MathF.Sign(movement.Y) * Vector2.UnitY);
+                        hits.Consider(time, -MathF.Sign(movement.Y) * Vector2.UnitY);
                     break;
                 }
             case Axis2.Y when movement.X != 0f:
@@ -97,7 +79,7 @@ public record struct Circle(Vector2 Center, float Radius)
                     var time = (faceX - Center.X) / movement.X;
                     var y = Center.Y + movement.Y * time;
                     if (y >= segment.Interval.Min && y <= segment.Interval.Max)
-                        Consider(time, -MathF.Sign(movement.X) * Vector2.UnitX);
+                        hits.Consider(time, -MathF.Sign(movement.X) * Vector2.UnitX);
                     break;
                 }
         }
@@ -105,32 +87,26 @@ public record struct Circle(Vector2 Center, float Radius)
         ConsiderEndpoint(segment.Start);
         ConsiderEndpoint(segment.End);
 
-        hit = firstHit;
-        return foundHit;
+        return hits.TryGetHit(out hit);
 
         void ConsiderEndpoint(Vector2 endpoint)
         {
-            var a = movement.LengthSquared();
-            if (a == 0f)
+            if (!SweepMath.TryGetRayCircleEntryTime(startCenter,
+                                                    movement,
+                                                    endpoint,
+                                                    radius,
+                                                    out var time) ||
+                !hits.IsInRange(time))
+            {
                 return;
-
-            var relativeStart = startCenter - endpoint;
-            var b = 2f * Vector2.Dot(relativeStart, movement);
-            var c = relativeStart.LengthSquared() - radiusSquared;
-            var discriminant = b * b - 4f * a * c;
-            if (discriminant < 0f)
-                return;
-
-            var time = (-b - MathF.Sqrt(discriminant)) / (2f * a);
-            if (time < 0f || time > 1f)
-                return;
+            }
 
             var contactCenter = startCenter + movement * time;
             var offset = contactCenter - endpoint;
             var normal = offset == Vector2.Zero
                 ? Vector2.Zero
                 : Vector2.Normalize(offset);
-            Consider(time, normal);
+            hits.Consider(time, normal);
         }
     }
 
@@ -188,46 +164,29 @@ public record struct Circle(Vector2 Center, float Radius)
         }
 
         var minimumDistance = MathF.Sqrt(minimumDistanceSquared);
-        var contactTolerance = GetContactDistanceTolerance(polygon);
-        var withinContactTolerance =
-            MathF.Abs(minimumDistance - Radius) <= contactTolerance;
+        var distanceTolerance = GeometryTolerance.GetDistance(Center,
+                                                              polygon.Bounds,
+                                                              Radius);
+        var touching = !centerInside &&
+            MathF.Abs(minimumDistance - Radius) <= distanceTolerance;
+        var startNormal = closestOffset == Vector2.Zero
+            ? Vector2.Zero
+            : Vector2.Normalize(closestOffset);
+        var directionTolerance = GeometryTolerance.GetDirection(distanceTolerance,
+                                                                movement,
+                                                                Radius);
+        var initialContact = SweepMath.ClassifyInitialContact(
+            overlapping: centerInside ||
+                         minimumDistanceSquared < radiusSquared && !touching,
+            touching,
+            movement,
+            startNormal,
+            directionTolerance);
 
-        // A sweep-computed contact can land a few ULPs inside or outside the
-        // expanded polygon. Treat that narrow band as contact so rounding does
-        // not turn a separating movement into an inseparable overlap.
-        if (!centerInside && withinContactTolerance)
+        if (initialContact.IsResolved)
         {
-            var startNormal = closestOffset == Vector2.Zero
-                ? Vector2.Zero
-                : Vector2.Normalize(closestOffset);
-
-            if (movement == Vector2.Zero)
-            {
-                hit = new SweepHit(0f, startNormal);
-                return true;
-            }
-
-            var normalMovement = Vector2.Dot(movement, startNormal);
-            // Reconstructing the normal from a rounded contact can give a
-            // mathematically tangent movement a tiny inward component.
-            var directionTolerance = contactTolerance * movement.Length() /
-                                     MathF.Max(Radius, 1f);
-
-            if (startNormal == Vector2.Zero || normalMovement >= -directionTolerance)
-            {
-                hit = default;
-                return false;
-            }
-
-            hit = new SweepHit(0f, startNormal);
-            return true;
-        }
-
-        // An actual overlap has no unique separating normal.
-        if (centerInside || minimumDistanceSquared < radiusSquared)
-        {
-            hit = new SweepHit(0f, Vector2.Zero);
-            return true;
+            hit = initialContact.Hit;
+            return initialContact.HasHit;
         }
 
         var movementLengthSquared = movement.LengthSquared();
@@ -237,9 +196,8 @@ public record struct Circle(Vector2 Center, float Radius)
             return false;
         }
 
-        var foundHit = false;
-        var firstTime = float.PositiveInfinity;
-        var firstNormal = Vector2.Zero;
+        var timeTolerance = GeometryTolerance.GetTime(distanceTolerance, movement);
+        var hits = new SweepHitAccumulator(timeTolerance);
 
         // Sweep the center against every offset edge face and circular vertex cap,
         // retaining the earliest contact on the radius-expanded boundary.
@@ -258,45 +216,34 @@ public record struct Circle(Vector2 Center, float Radius)
                 var faceTime = (Radius - Vector2.Dot(Center - vertex, normal)) /
                                normalMovement;
 
-                if (faceTime >= 0f && faceTime <= 1f && faceTime < firstTime)
+                if (hits.IsInRange(faceTime))
                 {
                     var contact = Center + movement * faceTime - normal * Radius;
                     var edgeProjection = Vector2.Dot(contact - vertex, edge);
 
                     if (edgeProjection >= 0f && edgeProjection <= edge.LengthSquared())
-                    {
-                        foundHit = true;
-                        firstTime = faceTime;
-                        firstNormal = normal;
-                    }
+                        hits.Consider(faceTime, normal);
                 }
             }
 
-            // Solve the ray-circle quadratic and use its entry root for this cap.
-            var relativeStart = Center - vertex;
-            var b = 2f * Vector2.Dot(relativeStart, movement);
-            var c = relativeStart.LengthSquared() - radiusSquared;
-            var discriminant = b * b - 4f * movementLengthSquared * c;
-
-            if (discriminant < 0f)
+            if (!SweepMath.TryGetRayCircleEntryTime(Center,
+                                                    movement,
+                                                    vertex,
+                                                    Radius,
+                                                    out var vertexTime) ||
+                !hits.IsInRange(vertexTime))
+            {
                 continue;
-
-            var vertexTime = (-b - MathF.Sqrt(discriminant)) /
-                             (2f * movementLengthSquared);
-
-            if (vertexTime < 0f || vertexTime > 1f || vertexTime >= firstTime)
-                continue;
+            }
 
             var vertexOffset = Center + movement * vertexTime - vertex;
-            foundHit = true;
-            firstTime = vertexTime;
-            firstNormal = vertexOffset == Vector2.Zero
+            var vertexNormal = vertexOffset == Vector2.Zero
                 ? Vector2.Zero
                 : Vector2.Normalize(vertexOffset);
+            hits.Consider(vertexTime, vertexNormal);
         }
 
-        hit = foundHit ? new SweepHit(firstTime, firstNormal) : default;
-        return foundHit;
+        return hits.TryGetHit(out hit);
     }
 
     /// <summary>
@@ -367,20 +314,5 @@ public record struct Circle(Vector2 Center, float Radius)
                 Math.Clamp(point.Y, segment.Interval.Min, segment.Interval.Max)),
             _ => throw new InvalidOperationException($"Unsupported axis: {segment.Axis}.")
         };
-    }
-
-    private readonly float GetContactDistanceTolerance(ConvexPolygon polygon)
-    {
-        var bounds = polygon.Bounds;
-        var coordinateScale = MathF.Max(
-            1f,
-            MathF.Max(
-                MathF.Max(MathF.Abs(Center.X), MathF.Abs(Center.Y)),
-                MathF.Max(
-                    MathF.Max(MathF.Abs(bounds.Left), MathF.Abs(bounds.Right)),
-                    MathF.Max(MathF.Abs(bounds.Bottom), MathF.Abs(bounds.Top)))));
-        var coordinateUlp = MathF.BitIncrement(coordinateScale) - coordinateScale;
-
-        return coordinateUlp * 8f;
     }
 }
