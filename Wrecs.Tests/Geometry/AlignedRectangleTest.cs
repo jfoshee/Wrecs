@@ -75,7 +75,7 @@ public class AlignedRectangleTests
         result.Should().Be(expected, because: scenario);
     }
 
-    [Theory(DisplayName = "Intersection")]
+    [Theory(DisplayName = "Rectangle overlap")]
     [InlineData(0, 0, 2, 2, 3, 3, 2, 2, false, "Above and to the right")]
     [InlineData(0, 0, 2, 2, 1, 3, 2, 2, false, "Above")]
     [InlineData(0, 0, 2, 2, -2, 3, 2, 2, false, "Above and to the left")]
@@ -95,25 +95,58 @@ public class AlignedRectangleTests
     [InlineData(0, 0, 2, 2, -1, 1, 2, 2, true, "Overlapping above and to the left")]
     [InlineData(0, 0, 2, 2, 1, -1, 2, 2, true, "Overlapping below and to the right")]
     [InlineData(0, 0, 2, 2, -1, -1, 2, 2, true, "Overlapping below and to the left")]
-    public void Intersects_ShouldReturnExpectedResult(
-        float ax, float ay, float aw, float ah,
-        float bx, float by, float bw, float bh,
-        bool expected, string scenario)
+    public void Overlaps_Rectangle(float ax,
+                                   float ay,
+                                   float aw,
+                                   float ah,
+                                   float bx,
+                                   float by,
+                                   float bw,
+                                   float bh,
+                                   bool expected,
+                                   string scenario)
     {
         // Create rectangles
         var a = new AlignedRectangle(new(ax, ay), aw, ah);
         var b = new AlignedRectangle(new(bx, by), bw, bh);
 
         // Act
-        bool resultA = a.Intersects(b);
-        bool resultB = b.Intersects(a);
+        bool resultA = a.Overlaps(b);
+        bool resultB = b.Overlaps(a);
 
         // Assert
         resultA.Should().Be(expected, because: scenario);
         resultB.Should().Be(expected, because: scenario);
     }
 
-    [Theory(DisplayName = "Axis-aligned segment intersection")]
+    [Theory(DisplayName = "Rectangle intersection relationship")]
+    [InlineData(3, 0, 2, 2, IntersectionRelation.Disjoint, "Separated")]
+    [InlineData(2, 0, 2, 2, IntersectionRelation.Touching, "Shared edge")]
+    [InlineData(2, 2, 2, 2, IntersectionRelation.Touching, "Shared corner")]
+    [InlineData(1, 0, 2, 2, IntersectionRelation.Overlapping, "Interior overlap")]
+    [InlineData(0, 0, 2, 2, IntersectionRelation.Overlapping, "Exact match")]
+    public void Relation_Rectangle(float otherX,
+                                   float otherY,
+                                   float otherWidth,
+                                   float otherHeight,
+                                   IntersectionRelation expected,
+                                   string scenario)
+    {
+        var rectangle = new AlignedRectangle(Vector2.Zero, 2f);
+        var other = new AlignedRectangle(new(otherX, otherY),
+                                         otherWidth,
+                                         otherHeight);
+
+        var relation = rectangle.GetIntersectionRelation(other);
+
+        relation.Should().Be(expected, because: scenario);
+        other.GetIntersectionRelation(rectangle).Should().Be(expected, because: scenario);
+        rectangle.Overlaps(other).Should().Be(expected == IntersectionRelation.Overlapping);
+        rectangle.Touches(other).Should().Be(expected == IntersectionRelation.Touching);
+        rectangle.OverlapsOrTouches(other).Should().Be(expected != IntersectionRelation.Disjoint);
+    }
+
+    [Theory(DisplayName = "Rectangle and axis-aligned segment overlap or touch")]
     [InlineData(3, -2, 4, 6, Axis2.X, 0, 2, 8, true, "Horizontal segment crosses offset rectangle")]
     [InlineData(3, -2, 4, 6, Axis2.X, 0, 4, 6, true, "Horizontal segment is contained")]
     [InlineData(3, -2, 4, 6, Axis2.X, 4, 1, 3, true, "Horizontal endpoint touches top-left corner")]
@@ -127,16 +160,16 @@ public class AlignedRectangleTests
     [InlineData(3, -2, 4, 6, Axis2.Y, 5, 5, 6, false, "Vertical segment is above rectangle")]
     [InlineData(3, -2, 4, 6, Axis2.Y, 8, -1, 3, false, "Vertical segment is beyond right edge")]
     [InlineData(0, 0, 4, 4, Axis2.X, 2, -1, 5, true, "Horizontal segment crosses rectangle at origin")]
-    public void Intersects_AxisAlignedSegment_ReturnsExpectedResult(float rectangleX,
-                                                                    float rectangleY,
-                                                                    float rectangleWidth,
-                                                                    float rectangleHeight,
-                                                                    Axis2 axis,
-                                                                    float fixedCoordinate,
-                                                                    float extentMin,
-                                                                    float extentMax,
-                                                                    bool expected,
-                                                                    string scenario)
+    public void OverlapsOrTouches_Segment(float rectangleX,
+                                          float rectangleY,
+                                          float rectangleWidth,
+                                          float rectangleHeight,
+                                          Axis2 axis,
+                                          float fixedCoordinate,
+                                          float extentMin,
+                                          float extentMax,
+                                          bool expected,
+                                          string scenario)
     {
         var rectangle = new AlignedRectangle(new(rectangleX, rectangleY),
                                              rectangleWidth,
@@ -151,9 +184,41 @@ public class AlignedRectangleTests
                                               anchor,
                                               new(extentMin, extentMax));
 
-        var result = rectangle.Intersects(segment);
+        var result = rectangle.OverlapsOrTouches(segment);
 
         result.Should().Be(expected, because: scenario);
+    }
+
+    [Theory(DisplayName = "Rectangle and axis-aligned segment intersection relationship")]
+    [InlineData(Axis2.X, 2, -1, 5, IntersectionRelation.Overlapping, "Crosses interior")]
+    [InlineData(Axis2.X, 2, 1, 3, IntersectionRelation.Overlapping, "Contained in interior")]
+    [InlineData(Axis2.X, 0, 1, 3, IntersectionRelation.Touching, "Lies on bottom edge")]
+    [InlineData(Axis2.X, 4, -1, 0, IntersectionRelation.Touching, "Endpoint touches corner")]
+    [InlineData(Axis2.Y, 5, 1, 3, IntersectionRelation.Disjoint, "Separated to right")]
+    public void Relation_Segment(Axis2 axis,
+                                 float fixedCoordinate,
+                                 float extentMin,
+                                 float extentMax,
+                                 IntersectionRelation expected,
+                                 string scenario)
+    {
+        var rectangle = new AlignedRectangle(Vector2.Zero, 4f);
+        var anchor = axis switch
+        {
+            Axis2.X => new Vector2(0, fixedCoordinate),
+            Axis2.Y => new Vector2(fixedCoordinate, 0),
+            _ => throw new ArgumentOutOfRangeException(nameof(axis))
+        };
+        var segment = new AxisAlignedSegment2(axis,
+                                              anchor,
+                                              new(extentMin, extentMax));
+
+        var relation = rectangle.GetIntersectionRelation(segment);
+
+        relation.Should().Be(expected, because: scenario);
+        rectangle.Overlaps(segment).Should().Be(expected == IntersectionRelation.Overlapping);
+        rectangle.Touches(segment).Should().Be(expected == IntersectionRelation.Touching);
+        rectangle.OverlapsOrTouches(segment).Should().Be(expected != IntersectionRelation.Disjoint);
     }
 
     [Theory(DisplayName = "Relative Position")]

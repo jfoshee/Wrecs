@@ -46,17 +46,36 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
                (BottomLeft.Y == other.BottomLeft.Y && Height == other.Height);
     }
 
-    public readonly bool Intersects(AlignedRectangle other)
+    public readonly IntersectionRelation GetIntersectionRelation(AlignedRectangle other)
     {
+        if (Left > other.Right ||
+            Right < other.Left ||
+            Bottom > other.Top ||
+            Top < other.Bottom)
+        {
+            return IntersectionRelation.Disjoint;
+        }
+
         return Left < other.Right &&
                Right > other.Left &&
                Bottom < other.Top &&
-               Top > other.Bottom;
+               Top > other.Bottom
+            ? IntersectionRelation.Overlapping
+            : IntersectionRelation.Touching;
     }
 
-    public readonly bool Intersects(AxisAlignedSegment2 segment)
+    public readonly bool Overlaps(AlignedRectangle other) =>
+        GetIntersectionRelation(other) == IntersectionRelation.Overlapping;
+
+    public readonly bool Touches(AlignedRectangle other) =>
+        GetIntersectionRelation(other) == IntersectionRelation.Touching;
+
+    public readonly bool OverlapsOrTouches(AlignedRectangle other) =>
+        GetIntersectionRelation(other) != IntersectionRelation.Disjoint;
+
+    public readonly IntersectionRelation GetIntersectionRelation(AxisAlignedSegment2 segment)
     {
-        return segment.Axis switch
+        var overlapsOrTouches = segment.Axis switch
         {
             Axis2.X =>
                 segment.Anchor.Y >= Bottom &&
@@ -70,7 +89,38 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
                 segment.Interval.Min <= Top,
             _ => false
         };
+
+        if (!overlapsOrTouches)
+            return IntersectionRelation.Disjoint;
+
+        var overlaps = segment.Axis switch
+        {
+            Axis2.X =>
+                segment.Anchor.Y > Bottom &&
+                segment.Anchor.Y < Top &&
+                segment.Interval.Max > Left &&
+                segment.Interval.Min < Right,
+            Axis2.Y =>
+                segment.Anchor.X > Left &&
+                segment.Anchor.X < Right &&
+                segment.Interval.Max > Bottom &&
+                segment.Interval.Min < Top,
+            _ => false
+        };
+
+        return overlaps
+            ? IntersectionRelation.Overlapping
+            : IntersectionRelation.Touching;
     }
+
+    public readonly bool Overlaps(AxisAlignedSegment2 segment) =>
+        GetIntersectionRelation(segment) == IntersectionRelation.Overlapping;
+
+    public readonly bool Touches(AxisAlignedSegment2 segment) =>
+        GetIntersectionRelation(segment) == IntersectionRelation.Touching;
+
+    public readonly bool OverlapsOrTouches(AxisAlignedSegment2 segment) =>
+        GetIntersectionRelation(segment) != IntersectionRelation.Disjoint;
 
     /// <summary>
     /// Determines the relative position of the specified point with respect to this rectangle.

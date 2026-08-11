@@ -29,7 +29,7 @@ public class AlignedRectangleCollisionEventSystem :
             {
                 var entityB = entities[j];
                 var rectB = _rectangleSystem.GetTypedState(entityB).Rectangle;
-                if (rectA.Intersects(rectB))
+                if (rectA.Overlaps(rectB))
                 {
                     _events.Add(new CollisionEvent(entityA, entityB));
                 }
