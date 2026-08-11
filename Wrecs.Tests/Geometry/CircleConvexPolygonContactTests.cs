@@ -4,6 +4,67 @@ namespace Wrecs.Tests.Geometry;
 
 public class CircleConvexPolygonContactTests
 {
+    [Fact(DisplayName = "Segment endpoint and polygon vertex use the same circle cap sweep")]
+    public void EquivalentCaps()
+    {
+        var start = new Circle(new(211, 1189), 17);
+        var destination = start with { Center = new Vector2(511, 1189) };
+        var rectangle = new AlignedRectangle(new(370, 1200),
+                                             360,
+                                             600);
+        var segment = new AxisAlignedSegment2(Axis2.Y,
+                                              rectangle.BottomLeft,
+                                              new Interval(rectangle.Bottom,
+                                                           rectangle.Top));
+        var polygon = ConvexPolygon.FromRectangle(rectangle);
+
+        var segmentIntersects = start.TrySweepIntersection(destination,
+                                                           segment,
+                                                           out var segmentHit);
+        var polygonIntersects = start.TrySweepIntersection(destination,
+                                                           polygon,
+                                                           out var polygonHit);
+
+        segmentIntersects.Should().BeTrue();
+        polygonIntersects.Should().BeTrue();
+        polygonHit.Should().Be(segmentHit);
+    }
+
+    [Theory(DisplayName = "Segment endpoint and polygon vertex share initial contact policy")]
+    [InlineData(0, 0, true, "Stationary contact")]
+    [InlineData(12, 5, true, "Movement into contact")]
+    [InlineData(-37, -19, false, "Movement away from contact")]
+    [InlineData(5, -12, false, "Movement tangent to contact")]
+    public void EquivalentInitialContact(float movementX,
+                                         float movementY,
+                                         bool expected,
+                                         string scenario)
+    {
+        var start = new Circle(new(358, 1195), 13);
+        var destination = start with
+        {
+            Center = start.Center + new Vector2(movementX, movementY)
+        };
+        var rectangle = new AlignedRectangle(new(370, 1200),
+                                             360,
+                                             600);
+        var segment = new AxisAlignedSegment2(Axis2.Y,
+                                              rectangle.BottomLeft,
+                                              new Interval(rectangle.Bottom,
+                                                           rectangle.Top));
+        var polygon = ConvexPolygon.FromRectangle(rectangle);
+
+        var segmentIntersects = start.TrySweepIntersection(destination,
+                                                           segment,
+                                                           out var segmentHit);
+        var polygonIntersects = start.TrySweepIntersection(destination,
+                                                           polygon,
+                                                           out var polygonHit);
+
+        segmentIntersects.Should().Be(expected, because: scenario);
+        polygonIntersects.Should().Be(expected, because: scenario);
+        polygonHit.Should().Be(segmentHit, because: scenario);
+    }
 
     [Theory(DisplayName = "Swept circle intersection")]
     // No collision
@@ -56,12 +117,7 @@ public class CircleConvexPolygonContactTests
     {
         var start = new Circle(Vector2.Zero, 1);
         var destination = new Circle(new Vector2(10, 0), 2);
-        var polygon = new ConvexPolygon([
-            new Vector2(4, -2),
-            new Vector2(6, -2),
-            new Vector2(6, 2),
-            new Vector2(4, 2)
-        ]);
+        var polygon = ConvexPolygon.FromRectangle(new(new(4, -2), 2, 4));
 
         var act = () => start.TrySweepIntersection(destination, polygon, out _);
 
@@ -72,12 +128,7 @@ public class CircleConvexPolygonContactTests
     public void TrySweepIntersection_ConvexPolygonStationaryContact_ReturnsImmediateHit()
     {
         var start = new Circle(new Vector2(3, 0), 1);
-        var polygon = new ConvexPolygon([
-            new Vector2(4, -2),
-            new Vector2(6, -2),
-            new Vector2(6, 2),
-            new Vector2(4, 2)
-        ]);
+        var polygon = ConvexPolygon.FromRectangle(new(new(4, -2), 2, 4));
 
         var intersects = start.TrySweepIntersection(start, polygon, out var hit);
 
@@ -90,12 +141,7 @@ public class CircleConvexPolygonContactTests
     {
         var start = new Circle(new Vector2(3, 0), 1);
         var destination = start with { Center = new Vector2(5, 0) };
-        var polygon = new ConvexPolygon([
-            new Vector2(4, -2),
-            new Vector2(6, -2),
-            new Vector2(6, 2),
-            new Vector2(4, 2)
-        ]);
+        var polygon = ConvexPolygon.FromRectangle(new(new(4, -2), 2, 4));
 
         var intersects = start.TrySweepIntersection(destination, polygon, out var hit);
 
@@ -108,12 +154,7 @@ public class CircleConvexPolygonContactTests
     {
         var start = new Circle(new Vector2(3.5f, 0), 1);
         var destination = start with { Center = new Vector2(2, 0) };
-        var polygon = new ConvexPolygon([
-            new Vector2(4, -2),
-            new Vector2(6, -2),
-            new Vector2(6, 2),
-            new Vector2(4, 2)
-        ]);
+        var polygon = ConvexPolygon.FromRectangle(new(new(4, -2), 2, 4));
 
         var intersects = start.TrySweepIntersection(destination, polygon, out var hit);
 
@@ -126,12 +167,7 @@ public class CircleConvexPolygonContactTests
     {
         var start = new Circle(Vector2.Zero, 1);
         var destination = start with { Center = new Vector2(10, 0) };
-        var polygon = new ConvexPolygon([
-            new Vector2(4, -2),
-            new Vector2(6, -2),
-            new Vector2(6, 2),
-            new Vector2(4, 2)
-        ]);
+        var polygon = ConvexPolygon.FromRectangle(new(new(4, -2), 2, 4));
 
         var intersects = start.TrySweepIntersection(destination, polygon, out var hit);
 
@@ -145,12 +181,7 @@ public class CircleConvexPolygonContactTests
     {
         var start = new Circle(new Vector2(0, 3), 1);
         var destination = start with { Center = new Vector2(10, 3) };
-        var polygon = new ConvexPolygon([
-            new Vector2(4, -2),
-            new Vector2(6, -2),
-            new Vector2(6, 2),
-            new Vector2(4, 2)
-        ]);
+        var polygon = ConvexPolygon.FromRectangle(new(new(4, -2), 2, 4));
 
         var intersects = start.TrySweepIntersection(destination, polygon, out var hit);
 
@@ -164,12 +195,7 @@ public class CircleConvexPolygonContactTests
     {
         var start = new Circle(new Vector2(0, 3.1f), 1);
         var destination = start with { Center = new Vector2(10, 3.1f) };
-        var polygon = new ConvexPolygon([
-            new Vector2(4, -2),
-            new Vector2(6, -2),
-            new Vector2(6, 2),
-            new Vector2(4, 2)
-        ]);
+        var polygon = ConvexPolygon.FromRectangle(new(new(4, -2), 2, 4));
 
         start.TrySweepIntersection(destination, polygon, out _).Should().BeFalse();
     }
@@ -179,12 +205,7 @@ public class CircleConvexPolygonContactTests
     {
         var start = new Circle(new Vector2(5, 0), 1);
         var destination = start with { Center = new Vector2(10, 0) };
-        var polygon = new ConvexPolygon([
-            new Vector2(4, -2),
-            new Vector2(6, -2),
-            new Vector2(6, 2),
-            new Vector2(4, 2)
-        ]);
+        var polygon = ConvexPolygon.FromRectangle(new(new(4, -2), 2, 4));
 
         var intersects = start.TrySweepIntersection(destination, polygon, out var hit);
 

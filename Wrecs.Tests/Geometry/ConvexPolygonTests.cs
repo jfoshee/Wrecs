@@ -7,6 +7,36 @@ namespace Wrecs.Tests.Geometry;
 
 public class ConvexPolygonTests
 {
+    [Fact(DisplayName = "Rectangle creates a polygon with matching corners and bounds")]
+    public void FromRectangle()
+    {
+        var rectangle = new AlignedRectangle(new(113, 1290),
+                                             34,
+                                             260);
+
+        var polygon = ConvexPolygon.FromRectangle(rectangle);
+
+        polygon.Vertices.ToArray().Should().Equal(rectangle.Corners);
+        polygon.Bounds.Should().Be(rectangle);
+    }
+
+    [Theory(DisplayName = "Rectangle conversion requires positive dimensions")]
+    [InlineData(0, 260)]
+    [InlineData(34, 0)]
+    [InlineData(-34, 260)]
+    [InlineData(34, -260)]
+    public void InvalidRectangle(float width, float height)
+    {
+        var rectangle = new AlignedRectangle(new(113, 1290),
+                                             width,
+                                             height);
+
+        var act = () => ConvexPolygon.FromRectangle(rectangle);
+
+        act.Should().Throw<ArgumentOutOfRangeException>()
+            .WithParameterName(nameof(rectangle));
+    }
+
     public static IEnumerable<TheoryDataRow<Vector2[]>> TooFewVerticesCases()
     {
         yield return new([]);

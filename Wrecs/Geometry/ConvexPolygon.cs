@@ -40,6 +40,23 @@ public sealed class ConvexPolygon
         Bounds = AlignedRectangle.FromMinMax(min, max);
     }
 
+    /// <summary>
+    /// Creates a convex polygon from the rectangle's four corners.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The rectangle does not have positive width and height.
+    /// </exception>
+    public static ConvexPolygon FromRectangle(AlignedRectangle rectangle)
+    {
+        if (rectangle.Width <= 0f || rectangle.Height <= 0f)
+        {
+            throw new ArgumentOutOfRangeException(nameof(rectangle),
+                                                  "Rectangle width and height must be positive.");
+        }
+
+        return new ConvexPolygon(rectangle.Corners);
+    }
+
     public Vector2 GetVertex(int index) => _vertices[index];
 
     public LineSegment GetEdge(int index) =>
