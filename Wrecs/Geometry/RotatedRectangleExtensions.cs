@@ -42,7 +42,8 @@ public static class RotatedRectangleExtensions
             Vector2 p1 = corners[i];
             Vector2 p2 = corners[(i + 1) % corners.Length];
 
-            if (SegmentUtilities.SegmentsIntersect(p1, p2, lineSegment.Start, lineSegment.End))
+            var edge = new LineSegment(p1, p2);
+            if (edge.OverlapsOrTouches(lineSegment))
             {
                 return true;
             }

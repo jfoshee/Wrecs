@@ -33,6 +33,16 @@ internal static class GeometryTolerance
     }
 
     /// <summary>
+    /// Returns a world-distance margin scaled to one collection of coordinates.
+    /// </summary>
+    public static float GetDistance(ReadOnlySpan<Vector2> points)
+    {
+        var coordinateScale = Max(1f, GetCoordinateScale(points));
+        var representableStep = BitIncrement(coordinateScale) - coordinateScale;
+        return representableStep * RepresentableStepMultiplier;
+    }
+
+    /// <summary>
     /// Returns a world-distance margin scaled to the coordinates of two shapes.
     /// </summary>
     public static float GetDistance(ReadOnlySpan<Vector2> first,

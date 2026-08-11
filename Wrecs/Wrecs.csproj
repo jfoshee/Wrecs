@@ -29,6 +29,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Wrecs.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="../README.md" Pack="true" PackagePath="\" Link="README.md" />
     <None Include="../wrecs-icon.png" Pack="true" PackagePath="\" Link="wrecs-icon.png" />
     <None Include="../wrecs-icon-128.png" Pack="true" PackagePath="\" Link="wrecs-icon-128.png" />

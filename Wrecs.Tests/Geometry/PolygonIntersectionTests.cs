@@ -5,52 +5,44 @@ using static Wrecs.Geometry.SegmentUtilities;
 public class PolygonIntersectionTests
 {
     [Fact(DisplayName = "Intersecting triangles")]
-    public void AnyEdgesIntersect_IntersectingTriangles_ReturnsTrue()
+    public void IntersectingEdges()
     {
-        // Arrange
-        var triangle1 = new[]
-        {
-            new Vector2(0, 0),
-            new Vector2(4, 0),
-            new Vector2(2, 3)
-        };
+        Vector2[] triangle1 =
+        [
+            new(13, 140),
+            new(53, 140),
+            new(33, 440)
+        ];
+        Vector2[] triangle2 =
+        [
+            new(23, 240),
+            new(63, 240),
+            new(43, 540)
+        ];
 
-        var triangle2 = new[]
-        {
-            new Vector2(1, 1),
-            new Vector2(5, 1),
-            new Vector2(3, 4)
-        };
-
-        // Act
         var result = AnyEdgesIntersect(triangle1, triangle2);
 
-        // Assert
         result.Should().BeTrue();
     }
 
     [Fact(DisplayName = "Non-intersecting distinct triangles")]
-    public void AnyEdgesIntersect_NonIntersectingTriangles_ReturnsFalse()
+    public void SeparatedEdges()
     {
-        // Arrange
-        var triangle1 = new[]
-        {
-            new Vector2(0, 0),
-            new Vector2(4, 0),
-            new Vector2(2, 3)
-        };
+        Vector2[] triangle1 =
+        [
+            new(13, 140),
+            new(53, 140),
+            new(33, 440)
+        ];
+        Vector2[] triangle2 =
+        [
+            new(73, 740),
+            new(93, 740),
+            new(83, 1040)
+        ];
 
-        var triangle2 = new[]
-        {
-            new Vector2(6, 6),
-            new Vector2(8, 6),
-            new Vector2(7, 9)
-        };
-
-        // Act
         var result = AnyEdgesIntersect(triangle1, triangle2);
 
-        // Assert
         result.Should().BeFalse();
     }
 
@@ -77,5 +69,27 @@ public class PolygonIntersectionTests
 
         // Assert
         result.Should().BeTrue();
+    }
+
+    [Fact(DisplayName = "Polygon edge query excludes containment without boundary contact")]
+    public void ContainmentOnly()
+    {
+        Vector2[] outer =
+        [
+            new(103, 1100),
+            new(503, 1100),
+            new(503, 2100),
+            new(103, 2100)
+        ];
+        Vector2[] inner =
+        [
+            new(173, 1310),
+            new(311, 1530),
+            new(229, 1860)
+        ];
+
+        var result = AnyEdgesIntersect(outer, inner);
+
+        result.Should().BeFalse();
     }
 }
