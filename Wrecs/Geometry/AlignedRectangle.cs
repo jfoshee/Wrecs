@@ -24,6 +24,9 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
     public readonly float Top => BottomLeft.Y + Height;
     public readonly Vector2 Size => new(Width, Height);
     public readonly Vector2 Center => BottomLeft + new Vector2(Width / 2, Height / 2);
+    public readonly Interval HorizontalRange => new(Left, Right);
+    public readonly Interval VerticalRange => new(Bottom, Top);
+
     public readonly Vector2[] Corners => [
         BottomLeft,
         new Vector2(Right, Bottom),

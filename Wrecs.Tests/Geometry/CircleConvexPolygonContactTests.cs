@@ -14,8 +14,7 @@ public class CircleConvexPolygonContactTests
                                              600);
         var segment = new AxisAlignedSegment2(Axis2.Y,
                                               rectangle.BottomLeft,
-                                              new Interval(rectangle.Bottom,
-                                                           rectangle.Top));
+                                              rectangle.VerticalRange);
         var polygon = ConvexPolygon.FromRectangle(rectangle);
 
         var segmentIntersects = start.TrySweepIntersection(destination,
@@ -50,8 +49,7 @@ public class CircleConvexPolygonContactTests
                                              600);
         var segment = new AxisAlignedSegment2(Axis2.Y,
                                               rectangle.BottomLeft,
-                                              new Interval(rectangle.Bottom,
-                                                           rectangle.Top));
+                                              rectangle.VerticalRange);
         var polygon = ConvexPolygon.FromRectangle(rectangle);
 
         var segmentIntersects = start.TrySweepIntersection(destination,
