@@ -344,6 +344,9 @@ public void AddEntity(IEntity entity, MySnapshot? initialState)
 - Use FluentAssertions: `value.Should().Be(expected)`.
 - Test files mirror the domain: `TurnSystemTests.cs`, `InventorySystemTests.cs`, etc.
 - Inline test-only types (agents, entities, systems) in the test file where they're used unless shared across multiple test files.
+- General-position geometry tests should use distinct X and Y values away from the origin. Avoid using the same values for both axes because symmetric coordinates can hide crossed-wire bugs.
+- Where practical, separate coordinate or delta magnitudes by roughly an order of magnitude so omitted translations and incorrect deltas are observable.
+- Origin, symmetric-coordinate, near-origin, and other base or edge cases are valid when that condition is the explicit subject of the test; label those scenarios accordingly.
 
 ---
 
