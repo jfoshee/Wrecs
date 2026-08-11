@@ -110,4 +110,34 @@ public class RotatedRectangleIntersectionTests
         // Assert
         closest.Should().Be(new Vector2(147, 1417));
     }
+
+    [Theory(DisplayName = "Rotated rectangle and line segment distinguish overlap from touch")]
+    [InlineData(100, 1427, 180, 1427, IntersectionRelation.Overlapping)]
+    [InlineData(154, 1327, 154, 1513, IntersectionRelation.Touching)]
+    [InlineData(173, 1327, 173, 1513, IntersectionRelation.Disjoint)]
+    public void SegmentRelation(float startX,
+                                float startY,
+                                float endX,
+                                float endY,
+                                IntersectionRelation expected)
+    {
+        // Arrange
+        var aligned = AlignedRectangle.Centered(new(137, 1420),
+                                                34,
+                                                260);
+        var angle = Angle.ToRadians(17);
+        var rectangle = new RotatedRectangle(aligned, angle);
+        var rotation = Matrix3x2.CreateRotation(angle, rectangle.Center);
+        var segment = new LineSegment(Vector2.Transform(new(startX, startY), rotation),
+                                      Vector2.Transform(new(endX, endY), rotation));
+
+        // Act
+        var relation = rectangle.GetIntersectionRelation(segment);
+
+        // Assert
+        relation.Should().Be(expected);
+        rectangle.Overlaps(segment).Should().Be(expected == IntersectionRelation.Overlapping);
+        rectangle.Touches(segment).Should().Be(expected == IntersectionRelation.Touching);
+        rectangle.OverlapsOrTouches(segment).Should().Be(expected != IntersectionRelation.Disjoint);
+    }
 }

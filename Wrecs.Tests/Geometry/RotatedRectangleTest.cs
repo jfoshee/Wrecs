@@ -15,7 +15,7 @@ public class RotatedRectangleTest
         var rotatedRectangle = new RotatedRectangle(alignedRectangle, Angle.ToRadians(45));
 
         // Act
-        var corners = rotatedRectangle.Corners;
+        var corners = rotatedRectangle.Corners.ToArray();
 
         // Assert
         corners.Select(p => p.Round(2)).Should().Equal(
@@ -37,12 +37,12 @@ public class RotatedRectangleTest
         var rotatedRectangle = new RotatedRectangle(alignedRectangle, Angle.ToRadians(15));
 
         // Act
-        var corners = rotatedRectangle.Corners;
+        var corners = rotatedRectangle.Corners.ToArray();
 
         // Assert
         corners.Select(p => p.Round(2)).Should().Equal(
             new Vector2(7.14f, 17.16f),     // BottomLeft
-            new Vector2(13.9f, 18.97f),    // BottomRight
+            new Vector2(13.9f, 18.97f),     // BottomRight
             new Vector2(12.86f, 22.84f),    // TopRight
             new Vector2(6.10f, 21.03f)      // TopLeft
         );
@@ -223,8 +223,8 @@ public class RotatedRectangleTest
         // Assert
         dilatedAlignedRectangle.Width.Should().BeApproximately(9, 0.01f);
         dilatedAlignedRectangle.Height.Should().BeApproximately(6, 0.01f);
-        dilatedRectangle.Corners.Should().Equal(dilatedAlignedRectangle.Corners);
-        dilatedRectangle.Corners.First().Should().Be(new Vector2(5.5f, 17), "BottomLeft");
+        dilatedRectangle.Corners.ToArray().Should().Equal(dilatedAlignedRectangle.Corners);
+        dilatedRectangle.Corners[0].Should().Be(new Vector2(5.5f, 17), "BottomLeft");
     }
 
     /// <summary>
@@ -244,7 +244,7 @@ public class RotatedRectangleTest
         // Assert
         dilatedAlignedRectangle.Width.Should().BeApproximately(9, 0.01f);
         dilatedAlignedRectangle.Height.Should().BeApproximately(6, 0.01f);
-        var corners = dilatedRectangle.Corners;
+        var corners = dilatedRectangle.Corners.ToArray();
         corners.Select(p => p.Round(2)).Should().Equal(
             new Vector2(6.43f, 15.94f),     // BottomLeft
             new Vector2(15.12f, 18.27f),    // BottomRight
@@ -278,7 +278,7 @@ public class RotatedRectangleTest
         dilatedAlignedRectangle.Height.Should().BeApproximately(rectHeight + 2 * dilationRadius, 0.01f);
     }
 
-    [Theory(DisplayName = "Intersects LineSegment")]
+    [Theory(DisplayName = "Overlaps or touches line segment")]
     [InlineData(10, 20, 7, 4, 45, 8, 18, 12, 22, true, "fully contained along major axis")]
     [InlineData(10, 20, 7, 4, 45, 6, 16, 14, 24, true, "endpoints outside thru middle along major axis")]
     [InlineData(10, 20, 7, 4, 45, 6, 24, 14, 16, true, "endpoints outside thru middle along minor axis")]
@@ -287,10 +287,17 @@ public class RotatedRectangleTest
     [InlineData(10, 20, 7, 4, 45, 12, 22, 14, 24, true, "ne thru right edge")]
     [InlineData(10, 20, 7, 4, 45, 6, 24, 8, 22, false, "nw above top edge")]
     [InlineData(10, 20, 7, 4, 45, 12, 18, 14, 16, false, "se below bottom edge")]
-    public void Intersects_LineSegment(
-        float centerX, float centerY, float rectWidth, float rectHeight,
-        float rotationDegrees, float startX, float startY, float endX, float endY,
-        bool expected, string scenario)
+    public void SegmentContact(float centerX,
+                               float centerY,
+                               float rectWidth,
+                               float rectHeight,
+                               float rotationDegrees,
+                               float startX,
+                               float startY,
+                               float endX,
+                               float endY,
+                               bool expected,
+                               string scenario)
     {
         // Arrange
         var rotation = Angle.ToRadians(rotationDegrees);
@@ -300,7 +307,7 @@ public class RotatedRectangleTest
         var lineSegment = new LineSegment(new Vector2(startX, startY), new Vector2(endX, endY));
 
         // Act
-        var result = rotatedRectangle.Intersects(lineSegment);
+        var result = rotatedRectangle.OverlapsOrTouches(lineSegment);
 
         // Assert
         result.Should().Be(expected, because: scenario);
