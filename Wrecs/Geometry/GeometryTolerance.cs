@@ -13,6 +13,10 @@ internal static class GeometryTolerance
 {
     private const float RepresentableStepMultiplier = 8f;
 
+    /// <summary>
+    /// Returns a world-distance margin scaled to a point, bounds, and optional
+    /// feature size.
+    /// </summary>
     public static float GetDistance(Vector2 point,
                                     AlignedRectangle bounds,
                                     float featureScale = 0f)
@@ -28,6 +32,9 @@ internal static class GeometryTolerance
         return representableStep * RepresentableStepMultiplier;
     }
 
+    /// <summary>
+    /// Returns a world-distance margin scaled to the coordinates of two shapes.
+    /// </summary>
     public static float GetDistance(ReadOnlySpan<Vector2> first,
                                     ReadOnlySpan<Vector2> second)
     {
@@ -39,6 +46,9 @@ internal static class GeometryTolerance
         return representableStep * RepresentableStepMultiplier;
     }
 
+    /// <summary>
+    /// Returns the largest absolute coordinate in a collection of vertices.
+    /// </summary>
     private static float GetCoordinateScale(ReadOnlySpan<Vector2> vertices)
     {
         var coordinateScale = 0f;
@@ -53,12 +63,20 @@ internal static class GeometryTolerance
         return coordinateScale;
     }
 
+    /// <summary>
+    /// Converts a world-distance margin into a dot-product margin for comparing
+    /// movement with a surface normal.
+    /// </summary>
     public static float GetDirection(float distanceTolerance,
                                      Vector2 movement,
                                      float featureScale) =>
         distanceTolerance * movement.Length() /
         Max(Abs(featureScale), 1f);
 
+    /// <summary>
+    /// Converts a world-distance margin into normalized movement time, where the
+    /// complete movement spans zero through one.
+    /// </summary>
     public static float GetTime(float distanceTolerance, Vector2 movement) =>
         distanceTolerance / Max(movement.Length(), 1f);
 }
