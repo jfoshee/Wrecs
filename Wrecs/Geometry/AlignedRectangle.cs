@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+﻿using static System.MathF;
 
 namespace Wrecs.Geometry;
 
@@ -276,16 +276,12 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
                                               AxisAlignedSegment2 segment,
                                               out SweepHit hit)
     {
-        if (Width != destination.Width || Height != destination.Height)
-        {
-            throw new ArgumentException(
-                "Destination must have the same width and height as the source rectangle.",
-                nameof(destination));
-        }
+        // 1. Validate that the destination describes translation only.
+        var movement = ValidateSweepTranslation(destination);
 
-        // Treat the moving rectangle as its bottom-left corner. Expand the
-        // stationary segment into every corner position that would cause the
-        // rectangle to touch it.
+        // 2. Apply the specialized Minkowski expansion. Treat the moving
+        // rectangle as its bottom-left corner and expand the stationary segment
+        // into every corner position that would cause contact.
         //
         // Because the rectangle extends rightward by Width and upward by Height
         // from its bottom-left corner, the segment's bounds are expanded leftward
@@ -295,35 +291,15 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
                                              bottom: Height,
                                              top: 0f);
 
-        // Describe the bottom-left corner's path as:
-        //
-        //     position(t) = BottomLeft + movement * t
-        //
-        // where t ranges from 0 at the current position to 1 at the destination.
-        var movement = destination.BottomLeft - BottomLeft;
-
-        var startedInside =
-            BottomLeft.X > obstacle.Left &&
-            BottomLeft.X < obstacle.Right &&
-            BottomLeft.Y > obstacle.Bottom &&
-            BottomLeft.Y < obstacle.Top;
-        var startedOnBoundary = !startedInside && obstacle.Contains(BottomLeft);
-
-        var startNormal = startedOnBoundary
-            ? GetBoundaryNormal(obstacle, BottomLeft)
-            : Vector2.Zero;
-        var featureScale = MathF.Max(Width, Height);
+        // 3. Resolve initial overlap or contact before testing the path.
+        var featureScale = Max(Width, Height);
         var distanceTolerance = GeometryTolerance.GetDistance(BottomLeft,
                                                               obstacle,
                                                               featureScale);
-        var directionTolerance = GeometryTolerance.GetDirection(distanceTolerance,
-                                                                movement,
-                                                                featureScale);
-        var initialContact = SweepMath.ClassifyInitialContact(startedInside,
-                                                             startedOnBoundary,
-                                                             movement,
-                                                             startNormal,
-                                                             directionTolerance);
+        var initialContact = ClassifyInitialRelationship(obstacle,
+                                                         movement,
+                                                         distanceTolerance,
+                                                         featureScale);
 
         if (initialContact.IsResolved)
         {
@@ -331,26 +307,73 @@ public record struct AlignedRectangle(Vector2 BottomLeft, float Width, float Hei
             return initialContact.HasHit;
         }
 
+        // 4. Use the slab calculation to find when the tracked corner's path is
+        // inside the expanded obstacle.
         var timeTolerance = GeometryTolerance.GetTime(distanceTolerance, movement);
-        if (!SweepMath.TryGetRayBoundsHit(BottomLeft,
-                                          movement,
-                                          obstacle,
-                                          timeTolerance,
-                                          out hit,
-                                          out var exitTime))
-        {
-            return false;
-        }
-
-        // Ignore contact that exists only at t = 0 while moving away. This lets
-        // a rectangle that starts adjacent to a wall move away from it.
-        if (!startedInside && exitTime <= 0f)
+        if (!SweepMath.TryGetPathBoundsIntersection(BottomLeft,
+                                                    movement,
+                                                    obstacle,
+                                                    timeTolerance,
+                                                    out var intersection))
         {
             hit = default;
             return false;
         }
 
+        // 5. Ignore a numerical intersection that ends at the starting instant
+        // and therefore lies behind the requested movement.
+        if (intersection.ExitTime <= 0f)
+        {
+            hit = default;
+            return false;
+        }
+
+        hit = intersection.EntryHit;
         return true;
+    }
+
+    /// <summary>
+    /// Validates that a destination changes only the rectangle's position and
+    /// returns that translation.
+    /// </summary>
+    private readonly Vector2 ValidateSweepTranslation(AlignedRectangle destination)
+    {
+        if (Width != destination.Width || Height != destination.Height)
+        {
+            throw new ArgumentException(
+                "Destination must have the same width and height as the source rectangle.",
+                nameof(destination));
+        }
+
+        return destination.BottomLeft - BottomLeft;
+    }
+
+    /// <summary>
+    /// Applies the shared initial overlap, touch, and separating-movement policy
+    /// to the rectangle's tracked corner and the expanded obstacle.
+    /// </summary>
+    private readonly InitialSweepResult ClassifyInitialRelationship(AlignedRectangle obstacle,
+                                                                    Vector2 movement,
+                                                                    float distanceTolerance,
+                                                                    float featureScale)
+    {
+        var startedInside = BottomLeft.X > obstacle.Left &&
+                            BottomLeft.X < obstacle.Right &&
+                            BottomLeft.Y > obstacle.Bottom &&
+                            BottomLeft.Y < obstacle.Top;
+        var startedOnBoundary = !startedInside && obstacle.Contains(BottomLeft);
+        var normal = startedOnBoundary
+            ? GetBoundaryNormal(obstacle, BottomLeft)
+            : Vector2.Zero;
+        var directionTolerance = GeometryTolerance.GetDirection(distanceTolerance,
+                                                                movement,
+                                                                featureScale);
+
+        return SweepMath.ClassifyInitialContact(startedInside,
+                                                startedOnBoundary,
+                                                movement,
+                                                normal,
+                                                directionTolerance);
     }
 
     private static Vector2 GetBoundaryNormal(AlignedRectangle obstacle, Vector2 point)

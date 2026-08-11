@@ -1,8 +1,30 @@
+using static System.MathF;
+
 namespace Wrecs.Geometry;
 
 internal readonly record struct InitialSweepResult(bool IsResolved,
                                                    bool HasHit,
                                                    SweepHit Hit);
+
+/// <summary>
+/// The normalized time interval during which a moving point lies inside an
+/// axis-aligned rectangle.
+/// </summary>
+/// <param name="EntryTime">When the point first enters the rectangle.</param>
+/// <param name="ExitTime">When the point leaves the rectangle.</param>
+/// <param name="EntryNormal">
+/// The outward normal of the crossed entry face. Simultaneous X and Y entry
+/// produces a diagonal corner normal.
+/// </param>
+internal readonly record struct PathBoundsIntersection(float EntryTime,
+                                                       float ExitTime,
+                                                       Vector2 EntryNormal)
+{
+    /// <summary>
+    /// Converts the interval entry into a collision hit on the finite path.
+    /// </summary>
+    public SweepHit EntryHit => new(Max(0f, Min(EntryTime, 1f)), EntryNormal);
+}
 
 /// <summary>
 /// Retains the earliest valid hit from a set of sweep candidates.
@@ -21,7 +43,7 @@ internal struct SweepHitAccumulator(float timeTolerance = 0f)
         if (!IsInRange(time))
             return;
 
-        time = Math.Clamp(time, 0f, 1f);
+        time = Max(0f, Min(time, 1f));
         if (HasHit && time >= _hit.Time)
             return;
 
@@ -101,81 +123,100 @@ internal static class SweepMath
             return false;
         }
 
-        time = (-b - MathF.Sqrt(discriminant)) / (2f * movementLengthSquared);
+        time = (-b - Sqrt(discriminant)) / (2f * movementLengthSquared);
         return true;
     }
 
-    public static bool TryGetRayBoundsHit(Vector2 origin,
-                                          Vector2 movement,
-                                          AlignedRectangle bounds,
-                                          float timeTolerance,
-                                          out SweepHit hit,
-                                          out float exitTime)
+    /// <summary>
+    /// Finds the part of a finite point path that lies inside an axis-aligned
+    /// rectangle.
+    /// </summary>
+    /// <remarks>
+    /// This is the slab method: first find the times when the path lies within
+    /// the rectangle's X range, then do the same for its Y range. The path enters
+    /// the rectangle only when those two time intervals overlap.
+    /// </remarks>
+    /// <param name="start">The point's position at normalized time zero.</param>
+    /// <param name="movement">The complete movement from time zero through one.</param>
+    /// <param name="bounds">The stationary rectangle to enter.</param>
+    /// <param name="timeTolerance">Margin used when comparing calculated times.</param>
+    /// <param name="intersection">The shared entry and exit interval when found.</param>
+    public static bool TryGetPathBoundsIntersection(Vector2 start,
+                                                    Vector2 movement,
+                                                    AlignedRectangle bounds,
+                                                    float timeTolerance,
+                                                    out PathBoundsIntersection intersection)
     {
         var entryTime = 0f;
-        exitTime = 1f;
+        var exitTime = 1f;
         var entryNormal = Vector2.Zero;
 
-        if (!RestrictTimeRangeToAxis(origin.X,
-                                     movement.X,
-                                     bounds.Left,
-                                     bounds.Right,
-                                     -Vector2.UnitX,
-                                     Vector2.UnitX,
-                                     timeTolerance,
-                                     ref entryTime,
-                                     ref exitTime,
-                                     ref entryNormal) ||
-            !RestrictTimeRangeToAxis(origin.Y,
-                                     movement.Y,
-                                     bounds.Bottom,
-                                     bounds.Top,
-                                     -Vector2.UnitY,
-                                     Vector2.UnitY,
-                                     timeTolerance,
-                                     ref entryTime,
-                                     ref exitTime,
-                                     ref entryNormal))
+        if (!RestrictToAxisRange(start.X,
+                                 movement.X,
+                                 bounds.Left,
+                                 bounds.Right,
+                                 -Vector2.UnitX,
+                                 Vector2.UnitX,
+                                 timeTolerance,
+                                 ref entryTime,
+                                 ref exitTime,
+                                 ref entryNormal) ||
+            !RestrictToAxisRange(start.Y,
+                                 movement.Y,
+                                 bounds.Bottom,
+                                 bounds.Top,
+                                 -Vector2.UnitY,
+                                 Vector2.UnitY,
+                                 timeTolerance,
+                                 ref entryTime,
+                                 ref exitTime,
+                                 ref entryNormal))
         {
-            hit = default;
+            intersection = default;
             return false;
         }
 
         if (entryNormal != Vector2.Zero)
             entryNormal = Vector2.Normalize(entryNormal);
 
-        hit = new SweepHit(Math.Clamp(entryTime, 0f, 1f), entryNormal);
+        intersection = new PathBoundsIntersection(entryTime,
+                                                  exitTime,
+                                                  entryNormal);
         return true;
     }
 
-    private static bool RestrictTimeRangeToAxis(float origin,
-                                                float movement,
-                                                float rangeMin,
-                                                float rangeMax,
-                                                Vector2 negativeFaceNormal,
-                                                Vector2 positiveFaceNormal,
-                                                float timeTolerance,
-                                                ref float entryTime,
-                                                ref float exitTime,
-                                                ref Vector2 entryNormal)
+    /// <summary>
+    /// Narrows the current path-time interval to the portion inside one
+    /// coordinate range.
+    /// </summary>
+    private static bool RestrictToAxisRange(float startCoordinate,
+                                            float coordinateMovement,
+                                            float rangeMin,
+                                            float rangeMax,
+                                            Vector2 negativeFaceNormal,
+                                            Vector2 positiveFaceNormal,
+                                            float timeTolerance,
+                                            ref float entryTime,
+                                            ref float exitTime,
+                                            ref Vector2 entryNormal)
     {
-        if (movement == 0f)
-            return origin >= rangeMin && origin <= rangeMax;
+        if (coordinateMovement == 0f)
+            return startCoordinate >= rangeMin && startCoordinate <= rangeMax;
 
         float axisEntryTime;
         float axisExitTime;
         Vector2 axisEntryNormal;
 
-        if (movement > 0f)
+        if (coordinateMovement > 0f)
         {
-            axisEntryTime = (rangeMin - origin) / movement;
-            axisExitTime = (rangeMax - origin) / movement;
+            axisEntryTime = (rangeMin - startCoordinate) / coordinateMovement;
+            axisExitTime = (rangeMax - startCoordinate) / coordinateMovement;
             axisEntryNormal = negativeFaceNormal;
         }
         else
         {
-            axisEntryTime = (rangeMax - origin) / movement;
-            axisExitTime = (rangeMin - origin) / movement;
+            axisEntryTime = (rangeMax - startCoordinate) / coordinateMovement;
+            axisExitTime = (rangeMin - startCoordinate) / coordinateMovement;
             axisEntryNormal = positiveFaceNormal;
         }
 
@@ -184,12 +225,12 @@ internal static class SweepMath
             entryTime = axisEntryTime;
             entryNormal = axisEntryNormal;
         }
-        else if (MathF.Abs(axisEntryTime - entryTime) <= timeTolerance)
+        else if (Abs(axisEntryTime - entryTime) <= timeTolerance)
         {
             entryNormal += axisEntryNormal;
         }
 
-        exitTime = MathF.Min(exitTime, axisExitTime);
+        exitTime = Min(exitTime, axisExitTime);
         return entryTime <= exitTime + timeTolerance;
     }
 }

@@ -483,6 +483,24 @@ public class AlignedRectangleTests
         hit.Normal.Should().Be(Vector2.Normalize(new Vector2(-1, -1)));
     }
 
+    [Fact(DisplayName = "Slab sweep combines simultaneous entry normals away from origin")]
+    public void SlabCorner()
+    {
+        var start = new AlignedRectangle(new(113, 1290),
+                                         34,
+                                         260);
+        var destination = start with { BottomLeft = new Vector2(313, 1690) };
+        var point = new AxisAlignedSegment2(Axis2.Y,
+                                            new Vector2(247, 1750),
+                                            new Interval(1750, 1750));
+
+        var intersects = start.TrySweepIntersection(destination, point, out var hit);
+
+        intersects.Should().BeTrue();
+        hit.Time.Should().Be(0.5f);
+        hit.Normal.Should().Be(Vector2.Normalize(new Vector2(-1, -1)));
+    }
+
     [Fact(DisplayName = "Swept rectangle can move away from an adjacent segment")]
     public void TrySweepIntersection_MovingAwayFromContact_ReturnsFalse()
     {
